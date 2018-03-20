@@ -1,0 +1,64 @@
+﻿{
+  //scheme for abstract schedule object
+  //schedule has two properties - groups and root
+  "Schedule": {
+
+    //Schedule groups represent target groups for this schedule.
+    //They allow to know, for whom this schedule is.
+    //Other words - who can use this schedule.
+    //In this sample: this schedule is for student from 11-501 group,
+    //who picked NLP-course for science-module and ASP-course for tech-module
+    "ScheduleGroups": [
+      {
+        "Name": "11-501",
+        "GType": "Academic"
+      },
+      {
+        "Name": "Обработка текстов на естественном языке",
+        "GType": "PickedScientic"
+      },
+      {
+        "Name": "ASP.NET Core",
+        "GType": "PickedTech"
+      }
+      // .. //
+      // . other groups - English for example . //
+      // .. //
+    ],
+
+    //Schedule root is root for schedule-tree.
+    //This tree represents lessons as leathers.
+    //Schedule Root can be "Week" and "Day" and "Lesson",
+    //but lessons should be in last leather-nodes.
+    "ScheduleRoot": {
+
+      //Level represents hierarchy level in schedule tree.
+      //Every child in tree should be one step less in hierarchy:
+      //so "Week"-type node cannot have "Lesson"-type child directly.
+      "ScheduleElemLevel": "Week",
+      //Represent childs of this tree node - set of IScheduleElem
+      "Elems": [
+        {
+          "ScheduleElemLevel": "Day",
+          "Elems": [
+
+            {
+              "ScheduleElemLevel": "Lesson",
+              //Leathers in tree shouldn't have any childs, this property should be null
+              "Elems": null,
+              //additional properties can be added via inheritance of base IScheduleElem
+              "Start": "8:30",
+              "Discipline": "Информационная безопасность"
+            }
+            // .. //
+            // . other lessons . //
+            // .. //
+          ]
+        }
+        // .. //
+        // . other days . //
+        // .. //
+      ]
+    }
+  }
+}

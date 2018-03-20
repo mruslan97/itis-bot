@@ -6,7 +6,7 @@ using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 using Telegram.Bot.Types;
 
-namespace SсheduleBot.AspHost.Commads
+namespace ScheduleBot.AspHost.Commads
 {
     public class EchoCommandArgs : ICommandArgs
     {
