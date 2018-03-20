@@ -6,11 +6,11 @@ using Microsoft.Extensions.Options;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Types;
 
-namespace SheduleBot.AspHost
+namespace ScheduleBot.AspHost
 {
-    public class ItisSheduleBot : BotBase<ItisSheduleBot>
+    public class ItisScheduleBot : BotBase<ItisScheduleBot>
     {
-        public ItisSheduleBot(IOptions<BotOptions<ItisSheduleBot>> botOptions) : base(botOptions)
+        public ItisScheduleBot(IOptions<BotOptions<ItisScheduleBot>> botOptions) : base(botOptions)
         {
         }
 

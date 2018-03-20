@@ -8,10 +8,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SheduleBot.AspHost.Commads;
+using ScheduleBot.AspHost.Commads;
 using Telegram.Bot.Framework.Abstractions;
 
-namespace SheduleBot.AspHost
+namespace ScheduleBot.AspHost
 {
     public class Startup
     {
@@ -30,7 +30,7 @@ namespace SheduleBot.AspHost
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddTelegramBot<ItisSheduleBot>(configuration.GetSection("SheduleBot"))
+            services.AddTelegramBot<ItisScheduleBot>(configuration.GetSection("ScheduleBot"))
                 .AddUpdateHandler<EchoCommand>()
                 .Configure();
         }
@@ -51,7 +51,7 @@ namespace SheduleBot.AspHost
             {
                 
                
-                    var botManager = app.ApplicationServices.GetRequiredService<IBotManager<ItisSheduleBot>>();
+                    var botManager = app.ApplicationServices.GetRequiredService<IBotManager<ItisScheduleBot>>();
                     await botManager.SetWebhookStateAsync(false);
                 
                 // make sure webhook is disabled so we can use long-polling

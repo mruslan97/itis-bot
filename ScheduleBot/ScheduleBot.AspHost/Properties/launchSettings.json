@@ -15,7 +15,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "SheduleBot.AspHost": {
+    "SñheduleBot.AspHost": {
       "commandName": "Project",
       "launchBrowser": false,
       "environmentVariables": {
