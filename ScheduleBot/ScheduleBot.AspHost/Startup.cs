@@ -41,7 +41,7 @@ namespace ScheduleBot.AspHost
             loggerFactory.AddConsole(configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
             ILogger logger = loggerFactory.CreateLogger<Startup>();
-
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

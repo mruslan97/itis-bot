@@ -14,4 +14,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ScheduleServices.Core\ScheduleServices.Core.csproj" />
+  </ItemGroup>
 </Project>
