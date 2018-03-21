@@ -12,7 +12,7 @@ namespace ScheduleServices.Core.Models.Interfaces
     }
     public interface IScheduleElem
     {
-        ScheduleElemLevel Level { get; set; }
-        IEnumerable<IScheduleElem> Elems { get; set; }
+        ScheduleElemLevel Level { get; }
+        IEnumerable<IScheduleElem> Elems { get; }
     }
 }
