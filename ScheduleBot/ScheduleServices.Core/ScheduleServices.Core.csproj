@@ -4,6 +4,5 @@
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Factories" />
-    <Folder Include="Services\Interfaces" />
   </ItemGroup>
 </Project>
