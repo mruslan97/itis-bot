@@ -6,13 +6,15 @@ namespace ScheduleServices.Core.Models.Interfaces
 {
     public enum ScheduleElemLevel
     {
-        Week = 0,
-        Day = 1,
-        Lesson = 2
+        Undefined = 0,
+        Week = 1,
+        Day = 2,
+        Lesson = 3
+        
     }
     public interface IScheduleElem
     {
-        ScheduleElemLevel Level { get; }
-        IEnumerable<IScheduleElem> Elems { get; }
+        ScheduleElemLevel Level { get; set; } 
+        ICollection<IScheduleElem> Elems { get; set; }
     }
 }

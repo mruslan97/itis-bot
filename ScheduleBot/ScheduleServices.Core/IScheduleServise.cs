@@ -18,6 +18,6 @@ namespace ScheduleServices.Core
         Task<ISchedule> GetScheduleForAsync(IEnumerable<IScheduleGroup> groups, DayOfWeek day);
         Task<ISchedule> GetScheduleForAsync(IScheduleGroup group, ScheduleRequiredFor period);
         Task<ISchedule> GetScheduleForAsync(IScheduleGroup group, DayOfWeek day);
-        Task<IEnumerable<IScheduleGroup>> GetAvailibleGroupsAsync();
+        Task<IEnumerable<IScheduleGroup>> GetAvailableGroupsAsync();
     }
 }

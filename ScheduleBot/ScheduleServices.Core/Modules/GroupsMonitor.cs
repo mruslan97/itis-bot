@@ -11,7 +11,8 @@ namespace ScheduleServices.Core.Modules
         {
 
         }
-
+        //todo impl
+        public IEnumerable<IScheduleGroup> AvailableGroups { get; }
         public IEnumerable<IScheduleGroup> RemoveInvalidGroups(IEnumerable<IScheduleGroup> groups)
         {
             throw new NotImplementedException();

@@ -6,10 +6,11 @@ namespace ScheduleServices.Core.Models.Interfaces
 {
     public enum ScheduleGroupType
     {
-        Academic = 0,
-        Eng = 1, 
-        PickedScientic = 2,
-        PickedTech = 3
+        Undefined = 0,
+        Academic = 1,
+        Eng = 2, 
+        PickedScientic = 3,
+        PickedTech = 4
     }
     public interface IScheduleGroup
     {
