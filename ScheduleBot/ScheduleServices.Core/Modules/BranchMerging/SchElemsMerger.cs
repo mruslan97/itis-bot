@@ -8,25 +8,25 @@ namespace ScheduleServices.Core.Modules.BranchMerging
 {
     public class SchElemsMerger
     {
-        public void Merge(IScheduleElem scheduleRoot, IScheduleElem resultScheduleRoot)
+        public void Merge(IScheduleElem sourceNode, IScheduleElem targetNode)
         {
-            if (scheduleRoot.Level == resultScheduleRoot.Level)
+            if (sourceNode.Level == targetNode.Level)
             {
-                GetStrategy(resultScheduleRoot.Level)
-                    .RootToRootMerge(scheduleRoot, resultScheduleRoot, Merge);
+                GetStrategy(targetNode.Level)
+                    .RootToRootMerge(sourceNode, targetNode, Merge);
             }
             else
             {
-                if (Math.Abs(scheduleRoot.Level - resultScheduleRoot.Level) > 2)
+                if (Math.Abs(sourceNode.Level - targetNode.Level) > 2 && targetNode.Level != ScheduleElemLevel.Undefined)
                     throw new ScheduleConstructorException("wrong schedule trees");
-                //scheduleRoot.Level == Day and resultScheduleRoot.Level == Week case f.e.
-                if (scheduleRoot.Level > resultScheduleRoot.Level)
+                //sourceNode.Level == Day and targetNode.Level == Week case f.e.
+                if (sourceNode.Level > targetNode.Level)
                 {
-                    GetStrategy(resultScheduleRoot.Level).ParentToChild(ref scheduleRoot, ref resultScheduleRoot, Merge);
+                    GetStrategy(targetNode.Level).ParentToChild(ref sourceNode, ref targetNode, Merge);
                 }
                 else
                 {
-                    GetStrategy(resultScheduleRoot.Level).ChildToParent(ref scheduleRoot, ref resultScheduleRoot, Merge);
+                    GetStrategy(targetNode.Level).ChildToParent(ref sourceNode, ref targetNode, Merge);
                 }
             }
         }
