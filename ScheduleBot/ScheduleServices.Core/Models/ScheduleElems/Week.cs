@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ScheduleServices.Core.Models.Comparison;
 using ScheduleServices.Core.Models.Interfaces;
 
 namespace ScheduleServices.Core.Models.ScheduleElems
@@ -13,7 +14,7 @@ namespace ScheduleServices.Core.Models.ScheduleElems
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Level == other.Level && Equals(Elems, other.Elems);
+            return Level == other.Level && Elems.UnorderEquals(other.Elems);
         }
 
         public bool Equals(IScheduleElem other)

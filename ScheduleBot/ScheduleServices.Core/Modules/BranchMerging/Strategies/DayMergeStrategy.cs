@@ -22,13 +22,13 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
                 return;
             }
 
-            var sourceDay = (Day)source;
-            var targetDay = (Day)target;
+            var sourceDay = (Day) source;
+            var targetDay = (Day) target;
 
             if (sourceDay.DayOfWeek != targetDay.DayOfWeek)
             {
-                //todo: throw exc?
-                return;
+                throw new ArgumentException(String.Format("Impossible to merge different days of week, {0}",
+                    JsonConvert.SerializeObject(source), JsonConvert.SerializeObject(target)));
             }
 
             if (targetDay.Elems == null || !targetDay.Elems.Any())
@@ -38,7 +38,7 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
             }
 
 
-            targetDay.Elems = targetDay.Elems.Concat(sourceDay.Elems).Cast<Lesson>().OrderBy(elem => elem.BeginTime)
+            targetDay.Elems = targetDay.Elems.Union(sourceDay.Elems).Cast<Lesson>().OrderBy(elem => elem.BeginTime)
                 .ToList<IScheduleElem>();
             Lesson prev = null;
             foreach (var lesson in targetDay.Elems.Cast<Lesson>())

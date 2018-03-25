@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ScheduleServices.Core.Models.Comparison;
 using ScheduleServices.Core.Models.Interfaces;
 
 namespace ScheduleServices.Core.Models
@@ -14,7 +15,7 @@ namespace ScheduleServices.Core.Models
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Equals(ScheduleGroups, other.ScheduleGroups) && Equals(ScheduleRoot, other.ScheduleRoot);
+            return ScheduleGroups.UnorderEquals(other.ScheduleGroups) && Equals(ScheduleRoot, other.ScheduleRoot);
         }
 
         public override bool Equals(object obj)

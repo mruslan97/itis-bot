@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ScheduleServices.Core.Models.Comparison;
 using ScheduleServices.Core.Models.Interfaces;
 
 namespace ScheduleServices.Core.Models.ScheduleElems
@@ -25,10 +26,10 @@ namespace ScheduleServices.Core.Models.ScheduleElems
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Level == other.Level && Equals(Elems, other.Elems) && IsOnEvenWeek == other.IsOnEvenWeek &&
+            return Level == other.Level  && IsOnEvenWeek == other.IsOnEvenWeek &&
                    string.Equals(Discipline, other.Discipline) && string.Equals(Teacher, other.Teacher) &&
                    string.Equals(Place, other.Place) && BeginTime.Equals(other.BeginTime) &&
-                   Duration.Equals(other.Duration);
+                   Duration.Equals(other.Duration) && Elems.UnorderEquals(other.Elems);
         }
 
         public override bool Equals(object obj)
