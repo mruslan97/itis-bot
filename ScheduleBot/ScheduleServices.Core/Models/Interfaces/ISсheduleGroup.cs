@@ -12,7 +12,7 @@ namespace ScheduleServices.Core.Models.Interfaces
         PickedScientic = 3,
         PickedTech = 4
     }
-    public interface IScheduleGroup
+    public interface IScheduleGroup : IEquatable<IScheduleGroup>
     {
         ScheduleGroupType GType { get; set; }
         string Name { get; set; }

@@ -6,9 +6,10 @@ using ScheduleServices.Core.Modules.BranchMerging.Strategies;
 
 namespace ScheduleServices.Core.Modules.BranchMerging
 {
+    
     public class SchElemsMerger
     {
-        public void Merge(IScheduleElem sourceNode, IScheduleElem targetNode)
+        public void Merge(ref IScheduleElem sourceNode,ref IScheduleElem targetNode)
         {
             if (sourceNode.Level == targetNode.Level)
             {
@@ -22,11 +23,11 @@ namespace ScheduleServices.Core.Modules.BranchMerging
                 //sourceNode.Level == Day and targetNode.Level == Week case f.e.
                 if (sourceNode.Level > targetNode.Level)
                 {
-                    GetStrategy(targetNode.Level).ParentToChild(ref sourceNode, ref targetNode, Merge);
+                    GetStrategy(targetNode.Level).ChildToParent(ref sourceNode, ref targetNode, Merge);
                 }
                 else
                 {
-                    GetStrategy(targetNode.Level).ChildToParent(ref sourceNode, ref targetNode, Merge);
+                    GetStrategy(targetNode.Level).ParentToChild(ref sourceNode, ref targetNode, Merge);
                 }
             }
         }

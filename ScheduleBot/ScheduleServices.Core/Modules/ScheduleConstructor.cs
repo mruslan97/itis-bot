@@ -22,43 +22,57 @@ namespace ScheduleServices.Core.Modules
             this.branchMerger = new SchElemsMerger();
         }
 
-        public Task<ISchedule> ConstructFromMany(IEnumerable<ISchedule> schedules)
+        public Task<ISchedule> ConstructFromMany(IEnumerable<ISchedule> schedules) 
         {
             return Task.Run<ISchedule>(() =>
             {
-                //todo: check try-catch
-                var result = elemsFactory.GetSchedule();
-                Dictionary<ScheduleGroupType, string> uniqGroups = new Dictionary<ScheduleGroupType, string>();
-
-
-                foreach (var schedule in schedules)
+                try
                 {
-                    if (!schedule.ScheduleGroups.Any(group => HasConflictsWithMemory(group, uniqGroups)))
-                    {
-                        branchMerger.Merge(schedule.ScheduleRoot, result.ScheduleRoot);
-                    }
-                    else
-                    {
-                        throw new ScheduleConstructorException("Incompatible groups in schedule parts found");
-                    }
-                }
+                    var result = elemsFactory.GetSchedule();
+                    Dictionary<ScheduleGroupType, IScheduleGroup> uniqGroups = new Dictionary<ScheduleGroupType, IScheduleGroup>();
 
-                return result;
+
+                    foreach (var schedule in schedules)
+                    {
+                        if (!schedule.ScheduleGroups.Any(group => HasConflictsWithMemory(group, uniqGroups)))
+                        {
+                            var incomingRoot = schedule.ScheduleRoot;
+                            var currentResultRoot = result.ScheduleRoot;
+                            branchMerger.Merge(ref incomingRoot, ref currentResultRoot);
+                            result.ScheduleRoot = currentResultRoot;
+                        }
+                        else
+                        {
+                            throw new ScheduleConstructorException("Incompatible groups in schedule parts found");
+                        }
+                    }
+
+                    foreach (var group in uniqGroups.Values)
+                    {
+                        result.ScheduleGroups.Add(group);
+                    }
+                    return result;
+                }
+                catch (Exception e)
+                {
+                    throw new ScheduleConstructorException("An exception occured while constructing schedule.", e);
+                }
+                
             });
         }
 
 
-        private bool HasConflictsWithMemory(IScheduleGroup group, Dictionary<ScheduleGroupType, string> memory)
+        private bool HasConflictsWithMemory(IScheduleGroup group, Dictionary<ScheduleGroupType, IScheduleGroup> memory)
         {
-            if (group.Name != null)
+            if (group != null)
             {
                 if (!memory.ContainsKey(group.GType))
                 {
-                    memory.Add(group.GType, group.Name);
+                    memory.Add(group.GType, group);
                     return false;
                 }
 
-                return !group.Name.Equals(memory[group.GType], StringComparison.OrdinalIgnoreCase);
+                return !group.Equals(memory[group.GType]);
             }
 
             throw new ArgumentNullException("Name for group cannot be null");

@@ -4,7 +4,7 @@ using ScheduleServices.Core.Models.Interfaces;
 
 namespace ScheduleServices.Core.Models.ScheduleElems
 {
-    public class Lesson : IScheduleElem
+    public class Lesson : IScheduleElem, IEquatable<Lesson>
     {
         public ScheduleElemLevel Level { get; set; } = ScheduleElemLevel.Lesson;
         public ICollection<IScheduleElem> Elems { get; set; } = null;
@@ -20,5 +20,43 @@ namespace ScheduleServices.Core.Models.ScheduleElems
         public TimeSpan BeginTime { get; set; }
 
         public TimeSpan Duration { get; set; }
+
+        public bool Equals(Lesson other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Level == other.Level && Equals(Elems, other.Elems) && IsOnEvenWeek == other.IsOnEvenWeek &&
+                   string.Equals(Discipline, other.Discipline) && string.Equals(Teacher, other.Teacher) &&
+                   string.Equals(Place, other.Place) && BeginTime.Equals(other.BeginTime) &&
+                   Duration.Equals(other.Duration);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Lesson) obj);
+        }
+        public bool Equals(IScheduleElem obj)
+        {
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Lesson)obj);
+        }
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = (int) Level;
+                hashCode = (hashCode * 397) ^ (Elems != null ? Elems.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ IsOnEvenWeek.GetHashCode();
+                hashCode = (hashCode * 397) ^ (Discipline != null ? Discipline.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Teacher != null ? Teacher.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Place != null ? Place.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ BeginTime.GetHashCode();
+                hashCode = (hashCode * 397) ^ Duration.GetHashCode();
+                return hashCode;
+            }
+        }
     }
 }

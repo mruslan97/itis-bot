@@ -12,7 +12,7 @@ namespace ScheduleServices.Core.Models.Interfaces
         Lesson = 3
         
     }
-    public interface IScheduleElem
+    public interface IScheduleElem : IEquatable<IScheduleElem>
     {
         ScheduleElemLevel Level { get; set; } 
         ICollection<IScheduleElem> Elems { get; set; }

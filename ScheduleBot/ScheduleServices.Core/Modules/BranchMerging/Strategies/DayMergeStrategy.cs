@@ -15,7 +15,7 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
         }
 
         public override void RootToRootMerge(IScheduleElem source, IScheduleElem target,
-            Action<IScheduleElem, IScheduleElem> recurrentStep)
+            ReccurentStep recurrentStep)
         {
             if (source == null || source.Elems == null || !source.Elems.Any())
             {
@@ -59,13 +59,13 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
         }
 
         public override void ParentToChild(ref IScheduleElem sourceParent, ref IScheduleElem targetChild,
-            Action<IScheduleElem, IScheduleElem> recurrentStep)
+            ReccurentStep recurrentStep)
         {
             throw new NotImplementedException();
         }
 
         public override void ChildToParent(ref IScheduleElem sourceChild, ref IScheduleElem targetParent,
-            Action<IScheduleElem, IScheduleElem> recurrentStep)
+            ReccurentStep recurrentStep)
         {
             throw new NotImplementedException();
         }

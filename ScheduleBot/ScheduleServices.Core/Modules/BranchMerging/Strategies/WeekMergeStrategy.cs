@@ -14,7 +14,7 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
         }
 
         public override void RootToRootMerge(IScheduleElem source, IScheduleElem target,
-            Action<IScheduleElem, IScheduleElem> recurrentStep)
+            ReccurentStep recurrentStep)
         {
             if (source == null || source.Elems == null || !source.Elems.Any())
             {
@@ -40,13 +40,14 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
                         return elems.First();
                     var first = elems.First();
                     //next step merge
-                    recurrentStep.Invoke(elems.ElementAt(1), first);
+                    var second = elems.ElementAt(1);
+                    recurrentStep.Invoke(ref second,ref first);
                     return first;
                 }).ToList();
         }
 
         public override void ParentToChild(ref IScheduleElem sourceParent, ref IScheduleElem targetChild,
-            Action<IScheduleElem, IScheduleElem> recurrentStep)
+            ReccurentStep recurrentStep)
         {
             if (sourceParent == null || sourceParent.Elems == null)
             {
@@ -77,7 +78,7 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
         }
 
         public override void ChildToParent(ref IScheduleElem sourceChild, ref IScheduleElem targetParent,
-            Action<IScheduleElem, IScheduleElem> recurrentStep)
+            ReccurentStep recurrentStep)
         {
             if (sourceChild == null)
             {

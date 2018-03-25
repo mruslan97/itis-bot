@@ -11,17 +11,17 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
         {
         }
 
-        public override void RootToRootMerge(IScheduleElem source, IScheduleElem target, Action<IScheduleElem, IScheduleElem> recurrentStep)
+        public override void RootToRootMerge(IScheduleElem source, IScheduleElem target, ReccurentStep recurrentStep)
         {
             //no body
         }
 
-        public override void ParentToChild(ref IScheduleElem sourceParent, ref IScheduleElem targetChild, Action<IScheduleElem, IScheduleElem> recurrentStep)
+        public override void ParentToChild(ref IScheduleElem sourceParent, ref IScheduleElem targetChild, ReccurentStep recurrentStep)
         {
             throw new NotSupportedException();
         }
 
-        public override void ChildToParent(ref IScheduleElem sourceChild, ref IScheduleElem targetParent, Action<IScheduleElem, IScheduleElem> recurrentStep)
+        public override void ChildToParent(ref IScheduleElem sourceChild, ref IScheduleElem targetParent, ReccurentStep recurrentStep)
         {
             targetParent = sourceChild;
         }

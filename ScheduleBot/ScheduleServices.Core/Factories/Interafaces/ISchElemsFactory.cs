@@ -11,6 +11,6 @@ namespace ScheduleServices.Core.Factories.Interafaces
         Schedule GetSchedule();
         Week GetWeek(int days = 6);
         Day GetDay(DayOfWeek dayOfWeek = DayOfWeek.Monday);
-        Lesson GetLesson(string disciplineName, string teacher, string place, TimeSpan beginTime, TimeSpan duration = default(TimeSpan));
+        Lesson GetLesson(string disciplineName, string teacher, string place, TimeSpan beginTime, TimeSpan duration = default(TimeSpan), bool? isOnEvenWeek = null);
     }
 }
