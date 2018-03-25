@@ -46,7 +46,7 @@ namespace ScheduleServices.Core.Tests.Modules
             Assert.AreEqual(control.Item1, res);
         }
 
-
+        [Test]
         [TestCaseSource(nameof(PartitonalLayersEmptySchedules))]
         public void DoNotChangeFull_WhenCollectsFromFullAndItsPart(
             ValueTuple<ISchedule, IScheduleGroup, Week, Day, Lesson> part)
@@ -106,7 +106,7 @@ namespace ScheduleServices.Core.Tests.Modules
             {
                 try
                 {
-                    CollectSchedule_FromSingleSchedule(copy);
+                    CollectSchedule_FromSingleSchedule(copy).Wait();
                     CollectSchedule_FromTwoWithDiffLevelsAndSameGroup();
                 }
                 catch (Exception e)
