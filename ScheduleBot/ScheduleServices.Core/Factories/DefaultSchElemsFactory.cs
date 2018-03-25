@@ -15,7 +15,7 @@ namespace ScheduleServices.Core.Factories
             return new Schedule()
             {
                 ScheduleGroups = new List<IScheduleGroup>(),
-                ScheduleRoot = new Undefined()
+                ScheduleRoot = GetUndefined()
             };
         }
 
@@ -49,6 +49,11 @@ namespace ScheduleServices.Core.Factories
                 Teacher = teacher,
                 Place = place
             };
+        }
+
+        public Undefined GetUndefined()
+        {
+            return new Undefined() {Elems = new List<IScheduleElem>()};
         }
     }
 }

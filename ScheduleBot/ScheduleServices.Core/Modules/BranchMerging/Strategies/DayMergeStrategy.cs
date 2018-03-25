@@ -14,12 +14,12 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
         {
         }
 
-        public override void RootToRootMerge(IScheduleElem source, IScheduleElem target,
+        public override bool TryRootToRootMerge(IScheduleElem source, IScheduleElem target,
             ReccurentStep recurrentStep)
         {
             if (source == null || source.Elems == null || !source.Elems.Any())
             {
-                return;
+                return true;
             }
 
             var sourceDay = (Day) source;
@@ -27,14 +27,13 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
 
             if (sourceDay.DayOfWeek != targetDay.DayOfWeek)
             {
-                throw new ArgumentException(String.Format("Impossible to merge different days of week, {0}",
-                    JsonConvert.SerializeObject(source), JsonConvert.SerializeObject(target)));
+                return false;
             }
 
             if (targetDay.Elems == null || !targetDay.Elems.Any())
             {
                 targetDay.Elems = sourceDay.Elems;
-                return;
+                return true;
             }
 
 
@@ -56,6 +55,8 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
                         "Day's lessons merge exception: time intersects: {0}, {1}", JsonConvert.SerializeObject(prev),
                         JsonConvert.SerializeObject(lesson)));
             }
+
+            return true;
         }
 
         public override void ParentToChild(ref IScheduleElem sourceParent, ref IScheduleElem targetChild,

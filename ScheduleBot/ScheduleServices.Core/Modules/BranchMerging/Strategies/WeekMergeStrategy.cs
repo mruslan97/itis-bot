@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleElems;
 
@@ -13,24 +14,24 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
         {
         }
 
-        public override void RootToRootMerge(IScheduleElem source, IScheduleElem target,
+        public override bool TryRootToRootMerge(IScheduleElem source, IScheduleElem target,
             ReccurentStep recurrentStep)
         {
             if (source == null || source.Elems == null || !source.Elems.Any())
             {
-                return;
+                return true;
             }
 
-            var sourceWeek = (Week)source;
-            var targetWeek = (Week)target;
+            var sourceWeek = (Week) source;
+            var targetWeek = (Week) target;
             if (targetWeek.Elems == null || !targetWeek.Elems.Any())
             {
                 targetWeek.Elems = sourceWeek.Elems;
-                return;
+                return true;
             }
 
 
-            targetWeek.Elems = targetWeek.Elems.Concat(sourceWeek.Elems).GroupBy(elem => ((Day)elem).DayOfWeek,
+            targetWeek.Elems = targetWeek.Elems.Concat(sourceWeek.Elems).GroupBy(elem => ((Day) elem).DayOfWeek,
                 (dayOfWeek, elems) =>
                 {
                     var count = elems.Count();
@@ -41,9 +42,12 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
                     var first = elems.First();
                     //next step merge
                     var second = elems.ElementAt(1);
-                    recurrentStep.Invoke(ref second,ref first);
+                    if (!recurrentStep.Invoke(ref second, ref first))
+                        throw new ArgumentException(String.Format("Bad arguments: {0}, {1}",
+                            JsonConvert.SerializeObject(second), JsonConvert.SerializeObject(first)));
                     return first;
                 }).ToList();
+            return true;
         }
 
         public override void ParentToChild(ref IScheduleElem sourceParent, ref IScheduleElem targetChild,
@@ -57,17 +61,18 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
             }
 
             //var sourceWeek = (Week) sourceParent;
-            var targetDay = (Day)targetChild;
+            var targetDay = (Day) targetChild;
             var days = sourceParent.Elems.Cast<Day>().ToList();
             var commonDays = days.Count(diw => diw.DayOfWeek == targetDay.DayOfWeek);
             if (commonDays > 1)
                 throw new ScheduleConstructorException("Several same day's of week");
             if (commonDays == 1)
             {
-                var common = days.FirstOrDefault(diw => diw.DayOfWeek == targetDay.DayOfWeek);
+                IScheduleElem common = days.FirstOrDefault(diw => diw.DayOfWeek == targetDay.DayOfWeek);
                 //swap target and source to save all into week branch
-                SchElemsMerger.GetStrategy(ScheduleElemLevel.Day)
-                    .RootToRootMerge(targetDay, common, recurrentStep);
+                if (!recurrentStep.Invoke(ref targetChild,ref common))
+                    throw new ArgumentException(String.Format("Bad arguments: {0}, {1}",
+                        JsonConvert.SerializeObject(sourceParent), JsonConvert.SerializeObject(common)));
             }
             else
             {
@@ -93,17 +98,19 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
                 targetParent.Elems.Add(sourceChild);
             else
             {
-                var sourceDay = (Day)sourceChild;
+                var sourceDay = (Day) sourceChild;
                 var days = targetParent.Elems.Cast<Day>().ToList();
                 var commonDays = days.Count(diw => diw.DayOfWeek == sourceDay.DayOfWeek);
                 if (commonDays > 1)
                     throw new ScheduleConstructorException("Several same day's of week");
                 if (commonDays == 1)
                 {
-                    var common = days.FirstOrDefault(diw => diw.DayOfWeek == sourceDay.DayOfWeek);
+                    IScheduleElem common = days.FirstOrDefault(diw => diw.DayOfWeek == sourceDay.DayOfWeek);
                     //swap target and source to save all into week branch
-                    SchElemsMerger.GetStrategy(ScheduleElemLevel.Day)
-                        .RootToRootMerge(sourceDay, common, recurrentStep);
+                    //todo: remove get strategy!!!!!
+                    if (!recurrentStep.Invoke(ref sourceChild, ref common))
+                        throw new ArgumentException(String.Format("Bad arguments: {0}, {1}",
+                            JsonConvert.SerializeObject(sourceChild), JsonConvert.SerializeObject(common)));
                 }
                 else
                 {

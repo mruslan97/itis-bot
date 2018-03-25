@@ -27,9 +27,9 @@ namespace ScheduleServices.Core.Tests.Modules
 
         [Test]
         [TestCaseSource(nameof(DifferentLayersEmptySchedules))]
-        public void CollectSchedule_FromSingleSchedule(ValueTuple<ISchedule, IScheduleGroup, Week, Day, Lesson> schedule)
+        public async Task CollectSchedule_FromSingleSchedule(ValueTuple<ISchedule, IScheduleGroup, Week, Day, Lesson> schedule)
         {
-            var res = constructor.ConstructFromMany(new[] {schedule.Item1}).Result;
+            var res = await constructor.ConstructFromMany(new[] {schedule.Item1});
 
             Assert.AreEqual(schedule.Item1, res);
         }
@@ -84,6 +84,16 @@ namespace ScheduleServices.Core.Tests.Modules
             Assert.ThrowsAsync<ScheduleConstructorException>(async () => await constructor.ConstructFromMany(new[] {sch1.Item1, sch2.Item1}));
 
 
+        }
+
+        [Test]
+        public void CollectTwoBottomLevelSchedules_ToOneTop()
+        {
+            var bottomLevel1 = GetEmpty2BottomLayersSchedule(factory);
+            bottomLevel1.Item4.DayOfWeek = DayOfWeek.Friday;
+            var bottomLevel2 = GetEmpty2BottomLayersSchedule(factory);
+            var res = constructor.ConstructFromMany(new[] {bottomLevel2.Item1, bottomLevel1.Item1}).Result;
+            Assert.True(res.ScheduleRoot.Level == ScheduleElemLevel.Week);
         }
 
         [Test]

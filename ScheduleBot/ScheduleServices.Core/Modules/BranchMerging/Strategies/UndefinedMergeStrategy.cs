@@ -11,9 +11,10 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
         {
         }
 
-        public override void RootToRootMerge(IScheduleElem source, IScheduleElem target, ReccurentStep recurrentStep)
+        public override bool TryRootToRootMerge(IScheduleElem source, IScheduleElem target, ReccurentStep recurrentStep)
         {
             //no body
+            return true;
         }
 
         public override void ParentToChild(ref IScheduleElem sourceParent, ref IScheduleElem targetChild, ReccurentStep recurrentStep)

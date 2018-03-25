@@ -19,7 +19,7 @@ namespace ScheduleServices.Core.Modules
         public ScheduleConstructor(ISchElemsFactory elemsFactory)
         {
             this.elemsFactory = elemsFactory;
-            this.branchMerger = new SchElemsMerger();
+            this.branchMerger = new SchElemsMerger(elemsFactory);
         }
 
         public Task<ISchedule> ConstructFromMany(IEnumerable<ISchedule> schedules) 
