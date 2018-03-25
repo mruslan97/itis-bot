@@ -19,6 +19,7 @@ namespace ScheduleServices.Core.Tests.Modules
         private static DefaultSchElemsFactory factory = new DefaultSchElemsFactory();
 
         private ScheduleConstructor constructor;
+
         [SetUp]
         public void SetUp()
         {
@@ -27,7 +28,8 @@ namespace ScheduleServices.Core.Tests.Modules
 
         [Test]
         [TestCaseSource(nameof(DifferentLayersEmptySchedules))]
-        public async Task CollectSchedule_FromSingleSchedule(ValueTuple<ISchedule, IScheduleGroup, Week, Day, Lesson> schedule)
+        public async Task CollectSchedule_FromSingleSchedule(
+            ValueTuple<ISchedule, IScheduleGroup, Week, Day, Lesson> schedule)
         {
             var res = await constructor.ConstructFromMany(new[] {schedule.Item1});
 
@@ -37,19 +39,21 @@ namespace ScheduleServices.Core.Tests.Modules
         [Test]
         public void CollectSchedule_FromTwoWithDiffLevelsAndSameGroup()
         {
-            var res = constructor.ConstructFromMany(new[] { GetEmpty2TopLayersSchedule(factory).Item1, GetEmpty2BottomLayersSchedule(factory).Item1 }).Result;
+            var res = constructor.ConstructFromMany(new[]
+                {GetEmpty2TopLayersSchedule(factory).Item1, GetEmpty2BottomLayersSchedule(factory).Item1}).Result;
             var control = GetEmpty3LayersSchedule(factory);
 
             Assert.AreEqual(control.Item1, res);
         }
 
-        
+
         [TestCaseSource(nameof(PartitonalLayersEmptySchedules))]
-        public void DoNotChangeFull_WhenCollectsFromFullAndItsPart(ValueTuple<ISchedule, IScheduleGroup, Week, Day, Lesson> part)
+        public void DoNotChangeFull_WhenCollectsFromFullAndItsPart(
+            ValueTuple<ISchedule, IScheduleGroup, Week, Day, Lesson> part)
         {
             var control = GetEmpty3LayersSchedule(factory);
-            
-            var res = constructor.ConstructFromMany(new[] { GetEmpty3LayersSchedule(factory).Item1, part.Item1 }).Result;
+
+            var res = constructor.ConstructFromMany(new[] {GetEmpty3LayersSchedule(factory).Item1, part.Item1}).Result;
 
 
             Assert.AreEqual(control.Item1, res);
@@ -66,11 +70,9 @@ namespace ScheduleServices.Core.Tests.Modules
             var control = GetEmpty3LayersSchedule(factory);
             control.Item1.ScheduleGroups.Add(sch1.Item2);
 
-            var res = constructor.ConstructFromMany(new[] { sch1.Item1, sch2.Item1 }).Result;
+            var res = constructor.ConstructFromMany(new[] {sch1.Item1, sch2.Item1}).Result;
 
             Assert.AreEqual(control.Item1, res);
-            
-
         }
 
         [Test]
@@ -81,9 +83,8 @@ namespace ScheduleServices.Core.Tests.Modules
             sch1.Item2.Name = "Other";
             var sch2 = GetEmpty3LayersSchedule(factory);
 
-            Assert.ThrowsAsync<ScheduleConstructorException>(async () => await constructor.ConstructFromMany(new[] {sch1.Item1, sch2.Item1}));
-
-
+            Assert.ThrowsAsync<ScheduleConstructorException>(async () =>
+                await constructor.ConstructFromMany(new[] {sch1.Item1, sch2.Item1}));
         }
 
         [Test]
@@ -107,19 +108,16 @@ namespace ScheduleServices.Core.Tests.Modules
                 {
                     CollectSchedule_FromSingleSchedule(copy);
                     CollectSchedule_FromTwoWithDiffLevelsAndSameGroup();
-                    
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
                 }
-                var res = constructor.ConstructFromMany(new[] { copy.Item1 }).Result;
+
+                var res = constructor.ConstructFromMany(new[] {copy.Item1}).Result;
                 Assert.AreEqual(control.Item1, res);
                 Assert.AreEqual(control.Item1, copy.Item1);
             }
-           
-
-
         }
 
         private static IEnumerable<(ISchedule, IScheduleGroup, Week, Day, Lesson)> DifferentLayersEmptySchedules()
@@ -129,14 +127,14 @@ namespace ScheduleServices.Core.Tests.Modules
             {
                 yield return schedule;
             }
-
         }
+
         private static IEnumerable<(ISchedule, IScheduleGroup, Week, Day, Lesson)> PartitonalLayersEmptySchedules()
         {
-            
             yield return GetEmpty2BottomLayersSchedule(factory);
             yield return GetEmpty2TopLayersSchedule(factory);
         }
+
         private static (ISchedule, IScheduleGroup, Week, Day, Lesson) GetEmpty3LayersSchedule(ISchElemsFactory factory)
         {
             var res = factory.GetSchedule();
@@ -151,19 +149,21 @@ namespace ScheduleServices.Core.Tests.Modules
             return (res, group, null, day, lesson);
         }
 
-        private static (ISchedule, IScheduleGroup, Week, Day, Lesson) GetEmpty2TopLayersSchedule(ISchElemsFactory factory)
+        private static (ISchedule, IScheduleGroup, Week, Day, Lesson) GetEmpty2TopLayersSchedule(
+            ISchElemsFactory factory)
         {
             var res = factory.GetSchedule();
-            var group = new ScheduleGroup() { GType = ScheduleGroupType.Academic, Name = "11-401" };
+            var group = new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-401"};
             res.ScheduleGroups.Add(group);
-            var week  = factory.GetWeek();
+            var week = factory.GetWeek();
             res.ScheduleRoot = week;
             var day = factory.GetDay();
             res.ScheduleRoot.Elems.Add(day);
-            return (res, group, week , day, null);
+            return (res, group, week, day, null);
         }
 
-        private static (ISchedule, IScheduleGroup, Week, Day, Lesson) GetEmpty2BottomLayersSchedule(ISchElemsFactory factory)
+        private static (ISchedule, IScheduleGroup, Week, Day, Lesson) GetEmpty2BottomLayersSchedule(
+            ISchElemsFactory factory)
         {
             var res = factory.GetSchedule();
             var group = new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-401"};
