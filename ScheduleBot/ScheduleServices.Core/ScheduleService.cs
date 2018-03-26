@@ -6,6 +6,7 @@ using ScheduleServices.Core.Providers.Interfaces;
 using System.Collections.Concurrent;
 using ScheduleServices.Core.Factories;
 using ScheduleServices.Core.Modules;
+using ScheduleServices.Core.Modules.Interfaces;
 
 namespace ScheduleServices.Core
 {
@@ -13,15 +14,16 @@ namespace ScheduleServices.Core
     {
         private readonly ISchedulesStorage storage;
         private readonly ScheduleConstructor scheduleConstructor;
-        private GroupsMonitor groupsMonitor;
+        public IGroupsMonitor GroupsMonitor { get; }
 
-        public ScheduleService(ISchedulesStorage storage, GroupsMonitor groupsMonitor)
+        public ScheduleService(ISchedulesStorage storage, IGroupsMonitor groupsMonitor)
         {
             this.storage = storage;
             this.scheduleConstructor = new ScheduleConstructor(new DefaultSchElemsFactory());
-            this.groupsMonitor = groupsMonitor;
+            this.GroupsMonitor = groupsMonitor;
         }
 
+        
         public event EventHandler UpdatedEvent;
 
         public Task<ISchedule> GetScheduleForAsync(IEnumerable<IScheduleGroup> groups, ScheduleRequiredFor period)
@@ -65,12 +67,12 @@ namespace ScheduleServices.Core
 
         private IEnumerable<IScheduleGroup> ValidateGroups(IEnumerable<IScheduleGroup> groups)
         {
-            return groupsMonitor.RemoveInvalidGroups(groups);
+            return GroupsMonitor.RemoveInvalidGroupsFrom(groups);
         }
 
         public Task<IEnumerable<IScheduleGroup>> GetAvailableGroupsAsync()
         {
-            return Task.Run(() => groupsMonitor.AvailableGroups);
+            return Task.Run(() => GroupsMonitor.AvailableGroups);
         }
     }
 }

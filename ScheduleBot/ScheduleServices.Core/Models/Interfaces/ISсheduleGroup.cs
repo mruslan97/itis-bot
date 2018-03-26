@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 
 namespace ScheduleServices.Core.Models.Interfaces
@@ -12,7 +13,7 @@ namespace ScheduleServices.Core.Models.Interfaces
         PickedScientic = 3,
         PickedTech = 4
     }
-    public interface IScheduleGroup : IEquatable<IScheduleGroup>
+    public interface IScheduleGroup : IEquatable<IScheduleGroup>, ICloneable, INotifyPropertyChanged
     {
         ScheduleGroupType GType { get; set; }
         string Name { get; set; }

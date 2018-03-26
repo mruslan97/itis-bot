@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ScheduleServices.Core.Models.Interfaces;
+using ScheduleServices.Core.Modules.Interfaces;
 
 namespace ScheduleServices.Core
 {
@@ -13,11 +14,10 @@ namespace ScheduleServices.Core
     }
     public interface IScheduleServise
     {
-        event EventHandler UpdatedEvent;
+        IGroupsMonitor GroupsMonitor { get; }
         Task<ISchedule> GetScheduleForAsync(IEnumerable<IScheduleGroup> groups, ScheduleRequiredFor period);
         Task<ISchedule> GetScheduleForAsync(IEnumerable<IScheduleGroup> groups, DayOfWeek day);
         Task<ISchedule> GetScheduleForAsync(IScheduleGroup group, ScheduleRequiredFor period);
         Task<ISchedule> GetScheduleForAsync(IScheduleGroup group, DayOfWeek day);
-        Task<IEnumerable<IScheduleGroup>> GetAvailableGroupsAsync();
     }
 }

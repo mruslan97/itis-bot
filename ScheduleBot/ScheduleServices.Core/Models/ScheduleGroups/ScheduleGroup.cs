@@ -1,8 +1,11 @@
 ﻿using System;
+using System.ComponentModel;
+using PropertyChanged;
 using ScheduleServices.Core.Models.Interfaces;
 
 namespace ScheduleServices.Core.Models.ScheduleGroups
 {
+    [AddINotifyPropertyChangedInterface]
     public class ScheduleGroup : IScheduleGroup, IEquatable<ScheduleGroup>
     {
         public ScheduleGroupType GType { get; set; }
@@ -37,5 +40,18 @@ namespace ScheduleServices.Core.Models.ScheduleGroups
                 return ((int) GType * 397) ^ (Name != null ? Name.GetHashCode() : 0);
             }
         }
+
+        public object Clone()
+        {
+            return new ScheduleGroup()
+            {
+                GType = this.GType,
+                Name = (string)this.Name.Clone()
+            };
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        
     }
 }

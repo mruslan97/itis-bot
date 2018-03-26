@@ -4,24 +4,24 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Models.Interfaces;
+using ScheduleServices.Core.Modules;
 
 namespace ScheduleBot.AspHost.BotStorage
 {
     public class InMemoryBotStorage : IBotDataStorage
     {
-        private readonly IScheduleServise scheduleServise;
-
-        private ConcurrentDictionary<string, IScheduleGroup> allGroups =
-            new ConcurrentDictionary<string, IScheduleGroup>();
-
+        private readonly IScheduleServise servise;
         private ConcurrentDictionary<long, ICollection<IScheduleGroup>> usersGroups =
             new ConcurrentDictionary<long, ICollection<IScheduleGroup>>();
 
-        public InMemoryBotStorage(IScheduleServise scheduleServise)
+        public InMemoryBotStorage(IScheduleServise servise)
         {
-            this.scheduleServise = scheduleServise;
-            this.scheduleServise.UpdatedEvent += OnScheduleServiceUpdated;
+            this.servise = servise;
         }
+
+        
+
+        
 
         public Task<IEnumerable<IScheduleGroup>> GetGroupsForChatAsync(long chatId)
         {
@@ -36,7 +36,7 @@ namespace ScheduleBot.AspHost.BotStorage
         {
             return Task.Run(() =>
             {
-                if (allGroups.TryGetValue(scheduleGroup.Name, out IScheduleGroup groupFromStorage))
+                if (servise.GroupsMonitor.TryGetCorrectGroup(scheduleGroup, out IScheduleGroup groupFromStorage))
                 {
                     usersGroups.AddOrUpdate(chatId, new List<IScheduleGroup>() {groupFromStorage}, (id, oldList) =>
                     {
@@ -51,29 +51,6 @@ namespace ScheduleBot.AspHost.BotStorage
             });
         }
 
-        private async void OnScheduleServiceUpdated(object sender, EventArgs e)
-        {
-            // because this method is 'async void' using try-catch to not miss exception
-            try
-            {
-                var groups = await scheduleServise.GetAvailableGroupsAsync();
-                foreach (var group in groups)
-                {
-                    allGroups.AddOrUpdate(group.Name, group, (name, oldGroup) =>
-                    {
-                        oldGroup.GType = group.GType;
-                        oldGroup.Name = group.Name;
-                        return oldGroup;
-                    });
-                }
-            }
-            catch (Exception exception)
-            {
-                //todo: log
-                Console.WriteLine(exception);
-                throw;
-            }
-            
-        }
+        
     }
 }
