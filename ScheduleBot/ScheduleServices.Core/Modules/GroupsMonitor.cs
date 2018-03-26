@@ -7,7 +7,7 @@ namespace ScheduleServices.Core.Modules
 {
     public class GroupsMonitor
     {
-        public GroupsMonitor(List<IScheduleGroup> list)
+        public GroupsMonitor(List<IScheduleGroup> groups)
         {
 
         }

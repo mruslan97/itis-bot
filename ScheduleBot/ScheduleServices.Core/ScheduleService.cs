@@ -15,11 +15,11 @@ namespace ScheduleServices.Core
         private readonly ScheduleConstructor scheduleConstructor;
         private GroupsMonitor groupsMonitor;
 
-        public ScheduleService(ISchedulesStorage storage)
+        public ScheduleService(ISchedulesStorage storage, GroupsMonitor groupsMonitor)
         {
             this.storage = storage;
             this.scheduleConstructor = new ScheduleConstructor(new DefaultSchElemsFactory());
-            this.groupsMonitor = new GroupsMonitor();
+            this.groupsMonitor = groupsMonitor;
         }
 
         public event EventHandler UpdatedEvent;

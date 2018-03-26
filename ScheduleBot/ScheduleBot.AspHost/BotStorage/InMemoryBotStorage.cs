@@ -56,7 +56,7 @@ namespace ScheduleBot.AspHost.BotStorage
             // because this method is 'async void' using try-catch to not miss exception
             try
             {
-                var groups = await scheduleServise.GetAvailibleGroupsAsync();
+                var groups = await scheduleServise.GetAvailableGroupsAsync();
                 foreach (var group in groups)
                 {
                     allGroups.AddOrUpdate(group.Name, group, (name, oldGroup) =>
@@ -69,6 +69,7 @@ namespace ScheduleBot.AspHost.BotStorage
             }
             catch (Exception exception)
             {
+                //todo: log
                 Console.WriteLine(exception);
                 throw;
             }
