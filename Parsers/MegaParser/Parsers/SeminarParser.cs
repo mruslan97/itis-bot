@@ -4,7 +4,7 @@ namespace MegaParser.Parsers
 {
     public class SeminarParser : IParser
     {
-        public ParsedSubject Parse(string input)
+        public ParsedSubject Parse(TmpObject input)
         {
             var initialsCounter = 0;
             var parsedSubject = new ParsedSubject
@@ -13,12 +13,12 @@ namespace MegaParser.Parsers
                 Notation = "",
                 SubjectName = "",
                 Teacher = "",
-                Time = ""
+                Time = input.Time
             };
             var notationCheck = false;
             var upperCaseCheck = false;
             var i = 0;
-            foreach (var char_ in input)
+            foreach (var char_ in input.Content)
             {
                 i++;
                 if (char_.Equals('(')) notationCheck = true;

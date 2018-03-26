@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Linq;
 using System.Threading;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
@@ -9,8 +9,10 @@ using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using Google.Apis.Util;
 using Google.Apis.Util.Store;
+using MegaParser.Helpers;
+using MegaParser.Models;
 
-namespace GoogleParser
+namespace MegaParser.Services
 {
     public class GoogleApiService
     {
@@ -38,7 +40,7 @@ namespace GoogleParser
             }
         }
 
-        public BatchGetValuesResponse SendRequest(int course, int day)
+        public List<TmpObject> SendRequest(int course, int day)
         {
             var service = new SheetsService(new BaseClientService.Initializer()
             {
@@ -49,7 +51,7 @@ namespace GoogleParser
             var request
                 = service.Spreadsheets.Values.BatchGet(spreadsheetId);
             request.Ranges = GetDailyCoordinates(course,day);
-            return request.Execute();
+            return Sort(request.Execute(),course);
         }
 
         public BatchGetValuesResponse SendRequest()
@@ -64,6 +66,25 @@ namespace GoogleParser
                 = service.Spreadsheets.Values.BatchGet(spreadsheetId);
             request.Ranges = GetWeeklyCoordinates();
             return request.Execute();
+        }
+
+        private List<TmpObject> Sort(BatchGetValuesResponse googleResponse, int course)
+        {
+            var unsortedObjects = googleResponse.ValueRanges[0].Values
+                ?.Zip(googleResponse.ValueRanges[1].Values, (x, y) => new {Time = x, Subject = y})
+                ?.Where(x => x.Subject.Count > 0)
+                .ToList();
+            var sortedSubjects = new List<TmpObject>();
+            for (var i = 0; i < unsortedObjects.Count; i++)
+            for (var j = 0; j < unsortedObjects[i].Subject.Count; j++)
+                if (unsortedObjects[i].Subject[j].ToString().Length > 1)
+                    sortedSubjects.Add(new TmpObject
+                    {
+                        Content = unsortedObjects[i].Subject[j].ToString(),
+                        Group = $"11-{Converter.NormalizeGroupNumber(course)}0{j+1}",
+                        Time = unsortedObjects[i].Time.FirstOrDefault().ToString()
+                    });
+            return sortedSubjects;
         }
 
         private Repeatable<string> GetDailyCoordinates(int course, int day)

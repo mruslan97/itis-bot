@@ -7,6 +7,6 @@ namespace MegaParser.Parsers
 {
     public interface IParser
     {
-        ParsedSubject Parse(string input);
+        ParsedSubject Parse(TmpObject input);
     }
 }
