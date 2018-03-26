@@ -9,6 +9,12 @@ namespace ScheduleServices.Core.Providers.Storage
 {
     public class SchedulesDbStorage : ISchedulesStorage
     {
+        private readonly ScheduleMongoDbContext context;
+
+        public SchedulesDbStorage(ScheduleMongoDbContext context)
+        {
+            this.context = context;
+        }
         public Task<ISchedule> GetScheduleAsync(IScheduleGroup group, DayOfWeek day)
         {
             throw new NotImplementedException();

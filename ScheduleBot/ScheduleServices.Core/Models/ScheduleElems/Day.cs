@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MongoDB.Bson.Serialization.Attributes;
 using ScheduleServices.Core.Models.Comparison;
 using ScheduleServices.Core.Models.Interfaces;
 
