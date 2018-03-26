@@ -13,4 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\ScheduleServices.Core\ScheduleServices.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Providers\Storage" />
+  </ItemGroup>
 </Project>
