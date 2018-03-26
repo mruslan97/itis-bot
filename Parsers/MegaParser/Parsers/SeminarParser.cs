@@ -13,44 +13,46 @@ namespace MegaParser.Parsers
                 Notation = "",
                 SubjectName = "",
                 Teacher = "",
-                Time = input.Time
+                Time = input.Time,
+                Group = input.Group
             };
             var notationCheck = false;
             var upperCaseCheck = false;
             var i = 0;
-            foreach (var char_ in input.Content)
+            foreach (var c in input.Content)
             {
                 i++;
-                if (char_.Equals('(')) notationCheck = true;
+                if (c.Equals('(')) notationCheck = true;
                 if (i > 1)
-                    if (char.IsUpper(char_))
+                    if (char.IsUpper(c))
                         upperCaseCheck = true;
-                if (char.IsNumber(char_) && parsedSubject.Cabinet.Length < 4 && notationCheck == false
-                ) 
+                if (char.IsNumber(c) && parsedSubject.Cabinet.Length < 4 && notationCheck == false
+                )
                 {
-                    parsedSubject.Cabinet = parsedSubject.Cabinet + char_;
+                    parsedSubject.Cabinet += c;
                 }
                 else
                 {
-                    if (!upperCaseCheck)
+                    if (upperCaseCheck == false)
                     {
-                        parsedSubject.SubjectName = parsedSubject.SubjectName + char_;
+                        parsedSubject.SubjectName += c;
                     }
-                    if (notationCheck)
+                    else if (notationCheck)
                     {
-                        parsedSubject.Notation = parsedSubject.Notation + char_;
+                        parsedSubject.Notation += c;
                     }
-                    if (initialsCounter < 3)
+                    else if (initialsCounter < 3)
                     {
-                        parsedSubject.Teacher = parsedSubject.Teacher + char_;
-                        if (char.IsUpper(char_))
+                        parsedSubject.Teacher += c;
+                        if (char.IsUpper(c))
                             initialsCounter++;
                     }
                 }
 
-                if (char_.Equals(')'))
+                if (c.Equals(')'))
                     notationCheck = false;
             }
+
             parsedSubject.Teacher += ".";
             return parsedSubject;
         }

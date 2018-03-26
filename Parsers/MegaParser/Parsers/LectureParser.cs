@@ -14,7 +14,8 @@ namespace MegaParser.Parsers
                 Notation = "",
                 SubjectName = "",
                 Teacher = "",
-                Time = input.Time
+                Time = input.Time,
+                Group = input.Group
             };
 
             foreach (var c in input.Content)

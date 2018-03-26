@@ -16,19 +16,19 @@ namespace MegaParser.Services
 {
     public class GoogleApiService
     {
-        public string[] Scopes = { SheetsService.Scope.SpreadsheetsReadonly };
+        public string[] Scopes = {SheetsService.Scope.SpreadsheetsReadonly};
         private const string ApplicationName = "itis-api";
         private const string SpreadsheetId = "1DHir9K8KO8a2AX3AfPiE422HXgf_7AKgSOSS-UOMt_A";
         private const string TimeCoordinates = "C3:C9";
 
-        static UserCredential Auth(string[] scopes)
+        private static UserCredential Auth(string[] scopes)
         {
             using (var stream =
                 new FileStream("client_secret.json", FileMode.Open, FileAccess.Read))
             {
-                var credPath = System.Environment.GetFolderPath(
-                    System.Environment.SpecialFolder.Personal);
-                credPath = Path.Combine(credPath, ".credentials/sheets.googleapis.com-dotnet-quickstart.json"); 
+                var credPath = Environment.GetFolderPath(
+                    Environment.SpecialFolder.Personal);
+                credPath = Path.Combine(credPath, ".credentials/sheets.googleapis.com-dotnet-quickstart.json");
 
                 var credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
                     GoogleClientSecrets.Load(stream).Secrets,
@@ -42,7 +42,7 @@ namespace MegaParser.Services
 
         public List<TmpObject> SendRequest(int course, int day)
         {
-            var service = new SheetsService(new BaseClientService.Initializer()
+            var service = new SheetsService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = Auth(Scopes),
                 ApplicationName = ApplicationName
@@ -50,13 +50,13 @@ namespace MegaParser.Services
             var spreadsheetId = SpreadsheetId;
             var request
                 = service.Spreadsheets.Values.BatchGet(spreadsheetId);
-            request.Ranges = GetDailyCoordinates(course,day);
-            return Sort(request.Execute(),course);
+            request.Ranges = GetDailyCoordinates(course, day);
+            return Sort(request.Execute(), course);
         }
 
         public BatchGetValuesResponse SendRequest()
         {
-            var service = new SheetsService(new BaseClientService.Initializer()
+            var service = new SheetsService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = Auth(Scopes),
                 ApplicationName = ApplicationName
@@ -71,17 +71,17 @@ namespace MegaParser.Services
         private List<TmpObject> Sort(BatchGetValuesResponse googleResponse, int course)
         {
             var unsortedObjects = googleResponse.ValueRanges[0].Values
-                ?.Zip(googleResponse.ValueRanges[1].Values, (x, y) => new {Time = x, Subject = y})
-                ?.Where(x => x.Subject.Count > 0)
+                ?.Zip(googleResponse.ValueRanges[1].Values, (x, y) => new {Time = x, Subjects = y})
+                ?.Where(x => x.Subjects.Count > 0)
                 .ToList();
             var sortedSubjects = new List<TmpObject>();
             for (var i = 0; i < unsortedObjects.Count; i++)
-            for (var j = 0; j < unsortedObjects[i].Subject.Count; j++)
-                if (unsortedObjects[i].Subject[j].ToString().Length > 1)
+            for (var j = 0; j < unsortedObjects[i].Subjects.Count; j++)
+                if (unsortedObjects[i].Subjects[j].ToString().Length > 1)
                     sortedSubjects.Add(new TmpObject
                     {
-                        Content = unsortedObjects[i].Subject[j].ToString(),
-                        Group = $"11-{Converter.NormalizeGroupNumber(course)}0{j+1}",
+                        Content = unsortedObjects[i].Subjects[j].ToString(),
+                        Group = $"11-{Converter.NormalizeGroupNumber(course)}0{j + 1}",
                         Time = unsortedObjects[i].Time.FirstOrDefault().ToString()
                     });
             return sortedSubjects;
@@ -89,7 +89,7 @@ namespace MegaParser.Services
 
         private Repeatable<string> GetDailyCoordinates(int course, int day)
         {
-            var coordinates = new List<string> { "D3:L9", "N3:U9", "V3:AC9", "AD3:AK9" };
+            var coordinates = new List<string> {"D3:L9", "N3:U9", "V3:AC9", "AD3:AK9"};
             int cNew1 = 3, cNew2 = 9;
             var coords = coordinates[course - 1];
             if (day > 1)
@@ -108,7 +108,7 @@ namespace MegaParser.Services
 
         private Repeatable<string> GetWeeklyCoordinates()
         {
-            return  new Repeatable<string>(new[]
+            return new Repeatable<string>(new[]
             {
                 TimeCoordinates,
                 "D3:L9",
