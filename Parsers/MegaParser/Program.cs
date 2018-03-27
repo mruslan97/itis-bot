@@ -11,7 +11,7 @@ namespace MegaParser
         {
             var googleApi = new GoogleApiService();
             var smartSorter = new SmartSortService();
-            var subjects = googleApi.SendRequest(3, 3);
+            var subjects = googleApi.SendRequest(1, 1);
             var tmp = smartSorter.Parse(subjects);
             Console.ReadLine();
         }

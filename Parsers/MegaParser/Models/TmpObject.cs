@@ -9,5 +9,6 @@ namespace MegaParser.Models
         public string Time { get; set; }
         public string Content { get; set; }
         public string Group { get; set; }
+        public Tuple<int,int> Marker { get; set; }
     }
 }

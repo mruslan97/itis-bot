@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using MegaParser.Helpers;
 using MegaParser.Models;
@@ -22,28 +23,36 @@ namespace MegaParser.Services
                 var lectures = Keywords.Lecture();
                 if (lectures.Any(l => unparsedSubject.Content.Contains(l)))
                 {
-                    parsedSubjects.Add(_lectureParser.Parse(unparsedSubject));
+                    var parsedSubject = _lectureParser.Parse(unparsedSubject);
+                    var marker = SetMarker(unparsedSubject);
+                    parsedSubjects.AddRange(ShareSubjects(parsedSubject, marker));
                     continue;
                 }
 
                 var physicalCulture = Keywords.PhysCulture();
                 if (physicalCulture.Any(p => unparsedSubject.Content.Contains(p)))
                 {
-                    parsedSubjects.Add(_physCultureParser.Parse(unparsedSubject));
+                    var parsedSubject = _physCultureParser.Parse(unparsedSubject);
+                    var marker = SetMarker(unparsedSubject);
+                    parsedSubjects.AddRange(ShareSubjects(parsedSubject, marker));
                     continue;
                 }
 
                 var electives = Keywords.ElectiveCourse();
                 if (electives.Any(p => unparsedSubject.Content.Contains(p)))
                 {
-                    parsedSubjects.Add(_electiveParser.Parse(unparsedSubject));
+                    var parsedSubject = _electiveParser.Parse(unparsedSubject);
+                    var marker = SetMarker(unparsedSubject);
+                    parsedSubjects.AddRange(ShareSubjects(parsedSubject, marker));
                     continue;
                 }
 
                 var english = Keywords.English();
                 if (english.Any(p => unparsedSubject.Content.Contains(p)))
                 {
-                    parsedSubjects.Add(_englishParser.Parse(unparsedSubject));
+                    var parsedSubject = _englishParser.Parse(unparsedSubject);
+                    var marker = SetMarker(unparsedSubject);
+                    parsedSubjects.AddRange(ShareSubjects(parsedSubject, marker));
                     continue;
                 }
 
@@ -51,6 +60,54 @@ namespace MegaParser.Services
             }
 
             return parsedSubjects;
+        }
+
+        private Tuple<int, int> SetMarker(TmpObject unparsedObject)
+        {
+            if (unparsedObject.Content.Contains("Абрамский"))
+            {
+                if (unparsedObject.Group.StartsWith("11-7"))
+                    return new Tuple<int, int>(1, 5);
+                if (unparsedObject.Group.StartsWith("11-6"))
+                    return new Tuple<int, int>(1, 6);
+            }
+
+            if (unparsedObject.Content.Contains("Марченко"))
+            {
+                if (unparsedObject.Group.StartsWith("11-7"))
+                    return new Tuple<int, int>(6, 9);
+                if (unparsedObject.Group.StartsWith("11-6"))
+                    return new Tuple<int, int>(7, 9);
+            }
+
+            if ((unparsedObject.Content.Contains("Макаев") || unparsedObject.Content.Contains("Мартынова")) &&
+                unparsedObject.Group.StartsWith("11-7"))
+                return new Tuple<int, int>(1, 5);
+
+            if (unparsedObject.Content.Contains("Переточкина") && unparsedObject.Group.StartsWith("11-7"))
+                return new Tuple<int, int>(6, 9);
+
+            if (unparsedObject.Group.StartsWith("11-7"))
+                return new Tuple<int, int>(1, 9);
+            return new Tuple<int, int>(1, 8);
+        }
+
+        private IEnumerable<ParsedSubject> ShareSubjects(ParsedSubject parsedSubject, Tuple<int, int> marker)
+        {
+            var group = parsedSubject.Group.Substring(0, parsedSubject.Group.Length - 1);
+            var sharedSubjects = new List<ParsedSubject>();
+            for (var i = marker.Item1; i <= marker.Item2; i++)
+                sharedSubjects.Add(new ParsedSubject
+                {
+                    Cabinet = parsedSubject.Cabinet,
+                    Group = group + i,
+                    Notation = parsedSubject.Notation,
+                    SubjectName = parsedSubject.SubjectName,
+                    Teacher = parsedSubject.Teacher,
+                    Time = parsedSubject.Time
+                });
+
+            return sharedSubjects;
         }
     }
 }
