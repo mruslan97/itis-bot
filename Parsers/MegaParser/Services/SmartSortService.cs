@@ -69,7 +69,7 @@ namespace MegaParser.Services
                 if (unparsedObject.Group.StartsWith("11-7"))
                     return new Tuple<int, int>(1, 5);
                 if (unparsedObject.Group.StartsWith("11-6"))
-                    return new Tuple<int, int>(1, 6);
+                    return new Tuple<int, int>(1, 5);
             }
 
             if (unparsedObject.Content.Contains("Марченко"))
@@ -77,7 +77,7 @@ namespace MegaParser.Services
                 if (unparsedObject.Group.StartsWith("11-7"))
                     return new Tuple<int, int>(6, 9);
                 if (unparsedObject.Group.StartsWith("11-6"))
-                    return new Tuple<int, int>(7, 9);
+                    return new Tuple<int, int>(6, 9);
             }
 
             if ((unparsedObject.Content.Contains("Макаев") || unparsedObject.Content.Contains("Мартынова")) &&
