@@ -15,13 +15,13 @@ namespace MegaParser.Services
         private readonly ElectiveParser _electiveParser = new ElectiveParser();
         private readonly EnglishParser _englishParser = new EnglishParser();
 
-        public List<ParsedSubject> Parse(List<TmpObject> inputSubjects)
+        public List<ParsedSubject> SortContent(List<TmpObject> inputSubjects)
         {
             var parsedSubjects = new List<ParsedSubject>();
             foreach (var unparsedSubject in inputSubjects)
             {
-                var lectures = Keywords.Lecture();
-                if (lectures.Any(l => unparsedSubject.Content.Contains(l)))
+                if (Keywords.Lecture().Any(l => unparsedSubject.Content.Contains(l))
+                    && !Keywords.NotLecture().Any(n => unparsedSubject.Content.Contains(n)))
                 {
                     var parsedSubject = _lectureParser.Parse(unparsedSubject);
                     var marker = SetMarker(unparsedSubject);
@@ -29,8 +29,7 @@ namespace MegaParser.Services
                     continue;
                 }
 
-                var physicalCulture = Keywords.PhysCulture();
-                if (physicalCulture.Any(p => unparsedSubject.Content.Contains(p)))
+                if (Keywords.PhysCulture().Any(p => unparsedSubject.Content.Contains(p)))
                 {
                     var parsedSubject = _physCultureParser.Parse(unparsedSubject);
                     var marker = SetMarker(unparsedSubject);
@@ -38,8 +37,7 @@ namespace MegaParser.Services
                     continue;
                 }
 
-                var electives = Keywords.ElectiveCourse();
-                if (electives.Any(p => unparsedSubject.Content.Contains(p)))
+                if (Keywords.ElectiveCourse().Any(p => unparsedSubject.Content.Contains(p)))
                 {
                     var parsedSubject = _electiveParser.Parse(unparsedSubject);
                     var marker = SetMarker(unparsedSubject);
@@ -47,8 +45,7 @@ namespace MegaParser.Services
                     continue;
                 }
 
-                var english = Keywords.English();
-                if (english.Any(p => unparsedSubject.Content.Contains(p)))
+                if (Keywords.English().Any(p => unparsedSubject.Content.Contains(p)))
                 {
                     var parsedSubject = _englishParser.Parse(unparsedSubject);
                     var marker = SetMarker(unparsedSubject);
@@ -77,7 +74,7 @@ namespace MegaParser.Services
                 if (unparsedObject.Group.StartsWith("11-7"))
                     return new Tuple<int, int>(6, 9);
                 if (unparsedObject.Group.StartsWith("11-6"))
-                    return new Tuple<int, int>(6, 9);
+                    return new Tuple<int, int>(6, 8);
             }
 
             if ((unparsedObject.Content.Contains("Макаев") || unparsedObject.Content.Contains("Мартынова")) &&

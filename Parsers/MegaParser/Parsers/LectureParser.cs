@@ -27,9 +27,17 @@ namespace MegaParser.Parsers
                         upCheck = true;
                 if (char.IsNumber(c) && cabCount < 4 && notationCheck == false)
                 {
-                    if (cabCount == 1 && c.Equals('3') == false) cabCount++;
+                    #region tin
+
+                    if (cabCount == 1 && !c.Equals('3')) cabCount++;
                     parsedSubject.Cabinet += c;
+                    if (parsedSubject.Cabinet.Equals("140"))
+                        cabCount--;
+                    if (parsedSubject.Cabinet.Equals("115"))
+                        parsedSubject.Cabinet = "1508";
                     cabCount++;
+
+                    #endregion
                 }
                 else
                 {
@@ -39,7 +47,7 @@ namespace MegaParser.Parsers
                     }
                     else if (notationCheck)
                     {
-                       parsedSubject.Notation += c;
+                        parsedSubject.Notation += c;
                     }
                     else if (fmCheck < 3)
                     {
