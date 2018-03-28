@@ -7,7 +7,7 @@ namespace MegaParser.Parsers
 {
     public class TrashParser : IParser
     {
-        public ParsedSubject Parse(string input)
+        public ParsedSubject Parse(TmpObject input)
         {
             return new ParsedSubject();
         }
