@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using MongoDB.Bson.Serialization.Attributes;
 using PropertyChanged;
 using ScheduleServices.Core.Models.Interfaces;
 
@@ -8,7 +9,9 @@ namespace ScheduleServices.Core.Models.ScheduleGroups
     [AddINotifyPropertyChangedInterface]
     public class ScheduleGroup : IScheduleGroup, IEquatable<ScheduleGroup>
     {
+        [BsonRequired]
         public ScheduleGroupType GType { get; set; }
+        [BsonRequired]
         public string Name { get; set; }
 
         public bool Equals(ScheduleGroup other)

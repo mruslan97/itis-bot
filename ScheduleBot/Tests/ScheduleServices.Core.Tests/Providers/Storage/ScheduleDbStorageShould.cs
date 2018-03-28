@@ -9,6 +9,7 @@ using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleElems;
 using ScheduleServices.Core.Models.ScheduleGroups;
 using ScheduleServices.Core.Providers.Storage;
+using Shouldly;
 
 namespace ScheduleServices.Core.Tests.Providers.Storage
 {
@@ -47,7 +48,8 @@ namespace ScheduleServices.Core.Tests.Providers.Storage
         [Test]
         public void BeAlive()
         {
-            context.Schedules.InsertOne((Schedule)tree);
+            storage = new SchedulesDbStorage(context);
+            storage.UpdateScheduleAsync(tree.ScheduleGroups.FirstOrDefault(), tree.ScheduleRoot).Result.ShouldBeTrue();
             Assert.Pass();
         }
 
