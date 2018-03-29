@@ -8,6 +8,7 @@ using MongoDB.Driver;
 using ScheduleServices.Core.Models;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleGroups;
+using ScheduleServices.Core.Modules.Interfaces;
 using ScheduleServices.Core.Providers.Interfaces;
 
 namespace ScheduleServices.Core.Providers.Storage
@@ -21,7 +22,7 @@ namespace ScheduleServices.Core.Providers.Storage
             this.context = context;
         }
 
-        public Task<ISchedule> GetScheduleAsync(IScheduleGroup group, DayOfWeek day)
+        public Task<IEnumerable<ISchedule>> GetScheduleAsync(IGroupsMonitor monitor, DayOfWeek day)
         {
             throw new NotImplementedException();
         }
@@ -49,6 +50,8 @@ namespace ScheduleServices.Core.Providers.Storage
                 return false;
             }
         }
+
+        
     }
 
     public class ScheduleMongoDbContext

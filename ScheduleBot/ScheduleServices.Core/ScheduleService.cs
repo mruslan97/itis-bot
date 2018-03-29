@@ -15,6 +15,7 @@ namespace ScheduleServices.Core
         private readonly ISchedulesStorage storage;
         private readonly ScheduleConstructor scheduleConstructor;
         public IGroupsMonitor GroupsMonitor { get; }
+        private IScheduleInfoProvider freshInfoProvider;
 
         public ScheduleService(ISchedulesStorage storage, IGroupsMonitor groupsMonitor)
         {
@@ -38,7 +39,8 @@ namespace ScheduleServices.Core
             //collect tasks
             foreach (var requiredGroup in ValidateGroups(groups))
             {
-                tasks.Add(storage.GetScheduleAsync(requiredGroup, day));
+                //todo
+                //tasks.Add(storage.GetScheduleAsync(requiredGroup, day));
             }
 
             //start consuming

@@ -43,6 +43,7 @@ namespace ScheduleBot.AspHost.BotStorage
                         oldList.Add(groupFromStorage);
                         return oldList;
                     });
+                    //todo: backup
                 }
                 else
                 {
