@@ -19,6 +19,7 @@ namespace ScheduleServices.Core.Models.ScheduleElems
         public string Teacher { get; set; }
 
         public string Place { get; set; }
+        public string Notation { get; set; }
 
         public TimeSpan BeginTime { get; set; }
 
