@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using ScheduleServices.Core.Models.Comparison;
 using ScheduleServices.Core.Models.Interfaces;
 
 namespace ScheduleServices.Core.Models.ScheduleElems
 {
+    [ComplexType]
     public class Lesson : IScheduleElem, IEquatable<Lesson>
     {
         public ScheduleElemLevel Level { get; set; } = ScheduleElemLevel.Lesson;

@@ -2,6 +2,7 @@
 using System.Linq;
 using AutoFixture;
 using AutoFixture.Kernel;
+using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using ScheduleServices.Core.Factories;
 using ScheduleServices.Core.Models;
@@ -22,8 +23,10 @@ namespace ScheduleServices.Core.Tests.Providers.Storage
         [SetUp]
         public void SetUp()
         {
+            
             //var weekRel = new TypeRelay(typeof(IScheduleElem), typeof(Week));
             context = new ScheduleMongoDbContext("mongodb://localhost:27017/scheduleunits");
+            
             storage = new SchedulesDbStorage(context);
             var fixture = new Fixture();
             var gen = new TypeGenerator();

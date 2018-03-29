@@ -14,6 +14,7 @@ using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using ScheduleServices.Core.Models;
 using ScheduleServices.Core.Models.Interfaces;
+using ScheduleServices.Core.Models.ScheduleElems;
 using ScheduleServices.Core.Models.ScheduleGroups;
 using ScheduleServices.Core.Modules.Interfaces;
 using ScheduleServices.Core.Providers.Interfaces;
@@ -29,21 +30,32 @@ namespace ScheduleServices.Core.Providers.Storage
             this.context = context;
         }
 
-        public Task<IEnumerable<ISchedule>> GetScheduleAsync(IEnumerable<IScheduleGroup> availableGroups, DayOfWeek day)
+        public async Task<IEnumerable<ISchedule>> GetScheduleAsync(IEnumerable<IScheduleGroup> availableGroups, DayOfWeek day)
         {
-            //context.Schedules.Where(sc => sc.ScheduleGroups)
-            return null;
+            return (await context.Schedules.Join(availableGroups, schedule => schedule.Group, group => group,
+                (schedule, group) => new
+                {
+                    G = schedule.Group,
+                    R = schedule.ScheduleRoot.Elems.OfType<Day>().FirstOrDefault(d => d.DayOfWeek == day)
+                }).AsNoTracking().ToListAsync()).Select(x => new Schedule()
+            {
+                ScheduleGroups = new List<IScheduleGroup>() {x.G},
+                ScheduleRoot = x.R
+            }).ToList();
+
         }
 
         public async Task<bool> UpdateScheduleAsync(IScheduleGroup targetGroup, IScheduleElem scheduleRoot)
         {
-           
-            var stored = context.Schedules.FirstOrDefault(sc =>
-                sc.Group.GType == targetGroup.GType && sc.Group.Name == targetGroup.Name);
+            var smt = context.Schedules.Any();
+            var name = targetGroup.Name;
+            
+            var stored = context.Schedules.Where(sc =>
+                sc.Group.Name == name).ToList();
             if (stored != null)
             {
-                stored.Group = targetGroup;
-                stored.ScheduleRoot = scheduleRoot;
+                //stored.Group = targetGroup;
+                //stored.ScheduleRoot = scheduleRoot;
             }
             else
             {
@@ -60,22 +72,21 @@ namespace ScheduleServices.Core.Providers.Storage
                 Console.WriteLine(e);
                 return false;
             }
-            
-
         }
-
-        
     }
 
-    [MongoDatabase("scheduleunits")]
+    //[MongoDatabase("scheduleunits")]
     public class ScheduleMongoDbContext : DbContext
     {
         private string connectionString;
+
         public ScheduleMongoDbContext(string connectionString)
             : this(new DbContextOptions<ScheduleMongoDbContext>(), connectionString)
         {
         }
-        public ScheduleMongoDbContext(DbContextOptions<ScheduleMongoDbContext> zooDbContextOptions, string connectionString)
+
+        public ScheduleMongoDbContext(DbContextOptions<ScheduleMongoDbContext> zooDbContextOptions,
+            string connectionString)
             : base(zooDbContextOptions)
         {
             this.connectionString = connectionString;
@@ -100,10 +111,8 @@ namespace ScheduleServices.Core.Providers.Storage
             MongoClient mongoClient = new MongoClient(settings);
             optionsBuilder.UseMongoDb(mongoClient);
         }
+
         public DbSet<SingleGroupSchedule> Schedules { get; set; }
-
-
-
     }
 
     public class SingleGroupSchedule : Schedule
@@ -114,7 +123,7 @@ namespace ScheduleServices.Core.Providers.Storage
         [BsonIgnore]
         public new ICollection<IScheduleGroup> ScheduleGroups
         {
-            get => new List<IScheduleGroup> { Group };
+            get => new List<IScheduleGroup> {Group};
             set => Group = value.FirstOrDefault();
         }
 

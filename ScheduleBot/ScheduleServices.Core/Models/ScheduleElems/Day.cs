@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using MongoDB.Bson.Serialization.Attributes;
 using ScheduleServices.Core.Models.Comparison;
 using ScheduleServices.Core.Models.Interfaces;
 
 namespace ScheduleServices.Core.Models.ScheduleElems
 {
+    [ComplexType]
     public class Day : IScheduleElem, IEquatable<Day>
     {
         public ScheduleElemLevel Level { get; set; } = ScheduleElemLevel.Day;
