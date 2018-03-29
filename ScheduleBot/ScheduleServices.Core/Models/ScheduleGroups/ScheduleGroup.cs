@@ -1,6 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using PropertyChanged;
 using ScheduleServices.Core.Models.Interfaces;
 
@@ -9,8 +12,11 @@ namespace ScheduleServices.Core.Models.ScheduleGroups
     [AddINotifyPropertyChangedInterface]
     public class ScheduleGroup : IScheduleGroup, IEquatable<ScheduleGroup>
     {
+        //[JsonConverter(typeof(StringEnumConverter))] 
+        //[BsonRepresentation(BsonType.String)]
         [BsonRequired]
         public ScheduleGroupType GType { get; set; }
+        
         [BsonRequired]
         public string Name { get; set; }
 

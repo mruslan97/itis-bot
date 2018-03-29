@@ -4,11 +4,18 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Fody" Version="2.4.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-preview1-final" />
     <PackageReference Include="MongoDB.Driver" Version="2.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="PropertyChanged.Fody" Version="2.2.9" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Blueshift.EntityFrameworkCore.MongoDB">
+      <HintPath>C:\Users\mongo\.nuget\packages\blueshift.entityframeworkcore.mongodb\2.1.0-preview1-t005b26807\lib\netstandard2.0\Blueshift.EntityFrameworkCore.MongoDB.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.EntityFrameworkCore">
+      <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.entityframeworkcore\2.0.1\lib\netstandard2.0\Microsoft.EntityFrameworkCore.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>C:\Users\mongo\.nuget\packages\newtonsoft.json\10.0.3\lib\netstandard1.3\Newtonsoft.Json.dll</HintPath>
     </Reference>

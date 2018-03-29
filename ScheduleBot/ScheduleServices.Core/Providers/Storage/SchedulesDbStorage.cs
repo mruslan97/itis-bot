@@ -2,8 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Blueshift.EntityFrameworkCore.MongoDB.Annotations;
+using Microsoft.EntityFrameworkCore;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using ScheduleServices.Core.Models;
 using ScheduleServices.Core.Models.Interfaces;
@@ -22,93 +29,111 @@ namespace ScheduleServices.Core.Providers.Storage
             this.context = context;
         }
 
-        public Task<IEnumerable<ISchedule>> GetScheduleAsync(IGroupsMonitor monitor, DayOfWeek day)
+        public Task<IEnumerable<ISchedule>> GetScheduleAsync(IEnumerable<IScheduleGroup> availableGroups, DayOfWeek day)
         {
-            throw new NotImplementedException();
+            //context.Schedules.Where(sc => sc.ScheduleGroups)
+            return null;
         }
 
         public async Task<bool> UpdateScheduleAsync(IScheduleGroup targetGroup, IScheduleElem scheduleRoot)
         {
-            var toUpd = new ScheduleMongoDbContext.SingleGroupSchedule()
+           
+            var stored = context.Schedules.FirstOrDefault(sc =>
+                sc.Group.GType == targetGroup.GType && sc.Group.Name == targetGroup.Name);
+            if (stored != null)
             {
-                Group = targetGroup,
-                ScheduleRoot = scheduleRoot
-            };
-            var filter = new FilterDefinitionBuilder<ScheduleMongoDbContext.SingleGroupSchedule>().Where(schedule =>
-                (int)schedule.Group.GType == (int)toUpd.Group.GType);
-            var upd = new UpdateDefinitionBuilder<ScheduleMongoDbContext.SingleGroupSchedule>().Set(
-                schedule => schedule.ScheduleRoot, toUpd.ScheduleRoot);
-            var noone =new FindOneAndUpdateOptions<ScheduleMongoDbContext.SingleGroupSchedule>() { IsUpsert = true };
+                stored.Group = targetGroup;
+                stored.ScheduleRoot = scheduleRoot;
+            }
+            else
+            {
+                context.Schedules.Add(new SingleGroupSchedule() {Group = targetGroup, ScheduleRoot = scheduleRoot});
+            }
+
             try
             {
-                
-                await context.Schedules.FindOneAndUpdateAsync(filter, upd, noone);
+                await context.SaveChangesAsync();
                 return true;
             }
             catch (Exception e)
             {
+                Console.WriteLine(e);
                 return false;
             }
+            
+
         }
 
         
     }
 
-    public class ScheduleMongoDbContext
+    [MongoDatabase("scheduleunits")]
+    public class ScheduleMongoDbContext : DbContext
     {
-        private IMongoDatabase database;
-
+        private string connectionString;
         public ScheduleMongoDbContext(string connectionString)
+            : this(new DbContextOptions<ScheduleMongoDbContext>(), connectionString)
         {
-            // строка подключения
-
-            var connection = new MongoUrlBuilder(connectionString);
-            // получаем клиента для взаимодействия с базой данных
-            MongoClient client = new MongoClient(connectionString);
-            // получаем доступ к самой базе данных
-            database = client.GetDatabase(connection.DatabaseName);
-            //index
-            var options = new CreateIndexOptions() {Unique = true};
-            Expression<Func<SingleGroupSchedule, object>> selector = (sch) => sch.Group;
-            var field = new ExpressionFieldDefinition<SingleGroupSchedule>(selector);
-            database.GetCollection<SingleGroupSchedule>("schedules").Indexes
-                .CreateOne(new IndexKeysDefinitionBuilder<SingleGroupSchedule>().Ascending(field), options);
+        }
+        public ScheduleMongoDbContext(DbContextOptions<ScheduleMongoDbContext> zooDbContextOptions, string connectionString)
+            : base(zooDbContextOptions)
+        {
+            this.connectionString = connectionString;
         }
 
-        public IMongoCollection<SingleGroupSchedule> Schedules
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            get { return database.GetCollection<SingleGroupSchedule>("schedules"); }
+            /*var connectionString = "mongodb://localhost";
+            //optionsBuilder.UseMongoDb(connectionString);
+
+            
+            //optionsBuilder.UseMongoDb(mongoUrl);
+            */
+
+            //settings.SslSettings = new SslSettings
+            //{
+            //    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12
+            //};
+            //optionsBuilder.UseMongoDb(settings);
+            var mongoUrl = new MongoUrl(connectionString);
+            MongoClientSettings settings = MongoClientSettings.FromUrl(mongoUrl);
+            MongoClient mongoClient = new MongoClient(settings);
+            optionsBuilder.UseMongoDb(mongoClient);
+        }
+        public DbSet<SingleGroupSchedule> Schedules { get; set; }
+
+
+
+    }
+
+    public class SingleGroupSchedule : Schedule
+    {
+        public IScheduleGroup Group { get; set; }
+
+        //hide! do not use as Schedule or ISchedule
+        [BsonIgnore]
+        public new ICollection<IScheduleGroup> ScheduleGroups
+        {
+            get => new List<IScheduleGroup> { Group };
+            set => Group = value.FirstOrDefault();
         }
 
-        public class SingleGroupSchedule : Schedule
+        public static SingleGroupSchedule FromSchedule(ISchedule schedule)
         {
-            public IScheduleGroup Group { get; set; }
-
-            //hide! do not use as Schedule or ISchedule
-            [BsonIgnore]
-            public new ICollection<IScheduleGroup> ScheduleGroups
+            return new SingleGroupSchedule()
             {
-                get => new List<IScheduleGroup> {Group};
-                set => Group = value.FirstOrDefault();
-            }
+                ScheduleGroups = schedule.ScheduleGroups,
+                ScheduleRoot = schedule.ScheduleRoot
+            };
+        }
 
-            public static SingleGroupSchedule FromSchedule(ISchedule schedule)
+        public static ISchedule ToSchedule(SingleGroupSchedule singleGroupSchedule)
+        {
+            return new Schedule()
             {
-                return new SingleGroupSchedule()
-                {
-                    ScheduleGroups = schedule.ScheduleGroups,
-                    ScheduleRoot = schedule.ScheduleRoot
-                };
-            }
-
-            public static ISchedule ToSchedule(SingleGroupSchedule singleGroupSchedule)
-            {
-                return new Schedule()
-                {
-                    ScheduleGroups = singleGroupSchedule.ScheduleGroups,
-                    ScheduleRoot = singleGroupSchedule.ScheduleRoot
-                };
-            }
+                ScheduleGroups = singleGroupSchedule.ScheduleGroups,
+                ScheduleRoot = singleGroupSchedule.ScheduleRoot
+            };
         }
     }
 }
