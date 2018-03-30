@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using MegaParser.Helpers;
-using MegaParser.Models;
-using MegaParser.Parsers;
+using System.Text;
+using MagicParser.Helpers;
+using MagicParser.Models;
+using MagicParser.Parsers;
 
-namespace MegaParser.Services
+namespace MagicParser.Services
 {
     public class SmartSortService
     {

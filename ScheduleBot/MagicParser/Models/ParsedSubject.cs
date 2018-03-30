@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MegaParser.Models
+namespace MagicParser.Models
 {
     public class ParsedSubject
     {

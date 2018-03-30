@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using MegaParser.Models;
+using MagicParser.Models;
 
-namespace MegaParser.Parsers
+namespace MagicParser.Parsers
 {
     public class TrashParser : IParser
     {

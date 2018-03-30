@@ -1,12 +1,16 @@
-﻿using MegaParser.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using MagicParser.Models;
 
-namespace MegaParser.Parsers
+namespace MagicParser.Parsers
 {
-    public class SeminarParser : IParser
+    public class LectureParser : IParser
     {
         public ParsedSubject Parse(TmpObject input)
         {
-            var initialsCounter = 0;
+            int i = 0, fmCheck = 0, cabCount = 0;
+            bool upCheck = false, notationCheck = false;
             var parsedSubject = new ParsedSubject
             {
                 Cabinet = "",
@@ -16,24 +20,31 @@ namespace MegaParser.Parsers
                 Time = input.Time,
                 Group = input.Group
             };
-            var notationCheck = false;
-            var upperCaseCheck = false;
-            var i = 0;
+
             foreach (var c in input.Content)
             {
                 i++;
                 if (c.Equals('(')) notationCheck = true;
                 if (i > 1)
                     if (char.IsUpper(c))
-                        upperCaseCheck = true;
-                if (char.IsNumber(c) && parsedSubject.Cabinet.Length < 4 && notationCheck == false
-                )
+                        upCheck = true;
+                if (char.IsNumber(c) && cabCount < 4 && notationCheck == false)
                 {
+                    #region tin
+
+                    if (cabCount == 1 && !c.Equals('3')) cabCount++;
                     parsedSubject.Cabinet += c;
+                    if (parsedSubject.Cabinet.Equals("140"))
+                        cabCount--;
+                    if (parsedSubject.Cabinet.Equals("115"))
+                        parsedSubject.Cabinet = "1508";
+                    cabCount++;
+
+                    #endregion
                 }
                 else
                 {
-                    if (upperCaseCheck == false)
+                    if (!upCheck)
                     {
                         parsedSubject.SubjectName += c;
                     }
@@ -41,11 +52,11 @@ namespace MegaParser.Parsers
                     {
                         parsedSubject.Notation += c;
                     }
-                    else if (initialsCounter < 3)
+                    else if (fmCheck < 3)
                     {
                         parsedSubject.Teacher += c;
                         if (char.IsUpper(c))
-                            initialsCounter++;
+                            fmCheck++;
                     }
                 }
 
@@ -53,7 +64,6 @@ namespace MegaParser.Parsers
                     notationCheck = false;
             }
 
-            parsedSubject.Teacher += ".";
             return parsedSubject;
         }
     }

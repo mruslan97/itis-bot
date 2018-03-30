@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using MegaParser.Models;
+using MagicParser.Models;
 
-namespace MegaParser.Parsers
+namespace MagicParser.Parsers
 {
-    public class EnglishParser
+    public class ElectiveParser : IParser
     {
         public ParsedSubject Parse(TmpObject input)
         {
             var parsedSubject = new ParsedSubject
             {
-                SubjectName = "Иностранный язык",
+                SubjectName = "Курс по выбору",
                 Time = input.Time,
                 Group = input.Group
             };

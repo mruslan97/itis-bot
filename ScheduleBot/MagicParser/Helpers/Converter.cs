@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MegaParser.Helpers
+namespace MagicParser.Helpers
 {
     public class Converter
     {
@@ -18,8 +18,8 @@ namespace MegaParser.Helpers
                     return 5;
                 case 4:
                     return 4;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
     }
