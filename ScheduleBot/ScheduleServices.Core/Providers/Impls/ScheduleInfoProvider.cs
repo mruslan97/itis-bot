@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MagicParser.Models;
+using MagicParser.Services;
 using ScheduleServices.Core.Models;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleElems;
@@ -71,7 +73,7 @@ namespace ScheduleServices.Core.Providers.Impls
                     Discipline = subject.SubjectName,
                     Teacher = subject.Teacher,
                     Place = subject.Cabinet,
-                    BeginTime = TimeSpan.Parse(subject.Time), // need fix
+                    BeginTime = TimeSpan.Parse(subject.Time.Replace('.',':').Substring(0,5)), 
                     Duration = TimeSpan.FromMinutes(90),
                     Notation = subject.Notation,
                     Elems = null
