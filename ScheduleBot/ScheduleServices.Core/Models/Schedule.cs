@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 using ScheduleServices.Core.Models.Comparison;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Providers.Storage;
 
 namespace ScheduleServices.Core.Models
 {
-    [BsonKnownTypes(typeof(SingleGroupSchedule))]
+    
     public class Schedule : ISchedule, IEquatable<Schedule>
     {
         public ICollection<IScheduleGroup> ScheduleGroups { get; set; }

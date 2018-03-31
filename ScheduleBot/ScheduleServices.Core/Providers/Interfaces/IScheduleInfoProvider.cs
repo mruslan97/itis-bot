@@ -10,7 +10,7 @@ namespace ScheduleServices.Core.Providers.Interfaces
     public interface IScheduleInfoProvider
     {
         //Task<ISchedule> GetScheduleAsync(IScheduleGroup group, DayOfWeek day);
-        Task<IEnumerable<ISchedule>> GetScheduleAsync(IEnumerable<IScheduleGroup> availableGroups, DayOfWeek day);
+        IEnumerable<ISchedule> GetSchedules(IEnumerable<IScheduleGroup> availableGroups, DayOfWeek day);
         /*
          * var groups = monitor.AvaliableGroups.Where(type == Academic);
          * var List<ISchedule> schedules = new List;

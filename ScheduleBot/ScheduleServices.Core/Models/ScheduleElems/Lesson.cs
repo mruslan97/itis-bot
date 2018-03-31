@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using ScheduleServices.Core.Models.Comparison;
 using ScheduleServices.Core.Models.Interfaces;
 
 namespace ScheduleServices.Core.Models.ScheduleElems
 {
-    [ComplexType]
+    
     public class Lesson : IScheduleElem, IEquatable<Lesson>
     {
         public ScheduleElemLevel Level { get; set; } = ScheduleElemLevel.Lesson;
@@ -61,6 +61,21 @@ namespace ScheduleServices.Core.Models.ScheduleElems
                 hashCode = (hashCode * 397) ^ Duration.GetHashCode();
                 return hashCode;
             }
+        }
+        public object Clone()
+        {
+            return new Lesson()
+            {
+                Teacher = this.Teacher,
+                BeginTime = this.BeginTime,
+                Discipline = this.Discipline,
+                Duration = Duration,
+                IsOnEvenWeek = IsOnEvenWeek,
+                Place = Place,
+                Notation = Notation,
+                Level = this.Level,
+                Elems = null
+            };
         }
     }
 }

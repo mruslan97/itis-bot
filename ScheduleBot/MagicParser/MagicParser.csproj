@@ -9,6 +9,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ScheduleServices.Core\ScheduleServices.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="client_secret.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

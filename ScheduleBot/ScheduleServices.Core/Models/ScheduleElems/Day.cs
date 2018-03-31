@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using MongoDB.Bson.Serialization.Attributes;
+using System.Linq;
 using ScheduleServices.Core.Models.Comparison;
 using ScheduleServices.Core.Models.Interfaces;
 
 namespace ScheduleServices.Core.Models.ScheduleElems
 {
-    [ComplexType]
+    
     public class Day : IScheduleElem, IEquatable<Day>
     {
         public ScheduleElemLevel Level { get; set; } = ScheduleElemLevel.Day;
@@ -44,6 +43,16 @@ namespace ScheduleServices.Core.Models.ScheduleElems
                 hashCode = (hashCode * 397) ^ (int) DayOfWeek;
                 return hashCode;
             }
+        }
+
+        public object Clone()
+        {
+            return new Day()
+            {
+                Level = this.Level,
+                DayOfWeek = this.DayOfWeek,
+                Elems = Elems?.Select(e => e.Clone()).Cast<IScheduleElem>().ToList()
+            };
         }
     }
 }

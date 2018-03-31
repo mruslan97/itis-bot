@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using ScheduleServices.Core.Models.Interfaces;
 
@@ -37,6 +38,15 @@ namespace ScheduleServices.Core.Models.ScheduleElems
             {
                 return ((int) Level * 397) ^ (Elems != null ? Elems.GetHashCode() : 0);
             }
+        }
+
+        public object Clone()
+        {
+            return new Undefined()
+            {
+                Level = this.Level,
+                Elems = Elems?.Select(e => e.Clone()).Cast<IScheduleElem>().ToList()
+            };
         }
     }
 }

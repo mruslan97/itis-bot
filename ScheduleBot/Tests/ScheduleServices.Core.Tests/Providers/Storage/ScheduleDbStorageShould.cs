@@ -17,7 +17,7 @@ namespace ScheduleServices.Core.Tests.Providers.Storage
     [TestFixture]
     public class ScheduleDbStorageShould
     {
-        private SchedulesDbStorage storage;
+        private SchedulesInMemoryDbStorage storage;
         private ScheduleMongoDbContext context;
         private ISchedule tree;
         [SetUp]
@@ -27,7 +27,7 @@ namespace ScheduleServices.Core.Tests.Providers.Storage
             //var weekRel = new TypeRelay(typeof(IScheduleElem), typeof(Week));
             context = new ScheduleMongoDbContext("mongodb://localhost:27017/scheduleunits");
             
-            storage = new SchedulesDbStorage(context);
+            storage = new SchedulesInMemoryDbStorage(context);
             var fixture = new Fixture();
             var gen = new TypeGenerator();
             fixture.Customizations.Add(new TypeRelay(typeof(IScheduleElem), typeof(Week)));
@@ -51,7 +51,7 @@ namespace ScheduleServices.Core.Tests.Providers.Storage
         [Test]
         public void BeAlive()
         {
-            storage = new SchedulesDbStorage(context);
+            storage = new SchedulesInMemoryDbStorage(context);
             storage.UpdateScheduleAsync(tree.ScheduleGroups.FirstOrDefault(), tree.ScheduleRoot).Result.ShouldBeTrue();
             Assert.Pass();
         }

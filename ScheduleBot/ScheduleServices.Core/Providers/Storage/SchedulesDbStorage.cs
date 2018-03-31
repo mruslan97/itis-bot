@@ -1,17 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Blueshift.EntityFrameworkCore.MongoDB.Annotations;
-using Microsoft.EntityFrameworkCore;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson.Serialization.Conventions;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Driver;
+using ScheduleServices.Core.Factories.Interafaces;
 using ScheduleServices.Core.Models;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleElems;
@@ -21,128 +13,130 @@ using ScheduleServices.Core.Providers.Interfaces;
 
 namespace ScheduleServices.Core.Providers.Storage
 {
-    public class SchedulesDbStorage : ISchedulesStorage
+    public class SchedulesInMemoryDbStorage : ISchedulesStorage
     {
-        private readonly ScheduleMongoDbContext context;
+        private readonly ISchElemsFactory factory;
 
-        public SchedulesDbStorage(ScheduleMongoDbContext context)
+        private ConcurrentDictionary<string, ICollection<IScheduleElem>> storage =
+            new ConcurrentDictionary<string, ICollection<IScheduleElem>>();
+
+        public SchedulesInMemoryDbStorage(ISchElemsFactory factory)
         {
-            this.context = context;
+            this.factory = factory;
         }
 
-        public async Task<IEnumerable<ISchedule>> GetScheduleAsync(IEnumerable<IScheduleGroup> availableGroups, DayOfWeek day)
+
+        public IEnumerable<ISchedule> GetSchedules(IEnumerable<IScheduleGroup> availableGroups, DayOfWeek day)
         {
-            return (await context.Schedules.Join(availableGroups, schedule => schedule.Group, group => group,
-                (schedule, group) => new
+            string key;
+            ISchedule schedule;
+            foreach (var availableGroup in availableGroups)
+            {
+                key = KeyFromGroup(availableGroup);
+                if (storage.TryGetValue(key, out ICollection<IScheduleElem> days))
                 {
-                    G = schedule.Group,
-                    R = schedule.ScheduleRoot.Elems.OfType<Day>().FirstOrDefault(d => d.DayOfWeek == day)
-                }).AsNoTracking().ToListAsync()).Select(x => new Schedule()
-            {
-                ScheduleGroups = new List<IScheduleGroup>() {x.G},
-                ScheduleRoot = x.R
-            }).ToList();
+                    foreach (var resDay in days.OfType<Day>().Where(d => d.DayOfWeek == day))
+                    {
+                        schedule = factory.GetSchedule();
 
+                        schedule.ScheduleRoot = (IScheduleElem) resDay.Clone();
+                        schedule.ScheduleGroups.Add(availableGroup);
+                        yield return schedule;
+                    }
+                }
+            }
         }
 
-        public async Task<bool> UpdateScheduleAsync(IScheduleGroup targetGroup, IScheduleElem scheduleRoot)
+        private string KeyFromGroup(IScheduleGroup group)
         {
-            var smt = context.Schedules.Any();
-            var name = targetGroup.Name;
-            
-            var stored = context.Schedules.Where(sc =>
-                sc.Group.Name == name).ToList();
-            if (stored != null)
-            {
-                //stored.Group = targetGroup;
-                //stored.ScheduleRoot = scheduleRoot;
-            }
-            else
-            {
-                context.Schedules.Add(new SingleGroupSchedule() {Group = targetGroup, ScheduleRoot = scheduleRoot});
-            }
+            return group.GType.ToString() + "^" + group.Name;
+        }
 
-            try
+        public Task<bool> UpdateScheduleAsync(IScheduleGroup targetGroup, IScheduleElem scheduleRoot)
+        {
+            return Task.Factory.StartNew(() =>
             {
-                await context.SaveChangesAsync();
-                return true;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return false;
-            }
+                try
+                {
+                    string key = KeyFromGroup(targetGroup);
+                    storage.AddOrUpdate(key,
+                        //if new key
+                        keyS =>
+                        {
+                            switch (scheduleRoot.Level)
+                            {
+                                case ScheduleElemLevel.Week:
+                                    return ((IScheduleElem) scheduleRoot.Clone()).Elems;
+                                case ScheduleElemLevel.Day:
+                                    return new List<IScheduleElem>() {scheduleRoot};
+                                default:
+                                    throw new ArgumentOutOfRangeException(
+                                        $"Db cannot add root with level {scheduleRoot.Level.ToString()}");
+                            }
+                        },
+                        //if already exists
+                        (keyS, days) =>
+                        {
+                            switch (scheduleRoot.Level)
+                            {
+                                case ScheduleElemLevel.Week:
+                                    return ((IScheduleElem) scheduleRoot.Clone()).Elems;
+                                case ScheduleElemLevel.Day:
+                                    var casted = (Day) scheduleRoot;
+                                    var toUpd = days.OfType<Day>().FirstOrDefault(d => d.DayOfWeek == casted.DayOfWeek);
+                                    if (toUpd != null)
+                                        days.Remove(toUpd);
+                                    days.Add((IScheduleElem) casted.Clone());
+                                    return days;
+                                default:
+                                    throw new ArgumentOutOfRangeException(
+                                        $"Db cannot update root with level {scheduleRoot.Level.ToString()}");
+                            }
+                        });
+                    return true;
+                }
+                catch (ArgumentOutOfRangeException e)
+                {
+                    //todo: logger
+                    return false;
+                }
+            });
+        }
+
+        private void CheckAndFill(ref ICollection<IScheduleElem> days, IScheduleElem scheduleRoot)
+        {
         }
     }
 
-    //[MongoDatabase("scheduleunits")]
-    public class ScheduleMongoDbContext : DbContext
-    {
-        private string connectionString;
 
-        public ScheduleMongoDbContext(string connectionString)
-            : this(new DbContextOptions<ScheduleMongoDbContext>(), connectionString)
-        {
-        }
-
-        public ScheduleMongoDbContext(DbContextOptions<ScheduleMongoDbContext> zooDbContextOptions,
-            string connectionString)
-            : base(zooDbContextOptions)
-        {
-            this.connectionString = connectionString;
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            /*var connectionString = "mongodb://localhost";
-            //optionsBuilder.UseMongoDb(connectionString);
-
-            
-            //optionsBuilder.UseMongoDb(mongoUrl);
-            */
-
-            //settings.SslSettings = new SslSettings
-            //{
-            //    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12
-            //};
-            //optionsBuilder.UseMongoDb(settings);
-            var mongoUrl = new MongoUrl(connectionString);
-            MongoClientSettings settings = MongoClientSettings.FromUrl(mongoUrl);
-            MongoClient mongoClient = new MongoClient(settings);
-            optionsBuilder.UseMongoDb(mongoClient);
-        }
-
-        public DbSet<SingleGroupSchedule> Schedules { get; set; }
-    }
-
-    public class SingleGroupSchedule : Schedule
-    {
-        public IScheduleGroup Group { get; set; }
-
-        //hide! do not use as Schedule or ISchedule
-        [BsonIgnore]
-        public new ICollection<IScheduleGroup> ScheduleGroups
-        {
-            get => new List<IScheduleGroup> {Group};
-            set => Group = value.FirstOrDefault();
-        }
-
-        public static SingleGroupSchedule FromSchedule(ISchedule schedule)
-        {
-            return new SingleGroupSchedule()
-            {
-                ScheduleGroups = schedule.ScheduleGroups,
-                ScheduleRoot = schedule.ScheduleRoot
-            };
-        }
-
-        public static ISchedule ToSchedule(SingleGroupSchedule singleGroupSchedule)
-        {
-            return new Schedule()
-            {
-                ScheduleGroups = singleGroupSchedule.ScheduleGroups,
-                ScheduleRoot = singleGroupSchedule.ScheduleRoot
-            };
-        }
-    }
+    /* public class SingleGroupSchedule : Schedule
+     {
+         public IScheduleGroup Group { get; set; }
+ 
+         //hide! do not use as Schedule or ISchedule
+         [BsonIgnore]
+         public new ICollection<IScheduleGroup> ScheduleGroups
+         {
+             get => new List<IScheduleGroup> {Group};
+             set => Group = value.FirstOrDefault();
+         }
+ 
+         public static SingleGroupSchedule FromSchedule(ISchedule schedule)
+         {
+             return new SingleGroupSchedule()
+             {
+                 ScheduleGroups = schedule.ScheduleGroups,
+                 ScheduleRoot = schedule.ScheduleRoot
+             };
+         }
+ 
+         public static ISchedule ToSchedule(SingleGroupSchedule singleGroupSchedule)
+         {
+             return new Schedule()
+             {
+                 ScheduleGroups = singleGroupSchedule.ScheduleGroups,
+                 ScheduleRoot = singleGroupSchedule.ScheduleRoot
+             };
+         }
+     }*/
 }
