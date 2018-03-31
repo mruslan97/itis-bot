@@ -84,7 +84,9 @@ namespace ScheduleServices.Core
             var preparedSchedules = new BlockingCollection<ISchedule>(new ConcurrentQueue<ISchedule>());
             //collect tasks
             var tasks = new List<Task>();
-            //
+            //start consuming
+            var result = scheduleConstructor.ConstructFromMany(preparedSchedules.GetConsumingEnumerable());
+
             var validated = ValidateGroups(groups);
             for (int i = 1; i <= 6; i++)
             {
@@ -97,8 +99,7 @@ namespace ScheduleServices.Core
                 }, i));
             }
 
-            //start consuming
-            var result = scheduleConstructor.ConstructFromMany(preparedSchedules.GetConsumingEnumerable());
+            
             await Task.WhenAll(tasks).ContinueWith((t) => preparedSchedules.CompleteAdding());
             return await result;
         }
