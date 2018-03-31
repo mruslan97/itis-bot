@@ -99,9 +99,7 @@ namespace ScheduleServices.Core
 
             //start consuming
             var result = scheduleConstructor.ConstructFromMany(preparedSchedules.GetConsumingEnumerable());
-            tasks.Add(result);
-            await Task.WhenAll(tasks);
-            //sync without waiting
+            await Task.WhenAll(tasks).ContinueWith((t) => preparedSchedules.CompleteAdding());
             return await result;
         }
 
