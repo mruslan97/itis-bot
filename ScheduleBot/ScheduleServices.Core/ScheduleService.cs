@@ -23,6 +23,7 @@ namespace ScheduleServices.Core
             this.freshInfoProvider = freshInfoProvider;
             this.scheduleConstructor = new ScheduleConstructor(new DefaultSchElemsFactory());
             this.GroupsMonitor = groupsMonitor;
+            //todo: run delayed updating from inet
         }
 
         
