@@ -67,7 +67,7 @@ namespace ScheduleBot.AspHost.BotStorage
                         {
                             var duplNode = idNode.Elements().FirstOrDefault(n =>
                                 (n.Attribute("GTYPE")?.Value ?? "") == duplicate.GType.ToString() &&
-                                (n.Attribute("GNAME")?.Value ?? "") == duplicate.Name);
+                                (n.Attribute("GNAME")?.Value ?? "") != duplicate.Name);
                             duplNode?.Attribute("GNAME")?.SetValue(groupFromStorage.Name);
                         }
                     }
