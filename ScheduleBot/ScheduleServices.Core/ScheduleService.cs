@@ -57,9 +57,17 @@ namespace ScheduleServices.Core
             //sync, already completed
             var fresh = await tfresh;
             var stored = await tstored;
+            var goodFresh = fresh.Where(schedule =>
+            {
+                var checkresult = schedule.ScheduleRoot.CheckElemIsCorrect();
+                if (!checkresult.Successed)
+                    foreach (var error in checkresult.ErrorsList)
+                        Console.WriteLine("[" + DateTime.Now + "] + WHILE CHECK FRESH SCHEDULE ERROR FOUND:" + error);
+                return checkresult.Successed;
+            });
             //left outer join: all from fresh and matching from storage or null
             List<Task> updateTasks = new List<Task>();
-            foreach (var pair in fresh.LeftJoin(stored, sch => sch.ScheduleGroups.FirstOrDefault(),
+            foreach (var pair in goodFresh.LeftJoin(stored, sch => sch.ScheduleGroups.FirstOrDefault(),
                 sch => sch.ScheduleGroups.FirstOrDefault(),
                 (fromFresh, fromStorage) => new {Fresh = fromFresh, Stored = fromStorage}))
             {
@@ -110,7 +118,7 @@ namespace ScheduleServices.Core
             var result = scheduleConstructor.ConstructFromMany(preparedSchedules.GetConsumingEnumerable());
             await Task.WhenAll(adding, result);
             //sync without waiting
-            return await result;
+            return (await result).OrderScheduleRootAndChildren();
         }
 
 
@@ -142,7 +150,7 @@ namespace ScheduleServices.Core
 
 
             await Task.WhenAll(tasks).ContinueWith((t) => preparedSchedules.CompleteAdding());
-            return await result;
+            return (await result).OrderScheduleRootAndChildren();
         }
 
         private DayOfWeek DayOfWeekFromPeriod(ScheduleRequiredFor period)

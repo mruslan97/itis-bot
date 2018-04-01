@@ -48,7 +48,7 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
                     continue;
                 }
 
-                if (lesson.BeginTime < prev.BeginTime + prev.Duration &&
+                if (lesson.BeginTime <= prev.BeginTime + prev.Duration &&
                     (lesson.IsOnEvenWeek == null || prev.IsOnEvenWeek == null ||
                      prev.IsOnEvenWeek == lesson.IsOnEvenWeek))
                     throw new ScheduleConstructorException(String.Format(
