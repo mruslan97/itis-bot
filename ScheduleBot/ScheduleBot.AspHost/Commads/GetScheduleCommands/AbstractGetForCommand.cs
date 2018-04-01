@@ -28,7 +28,7 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
 
         protected async Task<UpdateHandlingResult> HandleCommandForPeriod(Update update, DefaultCommandArgs args, ScheduleRequiredFor period)
         {
-            var userGroups = await Storage.GetGroupsForChatAsync(update.Message.Chat.Id);
+            var userGroups = await Storage.GetGroupsForChatAsync(update.Message.Chat);
             if (userGroups != null)
             {
                 string replyText = JsonConvert.SerializeObject(

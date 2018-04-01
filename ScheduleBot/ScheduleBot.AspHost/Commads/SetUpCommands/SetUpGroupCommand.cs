@@ -50,7 +50,7 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
             }
 
             if (scheduler.GroupsMonitor.TryFindGroupByName(groupName, out IScheduleGroup group)
-                && await storage.TryAddGroupToChatAsync(group, update.Message.Chat.Id))
+                && await storage.TryAddGroupToChatAsync(group, update.Message.Chat))
             {
                 await Bot.Client.SendTextMessageAsync(
                     update.Message.Chat.Id,

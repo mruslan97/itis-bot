@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using ScheduleServices.Core.Models.Interfaces;
+using Telegram.Bot.Types;
 
 namespace ScheduleBot.AspHost.BotStorage
 {
     public interface IBotDataStorage
     {
-        Task<IEnumerable<IScheduleGroup>> GetGroupsForChatAsync(long chatId);
-        Task<bool> TryAddGroupToChatAsync(IScheduleGroup scheduleGroup, long chatId);
+        Task<IEnumerable<IScheduleGroup>> GetGroupsForChatAsync(Chat chat);
+        Task<bool> TryAddGroupToChatAsync(IScheduleGroup scheduleGroup, Chat chat);
     }
 }

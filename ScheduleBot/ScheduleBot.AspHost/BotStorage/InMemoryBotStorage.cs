@@ -4,15 +4,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Resources;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Linq;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Models.Interfaces;
-using ScheduleServices.Core.Modules;
+using Telegram.Bot.Types;
 
 namespace ScheduleBot.AspHost.BotStorage
 {
@@ -20,11 +16,11 @@ namespace ScheduleBot.AspHost.BotStorage
     {
         private readonly IScheduleServise servise;
 
-        private ConcurrentDictionary<long, ICollection<IScheduleGroup>> usersGroups =
+        private readonly ConcurrentDictionary<long, ICollection<IScheduleGroup>> usersGroups =
             new ConcurrentDictionary<long, ICollection<IScheduleGroup>>();
 
         private const string XmlFileName = "usersgroups.xml";
-        private string path;
+        private readonly string path;
 
         public InMemoryBotStorage(IScheduleServise servise)
         {
@@ -32,37 +28,38 @@ namespace ScheduleBot.AspHost.BotStorage
             path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\BotStorage\\" + XmlFileName;
             try
             {
-                XDocument doc = XDocument.Load(path);
-                if (doc.Root != null)
-                {
-                    foreach (var element in doc.Root.Elements())
-                    {
-                        if (long.TryParse(element.Attribute("ID")?.Value, out long chatId))
-                        {
-                            foreach (var relationToGroup in element.Elements())
+                var doc = XDocument.Load(path);
+                var elements = doc.Element("users")?.Elements("user");
+                foreach (var element in elements)
+                    if (servise.GroupsMonitor.TryFindGroupByName(element.Element("value").Value, out var group))
+                        usersGroups.AddOrUpdate(Convert.ToInt32(element.Element("chatId").Value),
+                            new List<IScheduleGroup> {group},
+                            (id, old) =>
                             {
-                                var groupname = (relationToGroup.Attribute("GNAME")?.Value ?? "");
-                                if (servise.GroupsMonitor.TryFindGroupByName(groupname, out IScheduleGroup group))
-                                {
-                                    usersGroups.AddOrUpdate(chatId, new List<IScheduleGroup>() {group},
-                                        (id, old) =>
-                                        {
-                                            old.Add(group);
-                                            return old;
-                                        });
-                                }
-                                else
-                                {
-                                    Console.Out.WriteLine($"no group found of user {chatId} with name: {groupname}");
-                                }
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    Console.Out.WriteLine("doc load fail - no root");
-                }
+                                old.Add(group);
+                                return old;
+                            });
+                    else
+                        Console.Out.WriteLine(
+                            $"no group found of user {element.Element("chatId").Value} with name: {element.Element("value").Value}");
+                //if (doc.Root != null)
+                //    foreach (var element in doc.Root.Elements())
+                //        if (long.TryParse(element.Attribute("ID")?.Value, out var chatId))
+                //            foreach (var relationToGroup in element.Elements())
+                //            {
+                //                var groupname = relationToGroup.Attribute("GNAME")?.Value ?? "";
+                //                if (servise.GroupsMonitor.TryFindGroupByName(groupname, out var group))
+                //                    usersGroups.AddOrUpdate(chatId, new List<IScheduleGroup> {group},
+                //                        (id, old) =>
+                //                        {
+                //                            old.Add(group);
+                //                            return old;
+                //                        });
+                //                else
+                //                    Console.Out.WriteLine($"no group found of user {chatId} with name: {groupname}");
+                //            }
+                //else
+                //    Console.Out.WriteLine("doc load fail - no root");
             }
             catch (Exception e)
             {
@@ -72,21 +69,21 @@ namespace ScheduleBot.AspHost.BotStorage
         }
 
 
-        public Task<IEnumerable<IScheduleGroup>> GetGroupsForChatAsync(long chatId)
+        public Task<IEnumerable<IScheduleGroup>> GetGroupsForChatAsync(Chat chat)
         {
             return Task.Run(() =>
             {
-                usersGroups.TryGetValue(chatId, out ICollection<IScheduleGroup> groups);
+                usersGroups.TryGetValue(chat.Id, out var groups);
                 return (IEnumerable<IScheduleGroup>) groups;
             });
         }
 
-        public async Task<bool> TryAddGroupToChatAsync(IScheduleGroup scheduleGroup, long chatId)
+        public async Task<bool> TryAddGroupToChatAsync(IScheduleGroup scheduleGroup, Chat chat)
         {
-            if (servise.GroupsMonitor.TryGetCorrectGroup(scheduleGroup, out IScheduleGroup groupFromStorage))
+            if (servise.GroupsMonitor.TryGetCorrectGroup(scheduleGroup, out var groupFromStorage))
             {
                 IScheduleGroup duplicate = null;
-                usersGroups.AddOrUpdate(chatId, new List<IScheduleGroup>() {groupFromStorage}, (id, oldList) =>
+                usersGroups.AddOrUpdate(chat.Id, new List<IScheduleGroup> {groupFromStorage}, (id, oldList) =>
                 {
                     duplicate = oldList.FirstOrDefault(g =>
                         g.GType == groupFromStorage.GType && !g.Equals(groupFromStorage));
@@ -98,35 +95,33 @@ namespace ScheduleBot.AspHost.BotStorage
                 });
                 try
                 {
-                    XDocument doc = XDocument.Load(path);
-                    var idNode = doc.Root?.Elements()?.FirstOrDefault(e => e.Attribute("ID")?.Value == chatId.ToString());
-                    if (duplicate != null)
-                    {
-                        if (idNode != null)
-                        {
-                            var duplNode = idNode.Elements().FirstOrDefault(n =>
-                                (n.Attribute("GTYPE")?.Value ?? "") == duplicate.GType.ToString() &&
-                                (n.Attribute("GNAME")?.Value ?? "") != duplicate.Name);
-                            duplNode?.Attribute("GNAME")?.SetValue(groupFromStorage.Name);
-                        }
-                    }
+                    var xdoc = XDocument.Load(path);
+                    var element = xdoc.Element("users")
+                        ?.Elements("user").Where(u =>
+                            u.Element("chatId")?.Value == chat.Id.ToString() &&
+                            u.Element("groupType")?.Value == groupFromStorage.GType.ToString());
+                    if (element == null)
+                        xdoc.Element("users")
+                            .Add(new XElement("user",
+                                new XAttribute("name", chat.FirstName),
+                                new XElement("groupType", groupFromStorage.GType.ToString()),
+                                new XElement("chatId", chat.Id),
+                                new XElement("value", groupFromStorage.Name)));
                     else
-                    {
-                        if (idNode == null)
-                        {
-                            idNode = new XElement(XName.Get("user", doc.Root.Name.ToString()));
-                            idNode.Attribute("ID")?.SetValue(chatId.ToString());
-                            doc.Root.Add(idNode);
-                        }
-
-                        var newElem = new XElement("GROUP", idNode.ToString());
-                        idNode.Add(newElem);
-                    }
-
-                    using (XmlTextWriter xtw = new XmlTextWriter(path, Encoding.UTF8))
-                    {
-                        await doc.SaveAsync(xtw, CancellationToken.None);
-                    }
+                        (xdoc.Element("users")
+                                ?.Elements("user")).SingleOrDefault(u =>
+                                u.Element("chatId")?.Value == chat.Id.ToString() &&
+                                u.Element("groupType")?.Value ==
+                                groupFromStorage.GType.ToString()).Element("value")
+                            .Value = groupFromStorage.Name;
+                    //else
+                    //    (xdoc.Element("users")
+                    //            ?.Elements("user")).SingleOrDefault(u =>
+                    //            u.Element("chatId")?.Value == chat.Id.ToString() &&
+                    //            u.Element("groupType")?.Value ==
+                    //            groupFromStorage.GType.ToString()).Element("value")
+                    //        .Value = groupFromStorage.Name;
+                    xdoc.Save(path);
                 }
                 catch (Exception e)
                 {
@@ -135,10 +130,8 @@ namespace ScheduleBot.AspHost.BotStorage
 
                 return true;
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
     }
 }
