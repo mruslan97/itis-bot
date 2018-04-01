@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using ScheduleBot.AspHost.BotStorage;
@@ -25,8 +26,7 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
         {
             if (!base.CanHandleCommand(update))
             {
-                //todo: impl
-                return false;
+                return update.Message.Text.ToLowerInvariant().Contains("сегодня");
             }
             else
                 return true;
