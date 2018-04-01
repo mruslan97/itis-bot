@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MagicParser.Impls;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -40,6 +41,7 @@ namespace ScheduleBot.AspHost
                 .AddEnvironmentVariables();
             configuration = builder.Build();
         }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
@@ -49,7 +51,7 @@ namespace ScheduleBot.AspHost
             //service
             services.AddTransient<ISchElemsFactory, DefaultSchElemsFactory>();
             services.AddTransient<IGroupsMonitor, GroupsMonitor>(provider => new GroupsMonitor(GetGroupsList()));
-            services.AddTransient<IScheduleInfoProvider, IScheduleInfoProvider>();
+            services.AddTransient<IScheduleInfoProvider, ScheduleInfoProvider>();
             services.AddTransient<ISchedulesStorage, SchedulesInMemoryDbStorage>();
             services.AddSingleton<IScheduleServise, ScheduleService>();
             services.AddSingleton<IBotDataStorage, InMemoryBotStorage>();
@@ -67,7 +69,7 @@ namespace ScheduleBot.AspHost
             loggerFactory.AddConsole(configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
             ILogger logger = loggerFactory.CreateLogger<Startup>();
-            
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -75,13 +77,11 @@ namespace ScheduleBot.AspHost
 
             Task.Factory.StartNew(async () =>
             {
-                
-               
-                    var botManager = app.ApplicationServices.GetRequiredService<IBotManager<ItisScheduleBot>>();
-                    await botManager.SetWebhookStateAsync(false);
-                
+                var botManager = app.ApplicationServices.GetRequiredService<IBotManager<ItisScheduleBot>>();
+                await botManager.SetWebhookStateAsync(false);
+
                 // make sure webhook is disabled so we can use long-polling
-                
+
 
                 while (true)
                 {
@@ -93,9 +93,7 @@ namespace ScheduleBot.AspHost
                     {
                         logger.LogError($"Exception: {e}");
                     }
-                    
                 }
-               
             }).ContinueWith(t =>
             {
                 if (t.IsFaulted) throw t.Exception;
@@ -104,10 +102,7 @@ namespace ScheduleBot.AspHost
             updates = new UpdatesScheduler(app.ApplicationServices);
             updates.Start();
 
-            app.Run(async (context) =>
-            {
-                
-            });
+            app.Run(async (context) => { });
         }
 
         private IList<IScheduleGroup> GetGroupsList()
@@ -125,6 +120,14 @@ namespace ScheduleBot.AspHost
                 new ScheduleGroup() { GType = ScheduleGroupType.Academic, Name = "11-07"},
                 new ScheduleGroup() { GType = ScheduleGroupType.Academic, Name = "11-08"},
                 */
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-401"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-402"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-403"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-404"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-405"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-406"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-407"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-408"},
                 new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-501"},
                 new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-502"},
                 new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-503"},
@@ -149,15 +152,7 @@ namespace ScheduleBot.AspHost
                 new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-706"},
                 new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-707"},
                 new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-708"},
-                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-801"},
-                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-802"},
-                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-803"},
-                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-804"},
-                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-805"},
-                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-806"},
-                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-807"},
-                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-808"}
-
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-709"},
             };
         }
     }

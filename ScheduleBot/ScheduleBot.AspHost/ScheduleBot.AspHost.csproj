@@ -3,7 +3,15 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Content Remove="client_secret.json" />
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="wwwroot\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="client_secret.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentScheduler" Version="5.3.0" />
@@ -16,6 +24,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MagicParser\MagicParser.csproj" />
     <ProjectReference Include="..\ScheduleServices.Core\ScheduleServices.Core.csproj" />
   </ItemGroup>
 </Project>
