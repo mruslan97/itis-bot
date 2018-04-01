@@ -19,5 +19,12 @@ namespace ScheduleServices.Core
         Task<ISchedule> GetScheduleForAsync(IEnumerable<IScheduleGroup> groups, DayOfWeek day);
         Task<ISchedule> GetScheduleForAsync(IScheduleGroup group, ScheduleRequiredFor period);
         Task<ISchedule> GetScheduleForAsync(IScheduleGroup group, DayOfWeek day);
+        /// <summary>
+        /// Refresh schedules in storage
+        /// </summary>
+        /// <param name="groups">list of groups, for which schedules will be updated</param>
+        /// <param name="day">day of week, which updated schedules related on</param>
+        /// <returns></returns>
+        Task UpdateSchedulesAsync(IEnumerable<IScheduleGroup> groups, DayOfWeek day);
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
-using MongoDB.Bson.Serialization.Attributes;
 using ScheduleServices.Core.Models.ScheduleElems;
 
 namespace ScheduleServices.Core.Models.Interfaces
@@ -15,7 +14,7 @@ namespace ScheduleServices.Core.Models.Interfaces
         PickedScientic = 3,
         PickedTech = 4
     }
-    //[BsonKnownTypes(typeof(Week), typeof(Day), typeof(Lesson))]
+    
     public interface IScheduleGroup : IEquatable<IScheduleGroup>, ICloneable, INotifyPropertyChanged
     {
         ScheduleGroupType GType { get; set; }

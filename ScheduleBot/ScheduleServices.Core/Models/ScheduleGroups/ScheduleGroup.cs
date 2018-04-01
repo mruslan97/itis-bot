@@ -1,7 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using PropertyChanged;
@@ -14,10 +12,10 @@ namespace ScheduleServices.Core.Models.ScheduleGroups
     {
         //[JsonConverter(typeof(StringEnumConverter))] 
         //[BsonRepresentation(BsonType.String)]
-        [BsonRequired]
+        
         public ScheduleGroupType GType { get; set; }
         
-        [BsonRequired]
+        
         public string Name { get; set; }
 
         public bool Equals(ScheduleGroup other)

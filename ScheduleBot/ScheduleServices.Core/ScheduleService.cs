@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Providers.Interfaces;
 using System.Collections.Concurrent;
+using System.Linq;
+using ScheduleServices.Core.Extensions;
 using ScheduleServices.Core.Factories;
 using ScheduleServices.Core.Modules;
 using ScheduleServices.Core.Modules.Interfaces;
@@ -33,14 +35,50 @@ namespace ScheduleServices.Core
         public Task<ISchedule> GetScheduleForAsync(IScheduleGroup @group, ScheduleRequiredFor period)
         {
             if (period != ScheduleRequiredFor.Week)
-                return GetScheduleForAsync(new[] { group }, DayOfWeekFromPeriod(period));
+                return GetScheduleForAsync(new[] {group}, DayOfWeekFromPeriod(period));
             else
-                return GetWeekScheduleForAsync(new[] { group });
+                return GetWeekScheduleForAsync(new[] {group});
         }
 
         public Task<ISchedule> GetScheduleForAsync(IScheduleGroup @group, DayOfWeek day)
         {
-            return GetScheduleForAsync(new[] { group }, day);
+            return GetScheduleForAsync(new[] {group}, day);
+        }
+
+        public async Task UpdateSchedulesAsync(IEnumerable<IScheduleGroup> groups, DayOfWeek day)
+        {
+            var validated = ValidateGroups(groups);
+            var tfresh = Task.Run(() => freshInfoProvider.GetSchedules(validated, day));
+            var tstored = Task.Run(() => storage.GetSchedules(validated, day));
+            await Task.WhenAll(tfresh, tstored);
+            //sync, already completed
+            var fresh = await tfresh;
+            var stored = await tstored;
+            //left outer join: all from fresh and matching from storage or null
+            List<Task> updateTasks = new List<Task>();
+            foreach (var pair in fresh.LeftJoin(stored, sch => sch.ScheduleGroups.FirstOrDefault(),
+                sch => sch.ScheduleGroups.FirstOrDefault(),
+                (fromFresh, fromStorage) => new {Fresh = fromFresh, Stored = fromStorage}))
+            {
+                if (pair.Stored != null)
+                    updateTasks.Add(CompareAndAddIfNotEqual(pair.Fresh, pair.Stored));
+                else
+                    updateTasks.Add(storage.UpdateScheduleAsync(pair.Fresh.ScheduleGroups.FirstOrDefault(),
+                        pair.Fresh.ScheduleRoot));
+            }
+
+            await Task.WhenAll(updateTasks);
+
+            Task CompareAndAddIfNotEqual(ISchedule freshSchedule, ISchedule storedSchedule)
+            {
+                return Task.Run(() =>
+                {
+                    if (!freshSchedule.ScheduleRoot.Equals(storedSchedule.ScheduleRoot))
+                        return storage.UpdateScheduleAsync(freshSchedule.ScheduleGroups.FirstOrDefault(),
+                            freshSchedule.ScheduleRoot);
+                    return Task.CompletedTask;
+                });
+            }
         }
 
         public Task<ISchedule> GetScheduleForAsync(IEnumerable<IScheduleGroup> groups, ScheduleRequiredFor period)
@@ -99,7 +137,7 @@ namespace ScheduleServices.Core
                 }, i));
             }
 
-            
+
             await Task.WhenAll(tasks).ContinueWith((t) => preparedSchedules.CompleteAdding());
             return await result;
         }
