@@ -9,6 +9,16 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ScheduleBot.AspHost.Commads;
+using ScheduleBot.AspHost.Updating;
+using ScheduleServices.Core;
+using ScheduleServices.Core.Factories;
+using ScheduleServices.Core.Factories.Interafaces;
+using ScheduleServices.Core.Models.Interfaces;
+using ScheduleServices.Core.Models.ScheduleGroups;
+using ScheduleServices.Core.Modules;
+using ScheduleServices.Core.Modules.Interfaces;
+using ScheduleServices.Core.Providers.Interfaces;
+using ScheduleServices.Core.Providers.Storage;
 using Telegram.Bot.Framework.Abstractions;
 
 namespace ScheduleBot.AspHost
@@ -16,6 +26,7 @@ namespace ScheduleBot.AspHost
     public class Startup
     {
         private IConfigurationRoot configuration;
+        private UpdatesScheduler updates;
 
         public Startup(IHostingEnvironment env)
         {
@@ -30,6 +41,15 @@ namespace ScheduleBot.AspHost
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            //schedules upd
+            services.AddTransient<UpdateJob>();
+            //service
+            services.AddTransient<ISchElemsFactory, DefaultSchElemsFactory>();
+            services.AddTransient<IGroupsMonitor, GroupsMonitor>(provider => new GroupsMonitor(GetGroupsList()));
+            services.AddTransient<IScheduleInfoProvider, IScheduleInfoProvider>();
+            services.AddTransient<ISchedulesStorage, SchedulesInMemoryDbStorage>();
+            services.AddSingleton<IScheduleServise, ScheduleService>();
+
             services.AddTelegramBot<ItisScheduleBot>(configuration.GetSection("ScheduleBot"))
                 .AddUpdateHandler<EchoCommand>()
                 .Configure();
@@ -75,10 +95,64 @@ namespace ScheduleBot.AspHost
                 if (t.IsFaulted) throw t.Exception;
             });
 
+            updates = new UpdatesScheduler(app.ApplicationServices);
+            updates.Start();
+
             app.Run(async (context) =>
             {
                 
             });
+        }
+
+        private IList<IScheduleGroup> GetGroupsList()
+        {
+            return new List<IScheduleGroup>()
+            {
+                //template
+                /*
+                new ScheduleGroup() { GType = ScheduleGroupType.Academic, Name = "11-01"},
+                new ScheduleGroup() { GType = ScheduleGroupType.Academic, Name = "11-02"},
+                new ScheduleGroup() { GType = ScheduleGroupType.Academic, Name = "11-03"},
+                new ScheduleGroup() { GType = ScheduleGroupType.Academic, Name = "11-04"},
+                new ScheduleGroup() { GType = ScheduleGroupType.Academic, Name = "11-05"},
+                new ScheduleGroup() { GType = ScheduleGroupType.Academic, Name = "11-06"},
+                new ScheduleGroup() { GType = ScheduleGroupType.Academic, Name = "11-07"},
+                new ScheduleGroup() { GType = ScheduleGroupType.Academic, Name = "11-08"},
+                */
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-501"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-502"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-503"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-504"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-505"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-506"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-507"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-508"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-601"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-602"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-603"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-604"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-605"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-606"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-607"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-608"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-701"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-702"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-703"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-704"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-705"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-706"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-707"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-708"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-801"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-802"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-803"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-804"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-805"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-806"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-807"},
+                new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-808"}
+
+            };
         }
     }
 }
