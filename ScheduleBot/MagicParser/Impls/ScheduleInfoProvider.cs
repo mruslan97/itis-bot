@@ -15,8 +15,8 @@ namespace MagicParser.Impls
     {
         public IEnumerable<ISchedule> GetSchedules(IEnumerable<IScheduleGroup> availableGroups, DayOfWeek day)
         {
-            try
-            {
+            //try
+            //{
                 var groups = availableGroups.Where(g => g.GType == ScheduleGroupType.Academic).ToList();
                 var schedules = new List<Schedule>();
                 var subjects = GetAllGroups(day);
@@ -36,11 +36,11 @@ namespace MagicParser.Impls
                 }
 
                 return schedules;
-            }
-            catch (Exception e)
-            {
-                throw new ScheduleConstructorException("An exception occured while constructing schedule.", e);
-            }
+            //}
+            //catch (Exception e)
+            //{
+            //    throw new ScheduleConstructorException("An exception occured while constructing schedule.", e);
+            //}
         }
 
         private IEnumerable<ParsedSubject> GetAllGroups(DayOfWeek day)
