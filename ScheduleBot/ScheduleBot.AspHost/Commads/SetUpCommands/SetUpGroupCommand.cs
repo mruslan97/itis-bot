@@ -17,11 +17,13 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
     {
         private readonly IScheduleServise scheduler;
         private readonly IBotDataStorage storage;
+
         public SetUpGroupCommand(IBotDataStorage storage, IScheduleServise scheduler) : base("setupgroup")
         {
             this.storage = storage;
             this.scheduler = scheduler;
         }
+
         protected override bool CanHandleCommand(Update update)
         {
             if (!base.CanHandleCommand(update))
@@ -46,10 +48,10 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
                     "Нет такой группы :(");
                 return UpdateHandlingResult.Handled;
             }
-           
-            if (scheduler.GroupsMonitor.TryFindGroupByName(groupName, out IScheduleGroup group))
+
+            if (scheduler.GroupsMonitor.TryFindGroupByName(groupName, out IScheduleGroup group)
+                && storage.TryAddGroupToChat(group, update.Message.Chat.Id))
             {
-                await storage.AddGroupToChat(group, update.Message.Chat.Id);
                 await Bot.Client.SendTextMessageAsync(
                     update.Message.Chat.Id,
                     "Установлено!");
@@ -60,11 +62,9 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
                     update.Message.Chat.Id,
                     "Нет такой группы :(");
             }
-            
+
 
             return UpdateHandlingResult.Handled;
         }
-
-        
     }
 }
