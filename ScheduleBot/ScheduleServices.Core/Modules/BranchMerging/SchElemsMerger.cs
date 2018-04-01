@@ -42,7 +42,8 @@ namespace ScheduleServices.Core.Modules.BranchMerging
                     throw new ScheduleConstructorException("wrong schedule trees");
                 //sourceNode.Level == Day and targetNode.Level == Week case f.e.
                 if (sourceNode.Level > targetNode.Level)
-                {
+                { 
+                    //todo: if target is undefinded?
                     GetStrategy(targetNode.Level).ChildToParent(ref sourceNode, ref targetNode, TryMerge);
                     return true;
                 }
