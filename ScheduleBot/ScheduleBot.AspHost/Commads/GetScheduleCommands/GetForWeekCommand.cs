@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -12,11 +11,10 @@ using Telegram.Bot.Types;
 
 namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
 {
-    public class GetForTomorrowCommand : AbstractGetForCommand
+    public class GetForWeekCommand : AbstractGetForCommand
     {
-        
 
-        public GetForTomorrowCommand(IScheduleServise scheduler, IBotDataStorage storage) : base(name: "tomorrow", scheduler: scheduler, storage: storage)
+        public GetForWeekCommand(IScheduleServise scheduler, IBotDataStorage storage) : base(name: "week", storage: storage, scheduler: scheduler)
         {
         }
 
@@ -24,7 +22,7 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
         {
             if (!base.CanHandleCommand(update))
             {
-                return update.Message.Text.ToLowerInvariant().Contains("завтра");
+                return update.Message.Text.ToLowerInvariant().Contains("недел");
             }
             else
                 return true;
@@ -32,7 +30,7 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
 
         public override Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
-            return HandleCommandForPeriod(update, args, ScheduleRequiredFor.Tomorrow);
+            return HandleCommandForPeriod(update, args, ScheduleRequiredFor.Week);
         }
     }
 }

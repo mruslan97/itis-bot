@@ -11,15 +11,11 @@ using Telegram.Bot.Types;
 
 namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
 {
-    public class GetForTodayCommand : CommandBase<DefaultCommandArgs>
+    public class GetForTodayCommand : AbstractGetForCommand
     {
-        private readonly IScheduleServise scheduler;
-        private readonly IBotDataStorage storage;
 
-        public GetForTodayCommand(IScheduleServise scheduler, IBotDataStorage storage) : base(name: "today")
+        public GetForTodayCommand(IScheduleServise scheduler, IBotDataStorage storage) : base(name: "today", scheduler: scheduler, storage: storage)
         {
-            this.scheduler = scheduler;
-            this.storage = storage;
         }
 
         protected override bool CanHandleCommand(Update update)
@@ -32,19 +28,9 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
                 return true;
         }
 
-        public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
+        public override Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
-            string replyText = JsonConvert.SerializeObject(
-                await scheduler.GetScheduleForAsync(
-                    await storage.GetGroupsForChatAsync(update.Message.Chat.Id),
-                    ScheduleRequiredFor.Today));
-
-            await Bot.Client.SendTextMessageAsync(
-                update.Message.Chat.Id,
-                replyText,
-                replyToMessageId: update.Message.MessageId);
-
-            return UpdateHandlingResult.Handled;
+            return HandleCommandForPeriod(update, args, ScheduleRequiredFor.Today);
         }
     }
 }
