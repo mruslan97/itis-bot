@@ -21,6 +21,17 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
             this.storage = storage;
         }
 
+        protected override bool CanHandleCommand(Update update)
+        {
+            if (!base.CanHandleCommand(update))
+            {
+                //todo: impl
+                return false;
+            }
+            else
+                return true;
+        }
+
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
             string replyText = JsonConvert.SerializeObject(
