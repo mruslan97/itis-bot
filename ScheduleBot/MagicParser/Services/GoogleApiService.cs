@@ -71,8 +71,11 @@ namespace MagicParser.Services
 
         private List<TmpObject> Sort(BatchGetValuesResponse googleResponse, int course)
         {
+            var subjectsResponse = googleResponse.ValueRanges[1].Values == null
+                ? new List<IList<object>>()
+                : googleResponse.ValueRanges[1].Values;
             var unsortedObjects = googleResponse.ValueRanges[0].Values
-                ?.Zip(googleResponse.ValueRanges[1].Values, (x, y) => new { Time = x, Subjects = y })
+                ?.Zip(subjectsResponse, (x, y) => new { Time = x, Subjects = y })
                 ?.Where(x => x.Subjects.Count > 0)
                 .ToList();
             var sortedSubjects = new List<TmpObject>();
