@@ -28,6 +28,8 @@ namespace ScheduleServices.Core.Extensions
                     scheduleElem.Elems = scheduleElem.Elems.Cast<Lesson>().OrderBy(l => l.BeginTime)
                         .Cast<IScheduleElem>().ToList();
                     break;
+                case ScheduleElemLevel.Undefined:
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException("scheduleElem",
                         $"Impossible to order children for such level {scheduleElem.Level}");
