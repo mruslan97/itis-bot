@@ -46,10 +46,8 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
                     "Нет такой группы :(");
                 return UpdateHandlingResult.Handled;
             }
-            
-            var group = scheduler.GroupsMonitor.AvailableGroups.FirstOrDefault(g =>
-                g.GType == ScheduleGroupType.Academic && g.Name == groupName);
-            if (group != null)
+           
+            if (scheduler.GroupsMonitor.TryFindGroupByName(groupName, out IScheduleGroup group))
             {
                 await storage.AddGroupToChat(group, update.Message.Chat.Id);
                 await Bot.Client.SendTextMessageAsync(

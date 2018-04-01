@@ -84,6 +84,11 @@ namespace ScheduleServices.Core.Modules
         public IEnumerable<IScheduleGroup> AvailableGroups =>
             allGroups.Values.ToList();
 
+        public bool TryFindGroupByName(string name, out IScheduleGroup resultGroup)
+        {
+            return allGroups.TryGetValue(name, out resultGroup);
+        }
+
         public IEnumerable<IScheduleGroup> RemoveInvalidGroupsFrom(IEnumerable<IScheduleGroup> groups)
         {
             if (groups != null)

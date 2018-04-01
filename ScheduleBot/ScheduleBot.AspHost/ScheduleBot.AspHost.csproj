@@ -27,4 +27,18 @@
     <ProjectReference Include="..\MagicParser\MagicParser.csproj" />
     <ProjectReference Include="..\ScheduleServices.Core\ScheduleServices.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Update="BotStorage\usersgroups.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>usersgroups.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="BotStorage\usersgroups.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>usersgroups.Designer.cs</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

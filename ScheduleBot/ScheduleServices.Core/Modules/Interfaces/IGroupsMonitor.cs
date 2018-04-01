@@ -12,5 +12,12 @@ namespace ScheduleServices.Core.Modules.Interfaces
         IEnumerable<IScheduleGroup> RemoveInvalidGroupsFrom(IEnumerable<IScheduleGroup> groups);
         bool IsGroupPresent(IScheduleGroup group);
         bool TryGetCorrectGroup(IScheduleGroup sample, out IScheduleGroup correct);
+        /// <summary>
+        /// try to find group with specified name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="resultGroup"></param>
+        /// <returns>true if group with such name exists and this group, and false if not</returns>
+        bool TryFindGroupByName(string name, out IScheduleGroup resultGroup);
     }
 }

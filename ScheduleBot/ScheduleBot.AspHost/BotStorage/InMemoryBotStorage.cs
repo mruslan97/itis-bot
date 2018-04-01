@@ -14,6 +14,8 @@ namespace ScheduleBot.AspHost.BotStorage
         private ConcurrentDictionary<long, ICollection<IScheduleGroup>> usersGroups =
             new ConcurrentDictionary<long, ICollection<IScheduleGroup>>();
 
+        private const string ResourceName = "usersGroupBackup";
+
         public InMemoryBotStorage(IScheduleServise servise)
         {
             this.servise = servise;
