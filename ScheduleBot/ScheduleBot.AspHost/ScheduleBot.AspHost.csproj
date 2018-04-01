@@ -28,17 +28,8 @@
     <ProjectReference Include="..\ScheduleServices.Core\ScheduleServices.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="BotStorage\usersgroups.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>usersgroups.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="BotStorage\usersgroups.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>usersgroups.Designer.cs</LastGenOutput>
+    <None Update="BotStorage\usergroups.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+    </None>
   </ItemGroup>
 </Project>

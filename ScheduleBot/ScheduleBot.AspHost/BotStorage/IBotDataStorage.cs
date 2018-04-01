@@ -7,6 +7,6 @@ namespace ScheduleBot.AspHost.BotStorage
     public interface IBotDataStorage
     {
         Task<IEnumerable<IScheduleGroup>> GetGroupsForChatAsync(long chatId);
-        bool TryAddGroupToChat(IScheduleGroup scheduleGroup, long chatId);
+        Task<bool> TryAddGroupToChatAsync(IScheduleGroup scheduleGroup, long chatId);
     }
 }
