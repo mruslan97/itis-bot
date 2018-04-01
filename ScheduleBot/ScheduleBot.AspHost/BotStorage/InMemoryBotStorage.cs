@@ -37,7 +37,7 @@ namespace ScheduleBot.AspHost.BotStorage
                 {
                     foreach (var element in doc.Root.Elements())
                     {
-                        if (long.TryParse(element.Name.LocalName, out long chatId))
+                        if (long.TryParse(element.Attribute("ID")?.Value, out long chatId))
                         {
                             foreach (var relationToGroup in element.Elements())
                             {
@@ -99,7 +99,7 @@ namespace ScheduleBot.AspHost.BotStorage
                 try
                 {
                     XDocument doc = XDocument.Load(path);
-                    var idNode = doc.Root?.Elements()?.FirstOrDefault(e => e.Name.LocalName == chatId.ToString());
+                    var idNode = doc.Root?.Elements()?.FirstOrDefault(e => e.Attribute("ID")?.Value == chatId.ToString());
                     if (duplicate != null)
                     {
                         if (idNode != null)
@@ -114,7 +114,8 @@ namespace ScheduleBot.AspHost.BotStorage
                     {
                         if (idNode == null)
                         {
-                            idNode = new XElement(XName.Get(chatId.ToString(), doc.Root.Name.ToString()));
+                            idNode = new XElement(XName.Get("user", doc.Root.Name.ToString()));
+                            idNode.Attribute("ID")?.SetValue(chatId.ToString());
                             doc.Root.Add(idNode);
                         }
 
