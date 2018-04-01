@@ -17,7 +17,7 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
     {
         private readonly IScheduleServise scheduler;
         private readonly IBotDataStorage storage;
-        public SetUpGroupCommand(string name, IBotDataStorage storage, IScheduleServise scheduler) : base(name)
+        public SetUpGroupCommand(IBotDataStorage storage, IScheduleServise scheduler) : base("setupgroup")
         {
             this.storage = storage;
             this.scheduler = scheduler;
