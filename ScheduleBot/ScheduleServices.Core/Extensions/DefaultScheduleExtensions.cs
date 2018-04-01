@@ -47,7 +47,7 @@ namespace ScheduleServices.Core.Extensions
                 {
                     case ScheduleElemLevel.Week:
                         if (!(scheduleElem is Week))
-                            res.AddError("level week is not week" + JsonConvert.SerializeObject(scheduleElem));
+                            res.AddError($"level week is not week level {scheduleElem.Level}, type: {scheduleElem.GetType()}");
                         if (scheduleElem.Elems == null)
                             res.AddError("null children: " + JsonConvert.SerializeObject(scheduleElem));
                         else
@@ -55,21 +55,20 @@ namespace ScheduleServices.Core.Extensions
                             res = scheduleElem.Elems?.Aggregate(res,
                                       (result, elem) => result + CheckElemIsCorrect(elem)) ?? res;
                             var nonUniqueDays = scheduleElem.Elems?.OfType<Day>()?.GroupBy(d => d.DayOfWeek)
-                                ?.Any(group => @group.Count() > 1);
-                            if (nonUniqueDays != null && nonUniqueDays.Value)
-                                res.AddError("not unique days in week" + JsonConvert.SerializeObject(scheduleElem));
+                                ?.FirstOrDefault(group => @group.Count() > 1);
+                            if (nonUniqueDays != null)
+                                res.AddError($"not unique days in week: {nonUniqueDays.Key}");
                         }
 
                         break;
                     case ScheduleElemLevel.Day:
                         if (!(scheduleElem is Day))
-                            res.AddError("level day is not day" + JsonConvert.SerializeObject(scheduleElem));
+                            res.AddError($"level day is not day: level {scheduleElem.Level}, type: {scheduleElem.GetType()}");
                         else
                         {
                             var day = (Day) scheduleElem;
                             if (day.DayOfWeek > DayOfWeek.Saturday || day.DayOfWeek < DayOfWeek.Sunday)
-                                res.AddError($"unknown dayofweek: {day.DayOfWeek}, object" +
-                                             JsonConvert.SerializeObject(scheduleElem));
+                                res.AddError($"unknown dayofweek: {day.DayOfWeek}");
                         }
 
                         if (scheduleElem.Elems == null)
@@ -85,8 +84,9 @@ namespace ScheduleServices.Core.Extensions
                                 if (current.BeginTime <= prev.BeginTime + prev.Duration &&
                                     (current.IsOnEvenWeek == null || prev.IsOnEvenWeek == null ||
                                      prev.IsOnEvenWeek == current.IsOnEvenWeek))
-                                    res.AddError($"incompatible lessons in day:" +
-                                                 JsonConvert.SerializeObject(scheduleElem));
+                                    res.AddError($"incompatible lessons in day {((Day)scheduleElem).DayOfWeek}:" +
+                                                 JsonConvert.SerializeObject(prev) +
+                                                 JsonConvert.SerializeObject(current));
                                 return current;
                             });
                         }

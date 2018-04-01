@@ -27,9 +27,18 @@ namespace ScheduleServices.Core
             this.freshInfoProvider = freshInfoProvider;
             this.scheduleConstructor = new ScheduleConstructor(new DefaultSchElemsFactory());
             this.GroupsMonitor = groupsMonitor;
-            //todo: run delayed updating from inet
-            for (int i = 1; i <= 6; i++)
-                UpdateSchedulesAsync(groupsMonitor.AvailableGroups, (DayOfWeek) i).Wait();
+            
+            try
+            {
+                for (int i = 1; i <= 6; i++)
+                    UpdateSchedulesAsync(groupsMonitor.AvailableGroups, (DayOfWeek)i).Wait();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                Console.WriteLine("UPDATE INTERRUPTED");
+            }
+            
             Console.WriteLine("UPDATED");
         }
 
@@ -63,7 +72,8 @@ namespace ScheduleServices.Core
                 if (!checkresult.Successed)
                     foreach (var error in checkresult.ErrorsList)
                         Console.WriteLine("[" + DateTime.Now + "] + WHILE CHECK FRESH SCHEDULE ERROR FOUND:" + error);
-                return checkresult.Successed;
+                //return checkresult.Successed;
+                return true;
             });
             //left outer join: all from fresh and matching from storage or null
             List<Task> updateTasks = new List<Task>();

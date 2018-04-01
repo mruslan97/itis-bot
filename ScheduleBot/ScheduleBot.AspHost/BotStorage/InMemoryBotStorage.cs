@@ -29,7 +29,46 @@ namespace ScheduleBot.AspHost.BotStorage
         public InMemoryBotStorage(IScheduleServise servise)
         {
             this.servise = servise;
-            path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\" + XmlFileName;
+            path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\BotStorage\\" + XmlFileName;
+            try
+            {
+                XDocument doc = XDocument.Load(path);
+                if (doc.Root != null)
+                {
+                    foreach (var element in doc.Root.Elements())
+                    {
+                        if (long.TryParse(element.Name.LocalName, out long chatId))
+                        {
+                            foreach (var relationToGroup in element.Elements())
+                            {
+                                var groupname = (relationToGroup.Attribute("GNAME")?.Value ?? "");
+                                if (servise.GroupsMonitor.TryFindGroupByName(groupname, out IScheduleGroup group))
+                                {
+                                    usersGroups.AddOrUpdate(chatId, new List<IScheduleGroup>() {group},
+                                        (id, old) =>
+                                        {
+                                            old.Add(group);
+                                            return old;
+                                        });
+                                }
+                                else
+                                {
+                                    Console.Out.WriteLine($"no group found of user {chatId} with name: {groupname}");
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    Console.Out.WriteLine("doc load fail - no root");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Out.WriteLine(e);
+                Console.Out.WriteLine("but i'm alive");
+            }
         }
 
 

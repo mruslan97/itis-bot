@@ -24,7 +24,10 @@ namespace ScheduleBot.AspHost
 
         public override Task HandleFaultedUpdate(Update update, Exception e)
         {
-            throw new NotImplementedException();
+            Console.WriteLine(e);
+            return Client.SendTextMessageAsync(
+                update.Message.Chat.Id,
+                "Все пропало, шеф, йа сломалсо");
         }
     }
 }
