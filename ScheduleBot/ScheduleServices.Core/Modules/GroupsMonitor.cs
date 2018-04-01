@@ -86,18 +86,24 @@ namespace ScheduleServices.Core.Modules
 
         public IEnumerable<IScheduleGroup> RemoveInvalidGroupsFrom(IEnumerable<IScheduleGroup> groups)
         {
-            return groups.Where(IsGroupPresent);
+            if (groups != null)
+                return groups.Where(IsGroupPresent);
+            throw new ArgumentNullException("groups");
 
         }
-
+        
         public bool IsGroupPresent(IScheduleGroup group)
         {
-            return backup.TryGetValue(group.Name, out IScheduleGroup value) && value.Equals(group);
+            if (group != null)
+                return backup.TryGetValue(group.Name, out IScheduleGroup value) && value.Equals(group);
+            throw new ArgumentNullException("group");
         }
 
         public bool TryGetCorrectGroup(IScheduleGroup sample, out IScheduleGroup correct)
         {
-            return allGroups.TryGetValue(sample.Name, out correct);
+            if (sample != null)
+                return allGroups.TryGetValue(sample.Name, out correct);
+           throw new ArgumentNullException("sample");
         }
 
         private async void OnScheduleServiceUpdated(object sender, EventArgs e)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -34,15 +35,25 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
 
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
-            string replyText = JsonConvert.SerializeObject(
-                await scheduler.GetScheduleForAsync(
-                    await storage.GetGroupsForChatAsync(update.Message.Chat.Id),
-                    ScheduleRequiredFor.Tomorrow));
+            var userGroups = await storage.GetGroupsForChatAsync(update.Message.Chat.Id);
+            if (userGroups != null)
+            {
+                string replyText = JsonConvert.SerializeObject(
+                    await scheduler.GetScheduleForAsync(userGroups,
+                        ScheduleRequiredFor.Tomorrow));
 
-            await Bot.Client.SendTextMessageAsync(
-                update.Message.Chat.Id,
-                replyText,
-                replyToMessageId: update.Message.MessageId);
+                await Bot.Client.SendTextMessageAsync(
+                    update.Message.Chat.Id,
+                    replyText,
+                    replyToMessageId: update.Message.MessageId);
+            }
+            else
+            {
+                await Bot.Client.SendTextMessageAsync(
+                    update.Message.Chat.Id,
+                    "А группа?");
+            }
+           
 
             return UpdateHandlingResult.Handled;
         }

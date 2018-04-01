@@ -105,7 +105,7 @@ namespace ScheduleServices.Core
                 {
                     preparedSchedules.Add(schedule);
                 }
-            });
+            }).ContinueWith((t) => preparedSchedules.CompleteAdding());
             //start consuming
             var result = scheduleConstructor.ConstructFromMany(preparedSchedules.GetConsumingEnumerable());
             await Task.WhenAll(adding, result);

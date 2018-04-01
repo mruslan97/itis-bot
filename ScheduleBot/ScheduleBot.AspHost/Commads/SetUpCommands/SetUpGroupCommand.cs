@@ -34,7 +34,19 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
 
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
-            var groupName = args.RawInput.Substring(0, 6);
+            string groupName;
+            try
+            {
+                groupName = args.RawInput.Substring(0, 6);
+            }
+            catch (Exception e)
+            {
+                await Bot.Client.SendTextMessageAsync(
+                    update.Message.Chat.Id,
+                    "Нет такой группы :(");
+                return UpdateHandlingResult.Handled;
+            }
+            
             var group = scheduler.GroupsMonitor.AvailableGroups.FirstOrDefault(g =>
                 g.GType == ScheduleGroupType.Academic && g.Name == groupName);
             if (group != null)
