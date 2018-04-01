@@ -10,6 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ScheduleBot.AspHost.BotStorage;
 using ScheduleBot.AspHost.Commads;
+using ScheduleBot.AspHost.Commads.GetScheduleCommands;
+using ScheduleBot.AspHost.Commads.SetUpCommands;
 using ScheduleBot.AspHost.Updating;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Factories;
@@ -53,6 +55,9 @@ namespace ScheduleBot.AspHost
             services.AddSingleton<IBotDataStorage, InMemoryBotStorage>();
             services.AddTelegramBot<ItisScheduleBot>(configuration.GetSection("ScheduleBot"))
                 .AddUpdateHandler<EchoCommand>()
+                .AddUpdateHandler<SetUpGroupCommand>()
+                .AddUpdateHandler<GetForTodayCommand>()
+                .AddUpdateHandler<GetForTomorrowCommand>()
                 .Configure();
         }
 

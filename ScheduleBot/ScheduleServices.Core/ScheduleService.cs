@@ -28,6 +28,9 @@ namespace ScheduleServices.Core
             this.scheduleConstructor = new ScheduleConstructor(new DefaultSchElemsFactory());
             this.GroupsMonitor = groupsMonitor;
             //todo: run delayed updating from inet
+            for (int i = 1; i <= 6; i++)
+                UpdateSchedulesAsync(groupsMonitor.AvailableGroups, (DayOfWeek) i).Wait();
+            Console.WriteLine("UPDATED");
         }
 
         #region overloads
