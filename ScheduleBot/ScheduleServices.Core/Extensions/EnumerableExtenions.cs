@@ -14,8 +14,7 @@ namespace ScheduleServices.Core.Extensions
             return outer.GroupJoin(inner, outerKeySelector,
                     innerKeySelector,
                     (@out, @in) => new {Out = @out, In = @in})
-                .SelectMany(xy => xy.In.DefaultIfEmpty(), (x, y) => new {Out = x.Out, In = y})
-                .Select((anon) => resultSelector(anon.Out, anon.In));
+                .SelectMany(xy => xy.In.DefaultIfEmpty(), (x, y) => resultSelector(x.Out, y));
         }
     }
 }

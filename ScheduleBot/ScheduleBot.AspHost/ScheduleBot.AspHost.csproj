@@ -6,7 +6,6 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Blueshift.EntityFrameworkCore.MongoDB" Version="2.1.0-preview1-t005b26807" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.5" />
     <PackageReference Include="Telegram.Bot.Framework" Version="1.1.4" />
   </ItemGroup>
