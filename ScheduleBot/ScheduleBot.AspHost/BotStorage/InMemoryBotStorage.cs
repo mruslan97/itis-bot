@@ -30,6 +30,7 @@ namespace ScheduleBot.AspHost.BotStorage
             {
                 var doc = XDocument.Load(path);
                 var users = doc.Element("users")?.Elements("user");
+                // todo check for null???
                 foreach (var user in users)
                 {
                     var groups = user.Element("groups").Elements("group");
