@@ -13,6 +13,7 @@ using ScheduleBot.AspHost.BotStorage;
 using ScheduleBot.AspHost.Commads;
 using ScheduleBot.AspHost.Commads.GetScheduleCommands;
 using ScheduleBot.AspHost.Commads.SetUpCommands;
+using ScheduleBot.AspHost.Keyboards;
 using ScheduleBot.AspHost.Updating;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Factories;
@@ -55,6 +56,7 @@ namespace ScheduleBot.AspHost
             services.AddTransient<ISchedulesStorage, SchedulesInMemoryDbStorage>();
             services.AddSingleton<IScheduleServise, ScheduleService>();
             services.AddSingleton<IBotDataStorage, InMemoryBotStorage>();
+            services.AddSingleton<KeyboardsFactory>(provider => new KeyboardsFactory(GetGroupsList()));
             services.AddTelegramBot<ItisScheduleBot>(configuration.GetSection("ScheduleBot"))
                 .AddUpdateHandler<EchoCommand>()
                 .AddUpdateHandler<SetUpGroupCommand>()

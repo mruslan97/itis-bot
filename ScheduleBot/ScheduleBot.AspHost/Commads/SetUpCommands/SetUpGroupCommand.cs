@@ -17,12 +17,14 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
     public class SetUpGroupCommand : CommandBase<DefaultCommandArgs>
     {
         private readonly IScheduleServise scheduler;
+        private readonly KeyboardsFactory keyboards;
         private readonly IBotDataStorage storage;
 
-        public SetUpGroupCommand(IBotDataStorage storage, IScheduleServise scheduler) : base("setupgroup")
+        public SetUpGroupCommand(IBotDataStorage storage, IScheduleServise scheduler, KeyboardsFactory keyboards) : base("setupgroup")
         {
             this.storage = storage;
             this.scheduler = scheduler;
+            this.keyboards = keyboards;
         }
 
         protected override bool CanHandleCommand(Update update)
@@ -55,7 +57,7 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
             {
                 await Bot.Client.SendTextMessageAsync(
                     update.Message.Chat.Id,
-                    "Установлено!", replyMarkup:CustomKeyboards.Days());
+                    "Установлено!", replyMarkup: keyboards.GetPeriodOptionsKeyboard());
             }
             else
             {

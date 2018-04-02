@@ -12,15 +12,17 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
 {
     public class HelloCommand : CommandBase<DefaultCommandArgs>
     {
-        public HelloCommand() : base(name: "start")
-        {
+        private readonly KeyboardsFactory keyboards;
 
+        public HelloCommand(KeyboardsFactory keyboards) : base(name: "start")
+        {
+            this.keyboards = keyboards;
         }
 
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
             await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id,
-                $"Привет, {update.Message.Chat.FirstName}! Выбери курс.", replyMarkup: CustomKeyboards.Courses());
+                $"Привет, {update.Message.Chat.FirstName}! Выбери курс.", replyMarkup: keyboards.GetCoursesKeyboad());
 
             return UpdateHandlingResult.Handled;
         }
