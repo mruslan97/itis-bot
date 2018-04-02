@@ -7,6 +7,7 @@ using ScheduleBot.AspHost.BotStorage;
 using ScheduleBot.AspHost.Commads.CommandArgs;
 using ScheduleBot.AspHost.Helpers;
 using ScheduleServices.Core;
+using ScheduleServices.Core.Models.ScheduleElems;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 using Telegram.Bot.Types;
@@ -36,9 +37,9 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
                 //string answer = JsonConvert.SerializeObject(
                 //    await Scheduler.GetScheduleForAsync(userGroups,
                 //        period));
-
+                var schedule = await Scheduler.GetScheduleForAsync(userGroups, period);
                 var answer =
-                    CustomSerializator.ProcessSchedule(await Scheduler.GetScheduleForAsync(userGroups, period));
+                    CustomSerializator.ProcessSchedule(schedule.ScheduleRoot.Elems.Cast<Lesson>(), ((Day)schedule.ScheduleRoot).DayOfWeek);
 
                 await Bot.Client.SendTextMessageAsync(
                     update.Message.Chat.Id,
