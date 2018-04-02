@@ -1,36 +1,58 @@
-﻿using System;
-using System.Text.RegularExpressions;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using ScheduleBot.AspHost.BotStorage;
 using ScheduleBot.AspHost.Commads.CommandArgs;
+using ScheduleBot.AspHost.Helpers;
 using ScheduleServices.Core;
+using ScheduleServices.Core.Models.ScheduleElems;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
 {
-    public class GetForWeekCommand : AbstractGetForCommand
+    public class GetForWeekCommand : CommandBase<DefaultCommandArgs>
     {
+        protected readonly IScheduleServise Scheduler;
+        protected readonly IBotDataStorage Storage;
 
-        public GetForWeekCommand(IScheduleServise scheduler, IBotDataStorage storage) : base(name: "week", storage: storage, scheduler: scheduler)
+        public GetForWeekCommand(IScheduleServise scheduler, IBotDataStorage storage) : base("week")
         {
+            Scheduler = scheduler;
+            Storage = storage;
         }
 
         protected override bool CanHandleCommand(Update update)
         {
             if (!base.CanHandleCommand(update))
-            {
                 return update.Message.Text.ToLowerInvariant().Contains("недел");
-            }
-            else
-                return true;
+            return true;
         }
 
-        public override Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
+        public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
-            return HandleCommandForPeriod(update, args, ScheduleRequiredFor.Week);
+            var userGroups = await Storage.GetGroupsForChatAsync(update.Message.Chat);
+            if (userGroups != null)
+            {
+                var weekSchedule = await Scheduler.GetScheduleForAsync(userGroups, ScheduleRequiredFor.Week);
+                foreach (var daySchedule in weekSchedule.ScheduleRoot.Elems.Cast<Day>())
+                {
+                    var answer =
+                        CustomSerializator.ProcessSchedule(daySchedule.Elems.Cast<Lesson>(), daySchedule.DayOfWeek);
+                    await Bot.Client.SendTextMessageAsync(
+                        update.Message.Chat.Id,
+                        answer, ParseMode.Html);
+                    System.Threading.Thread.Sleep(200);
+                }
+            }
+            else
+            {
+                await Bot.Client.SendTextMessageAsync(
+                    update.Message.Chat.Id,
+                    "А группа?");
+            }
+            return UpdateHandlingResult.Handled;
         }
     }
 }
