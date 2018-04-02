@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using ScheduleBot.AspHost.BotStorage;
 using ScheduleBot.AspHost.Commads.CommandArgs;
+using ScheduleBot.AspHost.Helpers;
 using ScheduleServices.Core;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
 {
@@ -31,14 +33,16 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
             var userGroups = await Storage.GetGroupsForChatAsync(update.Message.Chat);
             if (userGroups != null)
             {
-                string replyText = JsonConvert.SerializeObject(
+                string answer = JsonConvert.SerializeObject(
                     await Scheduler.GetScheduleForAsync(userGroups,
                         period));
 
+                //var answer =
+                //    CustomSerializator.ProcessSchedule(await Scheduler.GetScheduleForAsync(userGroups, period));
+
                 await Bot.Client.SendTextMessageAsync(
                     update.Message.Chat.Id,
-                    replyText,
-                    replyToMessageId: update.Message.MessageId);
+                    answer, ParseMode.Html);
             }
             else
             {

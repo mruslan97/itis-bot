@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using ScheduleBot.AspHost.BotStorage;
 using ScheduleBot.AspHost.Commads.CommandArgs;
+using ScheduleBot.AspHost.Keyboards;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Models.Interfaces;
 using Telegram.Bot.Framework;
@@ -54,7 +55,7 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
             {
                 await Bot.Client.SendTextMessageAsync(
                     update.Message.Chat.Id,
-                    "Установлено!");
+                    "Установлено!", replyMarkup:CustomKeyboards.Days());
             }
             else
             {
