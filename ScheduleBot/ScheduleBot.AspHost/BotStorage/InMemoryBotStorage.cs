@@ -29,37 +29,25 @@ namespace ScheduleBot.AspHost.BotStorage
             try
             {
                 var doc = XDocument.Load(path);
-                var elements = doc.Element("users")?.Elements("user");
-                foreach (var element in elements)
-                    if (servise.GroupsMonitor.TryFindGroupByName(element.Element("value").Value, out var group))
-                        usersGroups.AddOrUpdate(Convert.ToInt32(element.Element("chatId").Value),
-                            new List<IScheduleGroup> {group},
-                            (id, old) =>
-                            {
-                                old.Add(group);
-                                return old;
-                            });
-                    else
-                        Console.Out.WriteLine(
-                            $"no group found of user {element.Element("chatId").Value} with name: {element.Element("value").Value}");
-                //if (doc.Root != null)
-                //    foreach (var element in doc.Root.Elements())
-                //        if (long.TryParse(element.Attribute("ID")?.Value, out var chatId))
-                //            foreach (var relationToGroup in element.Elements())
-                //            {
-                //                var groupname = relationToGroup.Attribute("GNAME")?.Value ?? "";
-                //                if (servise.GroupsMonitor.TryFindGroupByName(groupname, out var group))
-                //                    usersGroups.AddOrUpdate(chatId, new List<IScheduleGroup> {group},
-                //                        (id, old) =>
-                //                        {
-                //                            old.Add(group);
-                //                            return old;
-                //                        });
-                //                else
-                //                    Console.Out.WriteLine($"no group found of user {chatId} with name: {groupname}");
-                //            }
-                //else
-                //    Console.Out.WriteLine("doc load fail - no root");
+                var users = doc.Element("users")?.Elements("user");
+                foreach (var user in users)
+                {
+                    var groups = user.Element("groups").Elements("group");
+                    foreach (var subGroup in groups)
+                    {
+                        if (servise.GroupsMonitor.TryFindGroupByName(subGroup.Attribute("name").Value, out var group))
+                            usersGroups.AddOrUpdate(Convert.ToInt32(user.Element("chatId").Value),
+                                new List<IScheduleGroup> { group },
+                                (id, old) =>
+                                {
+                                    old.Add(group);
+                                    return old;
+                                });
+                        else
+                            Console.Out.WriteLine(
+                                $"no group found of user {user.Element("chatId").Value} with name: {subGroup.Attribute("name").Value}");
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -96,31 +84,27 @@ namespace ScheduleBot.AspHost.BotStorage
                 try
                 {
                     var xdoc = XDocument.Load(path);
-                    var element = xdoc.Element("users")
-                        ?.Elements("user").Where(u =>
-                            u.Element("chatId")?.Value == chat.Id.ToString() &&
-                            u.Element("groupType")?.Value == groupFromStorage.GType.ToString());
-                    if (element == null)
+                    var user = xdoc.Element("users")
+                        ?.Elements("user").FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString());
+                    if (user == null)
+                        xdoc.Element("users")?.Add(new XElement("user", new XAttribute("name", chat.FirstName),
+                            new XElement("chatId", chat.Id.ToString()), new XElement("groups")));
+                    var group = user?.Element("groups")
+                        ?.Elements("group").FirstOrDefault(g =>
+                            g.Attribute("type")?.Value == groupFromStorage.GType.ToString());
+                    if (group == null)
                         xdoc.Element("users")
-                            .Add(new XElement("user",
-                                new XAttribute("name", chat.FirstName),
-                                new XElement("groupType", groupFromStorage.GType.ToString()),
-                                new XElement("chatId", chat.Id),
-                                new XElement("value", groupFromStorage.Name)));
+                            ?.Elements("user")
+                            .FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString())
+                            ?.Element("groups")
+                            ?.Add(new XElement("group", new XAttribute("type", groupFromStorage.GType.ToString()),
+                                new XAttribute("name", groupFromStorage.Name)));
                     else
-                        (xdoc.Element("users")
-                                ?.Elements("user")).SingleOrDefault(u =>
-                                u.Element("chatId")?.Value == chat.Id.ToString() &&
-                                u.Element("groupType")?.Value ==
-                                groupFromStorage.GType.ToString()).Element("value")
+                        xdoc.Element("users").Elements("user")
+                            .FirstOrDefault(u => u.Element("chatId").Value == chat.Id.ToString())
+                            .Element("groups").Elements("group").FirstOrDefault(g =>
+                                g.Attribute("type").Value == groupFromStorage.GType.ToString()).Attribute("name")
                             .Value = groupFromStorage.Name;
-                    //else
-                    //    (xdoc.Element("users")
-                    //            ?.Elements("user")).SingleOrDefault(u =>
-                    //            u.Element("chatId")?.Value == chat.Id.ToString() &&
-                    //            u.Element("groupType")?.Value ==
-                    //            groupFromStorage.GType.ToString()).Element("value")
-                    //        .Value = groupFromStorage.Name;
                     xdoc.Save(path);
                 }
                 catch (Exception e)
