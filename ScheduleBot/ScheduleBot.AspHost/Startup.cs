@@ -60,6 +60,7 @@ namespace ScheduleBot.AspHost
                 .AddUpdateHandler<SetUpGroupCommand>()
                 .AddUpdateHandler<GetForTodayCommand>()
                 .AddUpdateHandler<GetForTomorrowCommand>()
+                .AddUpdateHandler<HelloCommand>()
                 .Configure();
         }
 
