@@ -5,6 +5,8 @@ using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Providers.Interfaces;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Runtime.Serialization.Json;
+using Newtonsoft.Json;
 using ScheduleServices.Core.Extensions;
 using ScheduleServices.Core.Factories;
 using ScheduleServices.Core.Modules;
@@ -115,20 +117,32 @@ namespace ScheduleServices.Core
 
         public async Task<ISchedule> GetScheduleForAsync(IEnumerable<IScheduleGroup> groups, DayOfWeek day)
         {
-            var preparedSchedules = new BlockingCollection<ISchedule>(new ConcurrentQueue<ISchedule>());
-            //collect tasks
-            var adding = Task.Run(() =>
+            try
             {
-                foreach (var schedule in storage.GetSchedules(ValidateGroups(groups), day))
+                var preparedSchedules = new BlockingCollection<ISchedule>(new ConcurrentQueue<ISchedule>());
+                //collect tasks
+                var adding = Task.Run(() =>
                 {
-                    preparedSchedules.Add(schedule);
-                }
-            }).ContinueWith((t) => preparedSchedules.CompleteAdding());
-            //start consuming
-            var result = scheduleConstructor.ConstructFromMany(preparedSchedules.GetConsumingEnumerable());
-            await Task.WhenAll(adding, result);
-            //sync without waiting
-            return (await result).OrderScheduleRootAndChildren();
+                    foreach (var schedule in storage.GetSchedules(ValidateGroups(groups), day))
+                    {
+                        preparedSchedules.Add(schedule);
+                    }
+                }).ContinueWith((t) => preparedSchedules.CompleteAdding());
+                //start consuming
+                var result = scheduleConstructor.ConstructFromMany(preparedSchedules.GetConsumingEnumerable());
+                await Task.WhenAll(adding, result);
+                //sync without waiting
+                var res = (await result).OrderScheduleRootAndChildren();
+                if (res.ScheduleRoot.Level == ScheduleElemLevel.Undefined)
+                    Console.Out.WriteLine("[" + DateTime.Now + $"] + UNDEFINED DAY {day.ToString()} SCHEDULE FOUND, groups:" + JsonConvert.SerializeObject(groups));
+                return res;
+            }
+            catch (Exception e)
+            {
+                Console.Out.WriteLine(e);
+                throw;
+            }
+           
         }
 
 
@@ -140,27 +154,39 @@ namespace ScheduleServices.Core
 
         private async Task<ISchedule> GetWeekScheduleForAsync(IEnumerable<IScheduleGroup> groups)
         {
-            var preparedSchedules = new BlockingCollection<ISchedule>(new ConcurrentQueue<ISchedule>());
-            //collect tasks
-            var tasks = new List<Task>();
-            //start consuming
-            var result = scheduleConstructor.ConstructFromMany(preparedSchedules.GetConsumingEnumerable());
-
-            var validated = ValidateGroups(groups);
-            for (int i = 1; i <= 6; i++)
+            try
             {
-                tasks.Add(Task.Factory.StartNew((index) =>
+                var preparedSchedules = new BlockingCollection<ISchedule>(new ConcurrentQueue<ISchedule>());
+                //collect tasks
+                var tasks = new List<Task>();
+                //start consuming
+                var result = scheduleConstructor.ConstructFromMany(preparedSchedules.GetConsumingEnumerable());
+
+                var validated = ValidateGroups(groups);
+                for (int i = 1; i <= 6; i++)
                 {
-                    foreach (var schedule in storage.GetSchedules(validated, (DayOfWeek) index))
+                    tasks.Add(Task.Factory.StartNew((index) =>
                     {
-                        preparedSchedules.Add(schedule);
-                    }
-                }, i));
+                        foreach (var schedule in storage.GetSchedules(validated, (DayOfWeek)index))
+                        {
+                            preparedSchedules.Add(schedule);
+                        }
+                    }, i));
+                }
+
+
+                await Task.WhenAll(tasks).ContinueWith((t) => preparedSchedules.CompleteAdding());
+                var res = (await result).OrderScheduleRootAndChildren();
+                if (res.ScheduleRoot.Level == ScheduleElemLevel.Undefined)
+                    Console.Out.WriteLine("[" + DateTime.Now + "] + UNDEFINED WEEK SCHEDULE FOUND, groups:" + JsonConvert.SerializeObject(groups));
+                return res;
             }
-
-
-            await Task.WhenAll(tasks).ContinueWith((t) => preparedSchedules.CompleteAdding());
-            return (await result).OrderScheduleRootAndChildren();
+            catch (Exception e)
+            {
+                Console.Out.WriteLine(e);
+                throw;
+            }
+            
         }
 
         private DayOfWeek DayOfWeekFromPeriod(ScheduleRequiredFor period)
