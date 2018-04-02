@@ -33,12 +33,12 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
             var userGroups = await Storage.GetGroupsForChatAsync(update.Message.Chat);
             if (userGroups != null)
             {
-                string answer = JsonConvert.SerializeObject(
-                    await Scheduler.GetScheduleForAsync(userGroups,
-                        period));
+                //string answer = JsonConvert.SerializeObject(
+                //    await Scheduler.GetScheduleForAsync(userGroups,
+                //        period));
 
-                //var answer =
-                //    CustomSerializator.ProcessSchedule(await Scheduler.GetScheduleForAsync(userGroups, period));
+                var answer =
+                    CustomSerializator.ProcessSchedule(await Scheduler.GetScheduleForAsync(userGroups, period));
 
                 await Bot.Client.SendTextMessageAsync(
                     update.Message.Chat.Id,

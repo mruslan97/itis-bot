@@ -79,7 +79,7 @@ namespace MagicParser.Services
             }
 
             if ((unparsedObject.Content.Contains("Макаев") || unparsedObject.Content.Contains("Мартынова")) &&
-                unparsedObject.Group.StartsWith("11-7"))
+                unparsedObject.Group.StartsWith("11-7") && !unparsedObject.Time.Contains("11.50"))
                 return new Tuple<int, int>(1, 5);
 
             if (unparsedObject.Content.Contains("Переточкина") && unparsedObject.Group.StartsWith("11-7"))
