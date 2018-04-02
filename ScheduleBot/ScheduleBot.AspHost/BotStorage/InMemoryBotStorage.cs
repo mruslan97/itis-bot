@@ -66,55 +66,62 @@ namespace ScheduleBot.AspHost.BotStorage
             });
         }
 
-        public async Task<bool> TryAddGroupToChatAsync(IScheduleGroup scheduleGroup, Chat chat)
+        public Task<bool> TryAddGroupToChatAsync(IScheduleGroup scheduleGroup, Chat chat)
         {
-            if (servise.GroupsMonitor.TryGetCorrectGroup(scheduleGroup, out var groupFromStorage))
+            return Task.Run(() =>
             {
-                IScheduleGroup duplicate = null;
-                usersGroups.AddOrUpdate(chat.Id, new List<IScheduleGroup> {groupFromStorage}, (id, oldList) =>
+                if (servise.GroupsMonitor.TryGetCorrectGroup(scheduleGroup, out var groupFromStorage))
                 {
-                    duplicate = oldList.FirstOrDefault(g =>
-                        g.GType == groupFromStorage.GType && !g.Equals(groupFromStorage));
-                    if (duplicate != null)
-                        oldList.Remove(duplicate);
-                    oldList.Add(groupFromStorage);
-                    return oldList;
-                });
-                try
-                {
-                    var xdoc = XDocument.Load(path);
-                    var user = xdoc.Element("users")
-                        ?.Elements("user").FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString());
-                    if (user == null)
-                        xdoc.Element("users")?.Add(new XElement("user", new XAttribute("name", chat.FirstName),
-                            new XElement("chatId", chat.Id.ToString()), new XElement("groups")));
-                    var group = user?.Element("groups")
-                        ?.Elements("group").FirstOrDefault(g =>
-                            g.Attribute("type")?.Value == groupFromStorage.GType.ToString());
-                    if (group == null)
-                        xdoc.Element("users")
-                            ?.Elements("user")
-                            .FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString())
-                            ?.Element("groups")
-                            ?.Add(new XElement("group", new XAttribute("type", groupFromStorage.GType.ToString()),
-                                new XAttribute("name", groupFromStorage.Name)));
-                    else
-                        xdoc.Element("users").Elements("user")
-                            .FirstOrDefault(u => u.Element("chatId").Value == chat.Id.ToString())
-                            .Element("groups").Elements("group").FirstOrDefault(g =>
-                                g.Attribute("type").Value == groupFromStorage.GType.ToString()).Attribute("name")
-                            .Value = groupFromStorage.Name;
-                    xdoc.Save(path);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
+                    IScheduleGroup duplicate = null;
+                    usersGroups.AddOrUpdate(chat.Id, new List<IScheduleGroup> { groupFromStorage }, (id, oldList) =>
+                    {
+                        duplicate = oldList.FirstOrDefault(g =>
+                            g.GType == groupFromStorage.GType && !g.Equals(groupFromStorage));
+                        if (duplicate != null)
+                            oldList.Remove(duplicate);
+                        oldList.Add(groupFromStorage);
+                        return oldList;
+                    });
+                    Task.Factory.StartNew(() =>
+                    {
+                        try
+                        {
+                            var xdoc = XDocument.Load(path);
+                            var user = xdoc.Element("users")
+                                ?.Elements("user").FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString());
+                            if (user == null)
+                                xdoc.Element("users")?.Add(new XElement("user", new XAttribute("name", chat.FirstName),
+                                    new XElement("chatId", chat.Id.ToString()), new XElement("groups")));
+                            var group = user?.Element("groups")
+                                ?.Elements("group").FirstOrDefault(g =>
+                                    g.Attribute("type")?.Value == groupFromStorage.GType.ToString());
+                            if (group == null)
+                                xdoc.Element("users")
+                                    ?.Elements("user")
+                                    .FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString())
+                                    ?.Element("groups")
+                                    ?.Add(new XElement("group", new XAttribute("type", groupFromStorage.GType.ToString()),
+                                        new XAttribute("name", groupFromStorage.Name)));
+                            else
+                                xdoc.Element("users").Elements("user")
+                                    .FirstOrDefault(u => u.Element("chatId").Value == chat.Id.ToString())
+                                    .Element("groups").Elements("group").FirstOrDefault(g =>
+                                        g.Attribute("type").Value == groupFromStorage.GType.ToString()).Attribute("name")
+                                    .Value = groupFromStorage.Name;
+                            xdoc.Save(path);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+                    }, TaskCreationOptions.RunContinuationsAsynchronously).ContinueWith(async (t) => await t).ConfigureAwait(false);
+                    
+                    return true;
                 }
 
-                return true;
-            }
-
-            return false;
+                return false;
+            });
+            
         }
     }
 }
