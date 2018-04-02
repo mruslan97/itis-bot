@@ -51,7 +51,9 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
                 if (lesson.BeginTime <= prev.BeginTime + prev.Duration &&
                     (lesson.IsOnEvenWeek == null || prev.IsOnEvenWeek == null ||
                      prev.IsOnEvenWeek == lesson.IsOnEvenWeek))
-                    throw new ScheduleConstructorException(String.Format(
+                    //throw new ScheduleConstructorException(
+                //todo: throw exc!!!!!
+                     Console.Out.WriteLine(String.Format(
                         "Day's lessons merge exception: time intersects: {0}, {1}", JsonConvert.SerializeObject(prev),
                         JsonConvert.SerializeObject(lesson)));
             }
