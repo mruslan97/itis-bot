@@ -97,6 +97,7 @@ namespace ScheduleBot.AspHost
                     }
                     catch (Exception e)
                     {
+                        Console.WriteLine($"Exception: {e}");
                         logger.LogError($"Exception: {e}");
                     }
                 }
