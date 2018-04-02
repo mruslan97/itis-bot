@@ -77,8 +77,7 @@ namespace ScheduleBot.AspHost.BotStorage
                         g.GType == groupFromStorage.GType && !g.Equals(groupFromStorage));
                     if (duplicate != null)
                         oldList.Remove(duplicate);
-                    else
-                        oldList.Add(groupFromStorage);
+                    oldList.Add(groupFromStorage);
                     return oldList;
                 });
                 try
