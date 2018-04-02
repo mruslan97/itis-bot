@@ -61,6 +61,7 @@ namespace ScheduleBot.AspHost
             services.AddTelegramBot<ItisScheduleBot>(configuration.GetSection("ScheduleBot"))
                 .AddUpdateHandler<EchoCommand>()
                 .AddUpdateHandler<SetUpGroupCommand>()
+                .AddUpdateHandler<SetUpCourseCommand>()
                 .AddUpdateHandler<GetForTodayCommand>()
                 .AddUpdateHandler<GetForTomorrowCommand>()
                 .AddUpdateHandler<GetForWeekCommand>()

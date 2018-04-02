@@ -11,17 +11,17 @@ namespace ScheduleBot.AspHost.Keyboards
     public class KeyboardsFactory
     {
         private readonly IEnumerable<IScheduleGroup> setUpGroupsList;
-        private readonly int lowestCourseGroupNum;
+        private readonly int highestCourseGroupNum;
         private readonly int[] courseGroupsCount = new int[4];
 
         public KeyboardsFactory(IEnumerable<IScheduleGroup> setUpGroupsList)
         {
             this.setUpGroupsList = setUpGroupsList;
-            lowestCourseGroupNum = setUpGroupsList.Where(g => g.GType == ScheduleGroupType.Academic).Min(g =>
-                    int.TryParse(g.Name.Substring(g.Name.IndexOf("11-") + 3, 1), out int val) ? val : int.MaxValue);
+            highestCourseGroupNum = setUpGroupsList.Where(g => g.GType == ScheduleGroupType.Academic).Max(g =>
+                    int.TryParse(g.Name.Substring(g.Name.IndexOf("11-") + 3, 1), out int val) ? val : int.MinValue);
             for (int i = 0; i < courseGroupsCount.Length; i++)
                 courseGroupsCount[i] = setUpGroupsList.Count(g =>
-                    g.GType == ScheduleGroupType.Academic && g.Name.Contains("11-" + (lowestCourseGroupNum + i)));
+                    g.GType == ScheduleGroupType.Academic && g.Name.Contains("11-" + (highestCourseGroupNum - i)));
         }
 
         public ReplyKeyboardMarkup GetCoursesKeyboad()
@@ -42,12 +42,12 @@ namespace ScheduleBot.AspHost.Keyboards
             //ok, think about it ;)
             if (course < 1 || course > 4)
                 throw new ArgumentOutOfRangeException($"course cannot be {course}");
-            bool lastLineThreeButtons = courseGroupsCount[course - 1] % 2 == 0;
+            bool lastLineThreeButtons = courseGroupsCount[course - 1] % 2 != 0;
             int buttonLinesCount = courseGroupsCount[course - 1] / 2;
             var markup = new ReplyKeyboardMarkup(new KeyboardButton[buttonLinesCount][]);
             int i = 0;
             foreach (var group in setUpGroupsList.Where(g =>
-                    g.GType == ScheduleGroupType.Academic && g.Name.Contains("11-" + (lowestCourseGroupNum + course - 1))))
+                    g.GType == ScheduleGroupType.Academic && g.Name.Contains("11-" + (highestCourseGroupNum - course + 1))))
             {
                 if (!lastLineThreeButtons || i < courseGroupsCount[course - 1] - 3)
                 {
@@ -59,8 +59,10 @@ namespace ScheduleBot.AspHost.Keyboards
                 {
                     if (i  == courseGroupsCount[course - 1] - 3)
                         markup.Keyboard[buttonLinesCount - 1] = new KeyboardButton[3];
-                    markup.Keyboard[buttonLinesCount - 1][courseGroupsCount[course - 1] - 3 - i] = new KeyboardButton(group.Name);
+                    markup.Keyboard[buttonLinesCount - 1][i + 3 - courseGroupsCount[course - 1]] = new KeyboardButton(group.Name);
                 }
+
+                i++;
             }
 
             return markup;
