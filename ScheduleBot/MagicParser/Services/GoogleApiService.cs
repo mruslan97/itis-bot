@@ -86,7 +86,8 @@ namespace MagicParser.Services
                         {
                             Content = unsortedObjects[i].Subjects[j].ToString(),
                             Group = $"11-{Converter.NormalizeGroupNumber(course)}0{j + 1}",
-                            Time = unsortedObjects[i].Time.FirstOrDefault().ToString()
+                            Time = unsortedObjects[i].Time.FirstOrDefault().ToString(),
+                            Course = course
                         });
             return sortedSubjects;
         }

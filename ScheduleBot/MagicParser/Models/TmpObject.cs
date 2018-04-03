@@ -9,6 +9,7 @@ namespace MagicParser.Models
         public string Time { get; set; }
         public string Content { get; set; }
         public string Group { get; set; }
+        public int Course { get; set; }
         public bool? IsOnEvenWeek { get; set; }
     }
 }
