@@ -170,7 +170,8 @@ namespace ScheduleBot.AspHost
 
 
                 //ENG GROUPS
-                new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Мартынова Е.В._1курс"}
+                new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Мартынова Е.В._1курс_1"},
+                //new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Сигачева Е.В._1курс_2"},
             };
         }
 

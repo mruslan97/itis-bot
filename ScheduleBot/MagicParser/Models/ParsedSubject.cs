@@ -15,5 +15,7 @@ namespace MagicParser.Models
         public string Notation { get; set; }
         public bool? IsOnEvenWeek { get; set; }
         public ScheduleGroupType Type { get; set; }
+        public int Flow { get; set; }
+        public int Course { get; set; }
     }
 }
