@@ -44,7 +44,7 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
             {
                 await Bot.Client.SendTextMessageAsync(
                     update.Message.Chat.Id,
-                    "Выбери пожалуйста группу.", replyMarkup: keyboards.GetGroupsOfCourseKeyboard(courseNum));
+                    "Выбери группу:", replyMarkup: keyboards.GetGroupsOfCourseKeyboard(courseNum));
             }
             else
             {
