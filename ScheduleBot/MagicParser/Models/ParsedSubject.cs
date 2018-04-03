@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ScheduleServices.Core.Models.Interfaces;
 
 namespace MagicParser.Models
 {
@@ -13,5 +14,6 @@ namespace MagicParser.Models
         public string Cabinet { get; set; }
         public string Notation { get; set; }
         public bool? IsOnEvenWeek { get; set; }
+        public ScheduleGroupType Type { get; set; }
     }
 }

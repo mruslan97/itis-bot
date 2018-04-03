@@ -6,6 +6,7 @@ using MagicParser.Services;
 using ScheduleServices.Core.Models;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleElems;
+using ScheduleServices.Core.Modules;
 using ScheduleServices.Core.Providers.Interfaces;
 
 namespace MagicParser.Impls
@@ -14,35 +15,56 @@ namespace MagicParser.Impls
     {
         public IEnumerable<ISchedule> GetSchedules(IEnumerable<IScheduleGroup> availableGroups, DayOfWeek day)
         {
-            //try
-            //{
-            var groups = availableGroups.Where(g => g.GType == ScheduleGroupType.Academic).ToList();
-            var schedules = new List<Schedule>();
-            var subjects = GetAllGroups(day);
-            foreach (var group in groups)
+            try
             {
-                var result = new Schedule
+                var groups = availableGroups.Where(g => g.GType == ScheduleGroupType.Academic).ToList();
+                var schedules = new List<Schedule>();
+                var subjects = GetAllGroups(day);
+                foreach (var group in groups)
                 {
-                    ScheduleGroups = new List<IScheduleGroup> {group},
-                    ScheduleRoot = new Day
+                    var result = new Schedule
                     {
-                        Level = ScheduleElemLevel.Day,
-                        DayOfWeek = day,
-                        Elems = ConvertSubjects(subjects.Where(s => s.Group == group.Name))
-                    }
-                };
+                        ScheduleGroups = new List<IScheduleGroup> {group},
+                        ScheduleRoot = new Day
+                        {
+                            Level = ScheduleElemLevel.Day,
+                            DayOfWeek = day,
+                            Elems = ConvertSubjects(subjects.Where(s => s.Group == group.Name))
+                        }
+                    };
 
-                if (result.ScheduleRoot.Elems.Count != 0)
-                    schedules.Add(result);
+                    if (result.ScheduleRoot.Elems.Count != 0)
+                        schedules.Add(result);
+                }
+
+                var englishGroups = availableGroups.Where(g => g.GType == ScheduleGroupType.Eng).ToList();
+                var englishSubjects = subjects.Where(s => s.Type == ScheduleGroupType.Eng);
+                foreach (var engGroup in englishGroups)
+                {
+                    var result = new Schedule
+                    {
+                        ScheduleGroups = new List<IScheduleGroup> {engGroup},
+                        ScheduleRoot = new Day
+                        {
+                            Level = ScheduleElemLevel.Day,
+                            DayOfWeek = day,
+                            Elems = ConvertSubjects(englishSubjects.Where(s =>
+                                s.Teacher.Contains(engGroup.Name.Substring(0, engGroup.Name.IndexOf(' ')))
+                                && s.Type == ScheduleGroupType.Eng))
+                        }
+                    };
+
+                    if (result.ScheduleRoot.Elems.Count != 0)
+                        schedules.Add(result);
+                }
+
+
+                return schedules;
             }
-
-
-            return schedules;
-            //}
-            //catch (Exception e)
-            //{
-            //    throw new ScheduleConstructorException("An exception occured while constructing schedule.", e);
-            //}
+            catch (Exception e)
+            {
+                throw new ScheduleConstructorException("An exception occured while constructing schedule.", e);
+            }
         }
 
         private IEnumerable<ParsedSubject> GetAllGroups(DayOfWeek day)

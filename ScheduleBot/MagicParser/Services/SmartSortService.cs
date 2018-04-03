@@ -50,9 +50,8 @@ namespace MagicParser.Services
 
                 if (Keywords.English().Any(p => unparsedSubject.Content.Contains(p)))
                 {
-                    var parsedSubject = _englishParser.Parse(unparsedSubject);
-                    var marker = SetMarker(unparsedSubject);
-                    parsedSubjects.AddRange(ShareSubjects(parsedSubject, marker));
+                    var engSubjects = _englishParser.Parse(unparsedSubject);
+                    parsedSubjects.AddRange(engSubjects);
                     continue;
                 }
 
