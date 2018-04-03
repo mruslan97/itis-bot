@@ -42,24 +42,29 @@ namespace ScheduleBot.AspHost.Keyboards
             //ok, think about it ;)
             if (course < 1 || course > 4)
                 throw new ArgumentOutOfRangeException($"course cannot be {course}");
-            bool lastLineThreeButtons = courseGroupsCount[course - 1] % 2 != 0;
-            int buttonLinesCount = courseGroupsCount[course - 1] / 2;
+            return GetKeyboardForCollectionWithItemsCount(setUpGroupsList.Where(g =>
+                g.GType == ScheduleGroupType.Academic && g.Name.Contains("11-" + (highestCourseGroupNum - course + 1))), g => g.Name, courseGroupsCount[course - 1]);
+
+        }
+        private ReplyKeyboardMarkup GetKeyboardForCollectionWithItemsCount<TItem>(IEnumerable<TItem> keyboardItems, Func<TItem, string> buttonTextSelector, int itemsCount)
+        {
+            bool lastLineThreeButtons = itemsCount % 2 != 0 && itemsCount > 2;
+            int buttonLinesCount = itemsCount > 2 ? (itemsCount / 2)  : 1;
             var markup = new ReplyKeyboardMarkup(new KeyboardButton[buttonLinesCount][]);
             int i = 0;
-            foreach (var group in setUpGroupsList.Where(g =>
-                    g.GType == ScheduleGroupType.Academic && g.Name.Contains("11-" + (highestCourseGroupNum - course + 1))))
+            foreach (var item in keyboardItems)
             {
-                if (!lastLineThreeButtons || i < courseGroupsCount[course - 1] - 3)
+                if (!lastLineThreeButtons || i < itemsCount - 3)
                 {
                     if (i % 2 == 0)
                         markup.Keyboard[i / 2] = new KeyboardButton[2];
-                    markup.Keyboard[i / 2][i % 2] = new KeyboardButton(group.Name);
+                    markup.Keyboard[i / 2][i % 2] = new KeyboardButton(buttonTextSelector(item));
                 }
                 else
                 {
-                    if (i  == courseGroupsCount[course - 1] - 3)
+                    if (i == itemsCount - 3)
                         markup.Keyboard[buttonLinesCount - 1] = new KeyboardButton[3];
-                    markup.Keyboard[buttonLinesCount - 1][i + 3 - courseGroupsCount[course - 1]] = new KeyboardButton(group.Name);
+                    markup.Keyboard[buttonLinesCount - 1][i + 3 - itemsCount] = new KeyboardButton(buttonTextSelector(item));
                 }
 
                 i++;
@@ -67,6 +72,13 @@ namespace ScheduleBot.AspHost.Keyboards
 
             return markup;
 
+        }
+        
+        public ReplyKeyboardMarkup GetKeyboardForCollection<TItem>(IEnumerable<TItem> keyboardItems, Func<TItem, string> buttonTextSelector)
+        {
+            if (keyboardItems == null)
+                throw new ArgumentNullException("collection for keyboard is null");
+            return GetKeyboardForCollectionWithItemsCount(keyboardItems, buttonTextSelector, keyboardItems.Count());
         }
 
         public ReplyKeyboardMarkup GetPeriodOptionsKeyboard()
