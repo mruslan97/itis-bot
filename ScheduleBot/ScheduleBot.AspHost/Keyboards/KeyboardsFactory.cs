@@ -99,6 +99,7 @@ namespace ScheduleBot.AspHost.Keyboards
         {
             return new ReplyKeyboardMarkup(new[] {
                 new []{new KeyboardButton("Eng")},
+                new []{new KeyboardButton("Сменить группу")},
                 new []{new KeyboardButton("Back")}
             });
         }

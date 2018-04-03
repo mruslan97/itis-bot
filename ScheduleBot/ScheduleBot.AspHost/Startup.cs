@@ -71,6 +71,7 @@ namespace ScheduleBot.AspHost
                 .AddUpdateHandler<HelloCommand>()
                 .AddUpdateHandler<NotFoundGroupCommand>()
                 .AddUpdateHandler<SettingsOptionsCommand>()
+                .AddUpdateHandler<ChangeAcademicGroupCommand>()
                 .AddUpdateHandler<SettingsBackCommand>()
                 .Configure();
         }
