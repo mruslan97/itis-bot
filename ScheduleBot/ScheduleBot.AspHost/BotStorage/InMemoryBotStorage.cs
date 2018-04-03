@@ -15,16 +15,20 @@ namespace ScheduleBot.AspHost.BotStorage
     public class InMemoryBotStorage : IBotDataStorage
     {
         private readonly IScheduleServise servise;
+        private readonly INotifiactionSender notifiactionSender;
 
         private readonly ConcurrentDictionary<long, ICollection<IScheduleGroup>> usersGroups =
             new ConcurrentDictionary<long, ICollection<IScheduleGroup>>();
+        private readonly ConcurrentDictionary<IScheduleGroup, ICollection<long>> groupToUsers =
+            new ConcurrentDictionary<IScheduleGroup, ICollection<long>>();
 
         private const string XmlFileName = "usersgroups.xml";
         private readonly string path;
 
-        public InMemoryBotStorage(IScheduleServise servise)
+        public InMemoryBotStorage(IScheduleServise servise, INotifiactionSender notifiactionSender)
         {
             this.servise = servise;
+            this.notifiactionSender = notifiactionSender;
             path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\BotStorage\\" + XmlFileName;
             try
             {
@@ -37,13 +41,25 @@ namespace ScheduleBot.AspHost.BotStorage
                     foreach (var subGroup in groups)
                     {
                         if (servise.GroupsMonitor.TryFindGroupByName(subGroup.Attribute("name").Value, out var group))
-                            usersGroups.AddOrUpdate(Convert.ToInt32(user.Element("chatId").Value),
-                                new List<IScheduleGroup> { group },
-                                (id, old) =>
+                        {
+                            if (long.TryParse(user.Element("chatId").Value, out long chatId))
+                            {
+                                usersGroups.AddOrUpdate(chatId,
+                                    new List<IScheduleGroup> { group },
+                                    (id, old) =>
+                                    {
+                                        old.Add(group);
+                                        return old;
+                                    });
+                                groupToUsers.AddOrUpdate(group, new List<long>() {chatId}, (schGroup, oldList) =>
                                 {
-                                    old.Add(group);
-                                    return old;
+                                    oldList.Add(chatId);
+                                    return oldList;
                                 });
+                                group.ScheduleChanged += HandleGroupScheduleChanged;
+                            }
+                            
+                        }
                         else
                             Console.Out.WriteLine(
                                 $"no group found of user {user.Element("chatId").Value} with name: {subGroup.Attribute("name").Value}");
@@ -57,6 +73,19 @@ namespace ScheduleBot.AspHost.BotStorage
             }
         }
 
+        private async void HandleGroupScheduleChanged(object sender, EventArgs args)
+        {
+            try
+            {
+                var group = (IScheduleGroup) sender;
+                if (groupToUsers.TryGetValue(group, out var list) && list != null && list.Any())
+                    await notifiactionSender.SendNotificationsForIdsAsync(list);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
 
         public Task<IEnumerable<IScheduleGroup>> GetGroupsForChatAsync(Chat chat)
         {
@@ -83,6 +112,28 @@ namespace ScheduleBot.AspHost.BotStorage
                         oldList.Add(groupFromStorage);
                         return oldList;
                     });
+                    try
+                    {
+                        groupToUsers.AddOrUpdate(groupFromStorage, new List<long>() { chat.Id }, (schGroup, oldList) =>
+                        {
+                            oldList.Add(chat.Id);
+                            return oldList;
+                        });
+                        groupFromStorage.ScheduleChanged += HandleGroupScheduleChanged;
+                        if (duplicate != null)
+                        {
+                            duplicate.ScheduleChanged -= HandleGroupScheduleChanged;
+                            if (groupToUsers.TryGetValue(duplicate, out var list))
+                            {
+                                list.Remove(chat.Id);
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                    
                     Task.Factory.StartNew(() =>
                     {
                         try

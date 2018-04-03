@@ -17,6 +17,25 @@ namespace ScheduleServices.Core.Models.ScheduleGroups
         
         
         public string Name { get; set; }
+        public event EventHandler ScheduleChanged;
+        public void RaiseScheduleChanged(object sender, EventArgs args)
+        {
+            // Make a temporary copy of the event to avoid possibility of
+            // a race condition if the last subscriber unsubscribes
+            // immediately after the null check and before the event is raised.
+            EventHandler handler = ScheduleChanged;
+
+            // Event will be null if there are no subscribers
+            if (handler != null)
+            {
+                // Format the string to send inside the CustomEventArgs parameter
+                // e.Message += String.Format(" at {0}", DateTime.Now.ToString());
+
+                // Use the () operator to raise the event.
+                handler(this, args);
+            }
+        }
+        
 
         public bool Equals(ScheduleGroup other)
         {

@@ -6,8 +6,6 @@ namespace ScheduleServices.Core.Modules.Interfaces
 {
     public interface IGroupsMonitor
     {
-        
-        event EventHandler UpdatedEvent;
         IEnumerable<IScheduleGroup> AvailableGroups { get; }
         IEnumerable<IScheduleGroup> RemoveInvalidGroupsFrom(IEnumerable<IScheduleGroup> groups);
         bool IsGroupPresent(IScheduleGroup group);

@@ -58,6 +58,7 @@ namespace ScheduleBot.AspHost
             services.AddTransient<ISchedulesStorage, SchedulesInMemoryDbStorage>();
             services.AddSingleton<IScheduleServise, ScheduleService>();
             services.AddSingleton<IBotDataStorage, InMemoryBotStorage>();
+            services.AddSingleton<INotifiactionSender, Notificator>();
             services.AddSingleton<KeyboardsFactory>(provider => new KeyboardsFactory(GetGroupsList()));
             services.AddTelegramBot<ItisScheduleBot>(configuration.GetSection("ScheduleBot"))
                 .AddUpdateHandler<EchoCommand>()
@@ -93,8 +94,9 @@ namespace ScheduleBot.AspHost
                 var botManager = app.ApplicationServices.GetRequiredService<IBotManager<ItisScheduleBot>>();
                 await botManager.SetWebhookStateAsync(false);
 
-                // make sure webhook is disabled so we can use long-polling
-
+                
+                var notifier = (Notificator) app.ApplicationServices.GetRequiredService<INotifiactionSender>();
+                notifier.Bot = app.ApplicationServices.GetRequiredService<ItisScheduleBot>();
 
                 while (true)
                 {

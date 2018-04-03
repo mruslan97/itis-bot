@@ -20,7 +20,6 @@ namespace ScheduleServices.Core
         private readonly ScheduleConstructor scheduleConstructor;
         public IGroupsMonitor GroupsMonitor { get; }
         private IScheduleInfoProvider freshInfoProvider;
-        public event EventHandler UpdatedEvent;
 
         public ScheduleService(ISchedulesStorage storage, IGroupsMonitor groupsMonitor,
             IScheduleInfoProvider freshInfoProvider)
@@ -98,7 +97,7 @@ namespace ScheduleServices.Core
                 {
                     if (!freshSchedule.ScheduleRoot.Equals(storedSchedule.ScheduleRoot))
                         return storage.UpdateScheduleAsync(freshSchedule.ScheduleGroups.FirstOrDefault(),
-                            freshSchedule.ScheduleRoot);
+                            freshSchedule.ScheduleRoot).ContinueWith((t) =>  freshSchedule.ScheduleGroups.FirstOrDefault().RaiseScheduleChanged(this, EventArgs.Empty));
                     return Task.CompletedTask;
                 });
             }

@@ -19,5 +19,7 @@ namespace ScheduleServices.Core.Models.Interfaces
     {
         ScheduleGroupType GType { get; set; }
         string Name { get; set; }
+        event EventHandler ScheduleChanged;
+        void RaiseScheduleChanged(object sender, EventArgs args);
     }
 }
