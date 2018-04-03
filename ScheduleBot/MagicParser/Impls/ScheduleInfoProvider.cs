@@ -6,7 +6,6 @@ using MagicParser.Services;
 using ScheduleServices.Core.Models;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleElems;
-using ScheduleServices.Core.Modules;
 using ScheduleServices.Core.Providers.Interfaces;
 
 namespace MagicParser.Impls
@@ -17,27 +16,28 @@ namespace MagicParser.Impls
         {
             //try
             //{
-                var groups = availableGroups.Where(g => g.GType == ScheduleGroupType.Academic).ToList();
-                var schedules = new List<Schedule>();
-                var subjects = GetAllGroups(day);
-                foreach (var group in groups)
+            var groups = availableGroups.Where(g => g.GType == ScheduleGroupType.Academic).ToList();
+            var schedules = new List<Schedule>();
+            var subjects = GetAllGroups(day);
+            foreach (var group in groups)
+            {
+                var result = new Schedule
                 {
-                    var result = new Schedule()
+                    ScheduleGroups = new List<IScheduleGroup> {group},
+                    ScheduleRoot = new Day
                     {
-                        ScheduleGroups = new List<IScheduleGroup> {group},
-                        ScheduleRoot = new Day()
-                        {
-                            Level = ScheduleElemLevel.Day,
-                            DayOfWeek = day,
-                            Elems = ConvertSubjects(subjects.Where(s => s.Group == group.Name))
-                        }
-                    };
+                        Level = ScheduleElemLevel.Day,
+                        DayOfWeek = day,
+                        Elems = ConvertSubjects(subjects.Where(s => s.Group == group.Name))
+                    }
+                };
 
-                    if(result.ScheduleRoot.Elems.Count != 0)
+                if (result.ScheduleRoot.Elems.Count != 0)
                     schedules.Add(result);
-                }
+            }
 
-                return schedules;
+
+            return schedules;
             //}
             //catch (Exception e)
             //{
@@ -50,10 +50,7 @@ namespace MagicParser.Impls
             var googleApi = new GoogleApiService();
             var smartSorter = new SmartSortService();
             var result = new List<ParsedSubject>();
-            for (var i = 1; i <= 4; i++)
-            {
-                result.AddRange(smartSorter.SortContent(googleApi.SendRequest(i, (int) day)));
-            }
+            for (var i = 1; i <= 4; i++) result.AddRange(smartSorter.SortContent(googleApi.SendRequest(i, (int) day)));
 
             return result;
         }
@@ -62,20 +59,18 @@ namespace MagicParser.Impls
         {
             ICollection<IScheduleElem> result = new List<IScheduleElem>();
             foreach (var subject in oldFormatSubjects)
-            {
                 if (subject.SubjectName.Any(char.IsLetter))
                     result.Add(new Lesson
-                {
-                    Discipline = subject.SubjectName,
-                    Teacher = subject.Teacher,
-                    Place = subject.Cabinet,
-                    BeginTime = TimeSpan.Parse(subject.Time.Replace('.', ':').Substring(0, 5)),
-                    Duration = TimeSpan.FromMinutes(90),
-                    Notation = subject.Notation,
-                    IsOnEvenWeek = subject.IsOnEvenWeek,
-                    Elems = null
-                });
-            }
+                    {
+                        Discipline = subject.SubjectName,
+                        Teacher = subject.Teacher,
+                        Place = subject.Cabinet,
+                        BeginTime = TimeSpan.Parse(subject.Time.Replace('.', ':').Substring(0, 5)),
+                        Duration = TimeSpan.FromMinutes(90),
+                        Notation = subject.Notation,
+                        IsOnEvenWeek = subject.IsOnEvenWeek,
+                        Elems = null
+                    });
 
             return result;
         }
