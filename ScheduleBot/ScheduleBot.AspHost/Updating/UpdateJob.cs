@@ -45,11 +45,7 @@ namespace ScheduleBot.AspHost.Updating
                 await scheduleServise.UpdateSchedulesAsync(
                     scheduleServise
                         .GroupsMonitor
-                        .AvailableGroups
-                        .Where(g =>
-                            g.GType == ScheduleGroupType.Academic 
-                            //&& g.Name.Contains("11-" + (lowestCourseGroupNum + currentUpdateCourse - 1))
-                            ),
+                        .AvailableGroups.ToList(),
                     currentUpdateDayOfWeek);
             }
             catch (Exception e)

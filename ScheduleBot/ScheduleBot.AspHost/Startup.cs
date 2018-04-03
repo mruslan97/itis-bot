@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MagicParser.Impls;
 using Microsoft.AspNetCore.Builder;
@@ -52,7 +53,7 @@ namespace ScheduleBot.AspHost
             services.AddTransient<UpdateJob>();
             //service
             services.AddTransient<ISchElemsFactory, DefaultSchElemsFactory>();
-            services.AddTransient<IGroupsMonitor, GroupsMonitor>(provider => new GroupsMonitor(GetGroupsList()));
+            services.AddTransient<IGroupsMonitor, GroupsMonitor>(provider => new GroupsMonitor(GetGroupsList(), GetRules()));
             services.AddTransient<IScheduleInfoProvider, ScheduleInfoProvider>();
             services.AddTransient<ISchedulesStorage, SchedulesInMemoryDbStorage>();
             services.AddSingleton<IScheduleServise, ScheduleService>();
@@ -165,6 +166,43 @@ namespace ScheduleBot.AspHost
                 new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-707"},
                 new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-708"},
                 new ScheduleGroup() {GType = ScheduleGroupType.Academic, Name = "11-709"},
+
+
+                //ENG GROUPS
+                new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Мартынова Е.В._1курс"}
+            };
+        }
+
+        private IList<ICompatibleGroupsRule> GetRules()
+        {
+            return new List<ICompatibleGroupsRule>()
+            {
+                new CompatibleGroupsFuncRule("1stCourseMartynova", (first, second) =>
+                {
+                    IScheduleGroup academic = null;
+                    IScheduleGroup eng = null;
+                    if (first.GType == ScheduleGroupType.Academic)
+                        academic = first;
+                    if (first.GType == ScheduleGroupType.Eng)
+                        eng = first;
+                    if (second.GType == ScheduleGroupType.Academic)
+                        academic = second;
+                    if (second.GType == ScheduleGroupType.Eng)
+                        eng = second;
+                    if (eng == null || academic == null)
+                        return false;
+                    if (eng.Name.ToLowerInvariant().Contains("мартынова") &&
+                        eng.Name.ToLowerInvariant().Contains("1курс"))
+                    {
+                        var trimmed = (academic.Name.Trim());
+                        if (trimmed.StartsWith("11-7") && Regex.IsMatch(trimmed, $@"[0-4]$"))
+                            return true;
+                        else
+                            return false;
+                    }
+                    return false;
+                })
+                
             };
         }
     }

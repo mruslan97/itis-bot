@@ -8,10 +8,12 @@ namespace ScheduleServices.Core.Modules
 {
     public class CompatibleGroupsFuncRule : ICompatibleGroupsRule
     {
+        public string Name { get; set; }
         private readonly Func<IScheduleGroup, IScheduleGroup, bool> checkFunc;
-        public CompatibleGroupsFuncRule(Func<IScheduleGroup, IScheduleGroup, bool> checkFunc)
+        public CompatibleGroupsFuncRule(string name, Func<IScheduleGroup, IScheduleGroup, bool> checkFunc)
         {
             this.checkFunc = checkFunc;
+            Name = name;
         }
 
         public bool AreCompatible(IScheduleGroup first, IScheduleGroup second)

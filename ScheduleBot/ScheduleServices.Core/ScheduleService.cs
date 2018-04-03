@@ -33,7 +33,7 @@ namespace ScheduleServices.Core
             try
             {
                 for (int i = 1; i <= 6; i++)
-                    UpdateSchedulesAsync(groupsMonitor.AvailableGroups, (DayOfWeek)i).Wait();
+                    UpdateSchedulesAsync(groupsMonitor.AvailableGroups.ToList(), (DayOfWeek)i).Wait();
             }
             catch (Exception e)
             {
