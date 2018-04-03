@@ -51,7 +51,7 @@ namespace MagicParser.Impls
                             Elems = ConvertSubjects(englishSubjects.Where(s =>
                                 s.Teacher.Contains(engGroup.Name.Substring(0, engGroup.Name.IndexOf(' ')))
                                 && s.Type == ScheduleGroupType.Eng
-                                && s.Flow.ToString() == engGroup.Name[engGroup.Name.Length-1].ToString()
+                                && s.Flow.ToString() == engGroup.Name[engGroup.Name.Length - 1].ToString()
                                 && s.Course.ToString() == engGroup.Name.Substring(engGroup.Name.IndexOf('_') + 1, 1)))
                         }
                     };
