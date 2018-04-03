@@ -21,6 +21,7 @@ namespace MagicParser.Services
             var parsedSubjects = new List<ParsedSubject>();
             foreach (var unparsedSubject in inputSubjects)
             {
+                unparsedSubject.Content = ProcessTrash(unparsedSubject);
                 unparsedSubject.IsOnEvenWeek = CheckWeeks(unparsedSubject);
                 if (Keywords.Lecture().Any(l => unparsedSubject.Content.Contains(l))
                     && !Keywords.NotLecture().Any(n => unparsedSubject.Content.Contains(n)))
@@ -98,6 +99,12 @@ namespace MagicParser.Services
             if (inputSubject.Content.Contains("ч.н"))
                 return  true;
             return null;
+        }
+
+        private string ProcessTrash(TmpObject input)
+        {
+            return input.Content
+                .Replace("на Кремлёвской 35", "(на Кремлёвской 35)");
         }
 
         private IEnumerable<ParsedSubject> ShareSubjects(ParsedSubject parsedSubject, Tuple<int, int> marker)
