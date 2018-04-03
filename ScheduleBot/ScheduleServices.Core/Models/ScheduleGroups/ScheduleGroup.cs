@@ -8,7 +8,7 @@ using ScheduleServices.Core.Models.Interfaces;
 namespace ScheduleServices.Core.Models.ScheduleGroups
 {
     [AddINotifyPropertyChangedInterface]
-    public class ScheduleGroup : IScheduleGroup, IEquatable<ScheduleGroup>
+    public class ScheduleGroup : IScheduleGroup
     {
         //[JsonConverter(typeof(StringEnumConverter))] 
         //[BsonRepresentation(BsonType.String)]

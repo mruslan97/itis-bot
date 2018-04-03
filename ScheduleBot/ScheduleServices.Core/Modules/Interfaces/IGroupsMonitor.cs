@@ -19,5 +19,7 @@ namespace ScheduleServices.Core.Modules.Interfaces
         /// <param name="resultGroup"></param>
         /// <returns>true if group with such name exists and this group, and false if not</returns>
         bool TryFindGroupByName(string name, out IScheduleGroup resultGroup);
+
+        IEnumerable<IScheduleGroup> GetAllowedGroups(ScheduleGroupType ofType, IScheduleGroup target);
     }
 }

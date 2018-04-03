@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Modules.Interfaces;
 
@@ -15,23 +16,30 @@ namespace ScheduleServices.Core.Modules
         //and restored from backup
         private readonly ConcurrentDictionary<string, IScheduleGroup> allGroups =
             new ConcurrentDictionary<string, IScheduleGroup>();
+
         //no one should have access to change items from backup
         private readonly ConcurrentDictionary<string, IScheduleGroup> backup =
             new ConcurrentDictionary<string, IScheduleGroup>();
 
-        
+        private IEnumerable<ICompatibleGroupsRule> rules;
+
         public event EventHandler UpdatedEvent;
+
         public GroupsMonitor(IEnumerable<IScheduleGroup> groups)
         {
             foreach (var group in groups)
             {
                 backup.AddOrUpdate(group.Name, group, (s, oldGroup) => group);
-                var clone = (IScheduleGroup)group.Clone();
+                var clone = (IScheduleGroup) group.Clone();
                 clone.PropertyChanged += OnMainPropertyChanged;
                 allGroups.AddOrUpdate(clone.Name, clone, (s, scheduleGroup) => clone);
             }
+        }
 
-            
+        public GroupsMonitor(IEnumerable<IScheduleGroup> groups, IEnumerable<ICompatibleGroupsRule> rules) :
+            this(groups)
+        {
+            this.rules = rules;
         }
 
         private void OnMainPropertyChanged(object sender, PropertyChangedEventArgs propertyChangedEventArgs)
@@ -41,7 +49,6 @@ namespace ScheduleServices.Core.Modules
             {
                 var badPair = allGroups.FirstOrDefault(pair => pair.Key != pair.Value.Name);
                 RestoreByKey(badPair.Key);
-                    
             }
             else
             {
@@ -55,7 +62,7 @@ namespace ScheduleServices.Core.Modules
             {
                 if (backup.TryGetValue(key, out IScheduleGroup original))
                 {
-                    var clone = (IScheduleGroup)original.Clone();
+                    var clone = (IScheduleGroup) original.Clone();
                     allGroups.AddOrUpdate(key, clone, (stringkey, badVal) => clone);
                 }
                 else
@@ -65,7 +72,7 @@ namespace ScheduleServices.Core.Modules
                     {
                         if (backup.ContainsKey(diff))
                         {
-                            var clone = (IScheduleGroup)backup[diff].Clone();
+                            var clone = (IScheduleGroup) backup[diff].Clone();
                             clone.PropertyChanged += OnMainPropertyChanged;
                             allGroups.AddOrUpdate(key, clone, (stringkey, badVal) => clone);
                         }
@@ -76,11 +83,10 @@ namespace ScheduleServices.Core.Modules
                         }
                     }
                 }
-                
             }
         }
 
-        
+
         public IEnumerable<IScheduleGroup> AvailableGroups =>
             allGroups.Values.ToList();
 
@@ -89,14 +95,20 @@ namespace ScheduleServices.Core.Modules
             return allGroups.TryGetValue(name, out resultGroup);
         }
 
+        public IEnumerable<IScheduleGroup> GetAllowedGroups(ScheduleGroupType ofType, IScheduleGroup target)
+        {
+            return allGroups.Values.Where(g =>
+                    g.GType == ofType && (rules?.Any(rule => rule.AreCompatible(target, g)) ?? true))
+                .ToList();
+        }
+
         public IEnumerable<IScheduleGroup> RemoveInvalidGroupsFrom(IEnumerable<IScheduleGroup> groups)
         {
             if (groups != null)
                 return groups.Where(IsGroupPresent);
             throw new ArgumentNullException("groups");
-
         }
-        
+
         public bool IsGroupPresent(IScheduleGroup group)
         {
             if (group != null)
@@ -108,7 +120,7 @@ namespace ScheduleServices.Core.Modules
         {
             if (sample != null)
                 return allGroups.TryGetValue(sample.Name, out correct);
-           throw new ArgumentNullException("sample");
+            throw new ArgumentNullException("sample");
         }
 
         private async void OnScheduleServiceUpdated(object sender, EventArgs e)
