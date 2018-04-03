@@ -28,8 +28,8 @@ namespace ScheduleBot.AspHost.Keyboards
         {
             return new ReplyKeyboardMarkup(new[]
             {
-                new[] {new KeyboardButton("1 курс"), new KeyboardButton("2 курс")},
-                new[] {new KeyboardButton("3 курс"), new KeyboardButton("4 курс")}
+                new[] {new KeyboardButton("\u0031\u20E3 курс"), new KeyboardButton("\u0032\u20E3 курс") },
+                new[] {new KeyboardButton("\u0033\u20E3 курс"), new KeyboardButton("\u0034\u20E3 курс") }
             });
         }
         /// <summary>

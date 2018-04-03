@@ -22,7 +22,7 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
             await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id,
-                $"Привет, {update.Message.Chat.FirstName}! Выбери курс.", replyMarkup: keyboards.GetCoursesKeyboad());
+                $"Привет, {update.Message.Chat.FirstName}! ✋ Выбери курс.", replyMarkup: keyboards.GetCoursesKeyboad());
 
             return UpdateHandlingResult.Handled;
         }
