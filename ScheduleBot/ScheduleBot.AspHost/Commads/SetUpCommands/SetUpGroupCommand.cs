@@ -14,17 +14,60 @@ using Telegram.Bot.Types;
 
 namespace ScheduleBot.AspHost.Commads.SetUpCommands
 {
-    public class SetUpGroupCommand : CommandBase<DefaultCommandArgs>
+    public abstract class SetUpGroupCommand : CommandBase<DefaultCommandArgs>
     {
-        private readonly IScheduleServise scheduler;
-        private readonly KeyboardsFactory keyboards;
-        private readonly IBotDataStorage storage;
+        protected IScheduleServise Scheduler;
+        protected KeyboardsFactory Keyboards;
+        protected IBotDataStorage Storage;
 
-        public SetUpGroupCommand(IBotDataStorage storage, IScheduleServise scheduler, KeyboardsFactory keyboards) : base("setupgroup")
+        public SetUpGroupCommand(IBotDataStorage storage, IScheduleServise scheduler, KeyboardsFactory keyboards,
+            string command) : base(command)
         {
-            this.storage = storage;
-            this.scheduler = scheduler;
-            this.keyboards = keyboards;
+            this.Storage = storage;
+            this.Scheduler = scheduler;
+            this.Keyboards = keyboards;
+        }
+
+
+        public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
+        {
+            string groupName;
+            try
+            {
+                groupName = args.RawInput.Trim();
+            }
+            catch (Exception e)
+            {
+                await Bot.Client.SendTextMessageAsync(
+                    update.Message.Chat.Id,
+                    "Нет такой группы :(");
+                return UpdateHandlingResult.Handled;
+            }
+
+            if (Scheduler.GroupsMonitor.TryFindGroupByName(groupName, out IScheduleGroup group)
+                && await Storage.TryAddGroupToChatAsync(group, update.Message.Chat))
+            {
+                await Bot.Client.SendTextMessageAsync(
+                    update.Message.Chat.Id,
+                    "Установлено!", replyMarkup: Keyboards.GetPeriodOptionsKeyboard());
+            }
+            else
+            {
+                await Bot.Client.SendTextMessageAsync(
+                    update.Message.Chat.Id,
+                    "Нет такой группы :(");
+            }
+
+
+            return UpdateHandlingResult.Handled;
+        }
+    }
+
+    public class SetUpAcademicGroupCommand : SetUpGroupCommand
+    {
+        public SetUpAcademicGroupCommand(IBotDataStorage storage, IScheduleServise scheduler,
+            KeyboardsFactory keyboards) : base(storage, scheduler, keyboards, "setgroup")
+        {
         }
 
         protected override bool CanHandleCommand(Update update)
@@ -36,35 +79,30 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
             else
                 return true;
         }
+    }
+
+    public class NotFoundGroupCommand : SetUpGroupCommand
+    {
+        public NotFoundGroupCommand(IBotDataStorage storage, IScheduleServise scheduler,
+            KeyboardsFactory keyboards) : base(storage, scheduler, keyboards, "notfound")
+        {
+        }
+
+        protected override bool CanHandleCommand(Update update)
+        {
+            if (!base.CanHandleCommand(update))
+            {
+                return update.Message.Text.ToLowerInvariant().Contains("ничего нет");
+            }
+            else
+                return true;
+        }
 
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
-            string groupName;
-            try
-            {
-                groupName = args.RawInput.Substring(0, 6);
-            }
-            catch (Exception e)
-            {
-                await Bot.Client.SendTextMessageAsync(
-                    update.Message.Chat.Id,
-                    "Нет такой группы :(");
-                return UpdateHandlingResult.Handled;
-            }
-
-            if (scheduler.GroupsMonitor.TryFindGroupByName(groupName, out IScheduleGroup group)
-                && await storage.TryAddGroupToChatAsync(group, update.Message.Chat))
-            {
-                await Bot.Client.SendTextMessageAsync(
-                    update.Message.Chat.Id,
-                    "Установлено!", replyMarkup: keyboards.GetPeriodOptionsKeyboard());
-            }
-            else
-            {
-                await Bot.Client.SendTextMessageAsync(
-                    update.Message.Chat.Id,
-                    "Нет такой группы :(");
-            }
+            await Bot.Client.SendTextMessageAsync(
+                update.Message.Chat.Id,
+                "Прости...", replyMarkup: Keyboards.GetPeriodOptionsKeyboard());
 
 
             return UpdateHandlingResult.Handled;

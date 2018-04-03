@@ -14,13 +14,13 @@ using Telegram.Bot.Types;
 
 namespace ScheduleBot.AspHost.Commads.SetUpCommands
 {
-    public class GetEngGropsCommand : CommandBase<DefaultCommandArgs>
+    public class GetEngGroupsCommand : CommandBase<DefaultCommandArgs>
     {
         private readonly IScheduleServise scheduler;
         private readonly KeyboardsFactory keyboards;
         private readonly IBotDataStorage storage;
 
-        public GetEngGropsCommand(IBotDataStorage storage, IScheduleServise scheduler, KeyboardsFactory keyboards) :
+        public GetEngGroupsCommand(IBotDataStorage storage, IScheduleServise scheduler, KeyboardsFactory keyboards) :
             base("getengs")
         {
             this.storage = storage;
@@ -45,12 +45,23 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
                     g.GType == ScheduleGroupType.Academic);
             if (userAcademicGroup != null)
             {
-                await Bot.Client.SendTextMessageAsync(
-                    update.Message.Chat.Id,
-                    "Выбери свою группу по английскому.",
-                    replyMarkup: keyboards.GetKeyboardForCollection(
-                        scheduler.GroupsMonitor.GetAllowedGroups(ScheduleGroupType.Eng, userAcademicGroup),
-                        g => g.Name));
+                var engGroups = scheduler.GroupsMonitor.GetAllowedGroups(ScheduleGroupType.Eng, userAcademicGroup)?.ToList() ?? new List<IScheduleGroup>();
+                if (engGroups.Any())
+                {
+                    await Bot.Client.SendTextMessageAsync(
+                        update.Message.Chat.Id,
+                        "Выбери свою группу по английскому.",
+                        replyMarkup: keyboards.GetKeyboardForCollection(engGroups,
+                            g => g.Name));
+                }
+                else
+                {
+                    await Bot.Client.SendTextMessageAsync(
+                        update.Message.Chat.Id,
+                        "У тебя не нашлось групп по английскому, прости.",
+                        replyMarkup: keyboards.GetSettingsKeyboard());
+                }
+                
             }
             else
             {
@@ -62,5 +73,26 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
 
             return UpdateHandlingResult.Handled;
         }
+    }
+    
+    public class SetUpEngGroupCommand : SetUpGroupCommand
+    {
+
+        public SetUpEngGroupCommand(IBotDataStorage storage, IScheduleServise scheduler, KeyboardsFactory keyboards) :
+            base(storage, scheduler, keyboards, "seteng")
+        {
+            
+        }
+
+        protected override bool CanHandleCommand(Update update)
+        {
+            if (!base.CanHandleCommand(update))
+            {
+                return Scheduler.GroupsMonitor.AvailableGroups.Any(g => g.GType == ScheduleGroupType.Eng && g.Name == update.Message.Text.Trim());
+            }
+            else
+                return true;
+        }
+        
     }
 }

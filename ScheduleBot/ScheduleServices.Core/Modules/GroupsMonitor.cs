@@ -88,7 +88,7 @@ namespace ScheduleServices.Core.Modules
 
 
         public IEnumerable<IScheduleGroup> AvailableGroups =>
-            allGroups.Values.ToList();
+            allGroups.Values;
 
         public bool TryFindGroupByName(string name, out IScheduleGroup resultGroup)
         {

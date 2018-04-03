@@ -60,12 +60,17 @@ namespace ScheduleBot.AspHost
             services.AddSingleton<KeyboardsFactory>(provider => new KeyboardsFactory(GetGroupsList()));
             services.AddTelegramBot<ItisScheduleBot>(configuration.GetSection("ScheduleBot"))
                 .AddUpdateHandler<EchoCommand>()
-                .AddUpdateHandler<SetUpGroupCommand>()
+                .AddUpdateHandler<SetUpAcademicGroupCommand>()
                 .AddUpdateHandler<SetUpCourseCommand>()
+                .AddUpdateHandler<GetEngGroupsCommand>()
+                .AddUpdateHandler<SetUpEngGroupCommand>()
                 .AddUpdateHandler<GetForTodayCommand>()
                 .AddUpdateHandler<GetForTomorrowCommand>()
                 .AddUpdateHandler<GetForWeekCommand>()
                 .AddUpdateHandler<HelloCommand>()
+                .AddUpdateHandler<NotFoundGroupCommand>()
+                .AddUpdateHandler<SettingsOptionsCommand>()
+                .AddUpdateHandler<SettingsBackCommand>()
                 .Configure();
         }
 
