@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ScheduleBot.AspHost.BotStorage
+namespace ScheduleBot.AspHost.BotServices.Interfaces
 {
     public interface INotifiactionSender
     {

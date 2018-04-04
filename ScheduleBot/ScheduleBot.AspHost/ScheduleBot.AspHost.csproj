@@ -37,7 +37,7 @@
     <ProjectReference Include="..\ScheduleServices.Core\ScheduleServices.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="BotStorage\usersgroups.xml">
+    <None Update="BotServices\usersgroups.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

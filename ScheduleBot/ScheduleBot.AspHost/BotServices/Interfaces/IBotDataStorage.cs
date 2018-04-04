@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using ScheduleServices.Core.Models.Interfaces;
 using Telegram.Bot.Types;
 
-namespace ScheduleBot.AspHost.BotStorage
+namespace ScheduleBot.AspHost.BotServices.Interfaces
 {
     public interface IBotDataStorage
     {

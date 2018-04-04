@@ -6,11 +6,12 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Models.Interfaces;
 using Telegram.Bot.Types;
 
-namespace ScheduleBot.AspHost.BotStorage
+namespace ScheduleBot.AspHost.BotServices
 {
     public class InMemoryBotStorage : IBotDataStorage
     {

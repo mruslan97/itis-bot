@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleBot.AspHost.Keyboards;
 using Telegram.Bot.Framework.Abstractions;
 
-namespace ScheduleBot.AspHost.BotStorage
+namespace ScheduleBot.AspHost.BotServices
 {
     public class Notificator : INotifiactionSender
     {

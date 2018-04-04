@@ -2,7 +2,8 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using ScheduleBot.AspHost.BotStorage;
+using ScheduleBot.AspHost.BotServices;
+using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleBot.AspHost.Commads.CommandArgs;
 using ScheduleServices.Core;
 using Telegram.Bot.Framework;

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using ScheduleBot.AspHost.BotStorage;
+using ScheduleBot.AspHost.BotServices;
+using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleBot.AspHost.Commads.CommandArgs;
 using ScheduleBot.AspHost.Helpers;
 using ScheduleServices.Core;
