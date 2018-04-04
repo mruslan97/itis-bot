@@ -204,7 +204,42 @@ namespace ScheduleBot.AspHost
         {
             return new List<ICompatibleGroupsRule>()
             {
-                new CompatibleGroupsFuncRule("1stCourseMartynova", (first, second) =>
+                
+                new SpecEngGroupsRule("1stCourse_1stStreamMartynova", (academicName, engName) =>
+                {
+                    if (engName.EndsWith("1") &&
+                       engName.Contains("1курс"))
+                    {
+                        if (academicName.StartsWith("11-7") && Regex.IsMatch(academicName, $@"[1-4]$"))
+                            return true;
+                        else
+                            return false;
+                    }
+                    return false;
+                } ),
+                new SpecEngGroupsRule("1stCourse_1stStreamNoMartynova", (academicName, engName) =>
+                {
+                    if (engName.EndsWith("1") &&
+                        engName.Contains("1курс") && !engName.Contains("мартынова"))
+                    {
+                        if (academicName.StartsWith("11-7") && Regex.IsMatch(academicName, $@"[1-5]$"))
+                            return true;
+                        else
+                            return false;
+                    }
+                    return false;
+                } ),
+                new CommonEngGroupsRule("1stCourse_2stStream", "2", "1курс", "11-7", $@"[6-9]$"),
+                new CommonEngGroupsRule("2stCourse_1stStream", "1", "2курс", "11-6", $@"[1-8]$")
+
+            };
+        }
+
+        private class CommonEngGroupsRule : CompatibleGroupsFuncRule
+        {
+            public CommonEngGroupsRule(string name, string engEndsWith, string engContains, string academicStarts, string academicRegexp) : base(name, (g1, g2) => true)
+            {
+                CheckFunc = (first, second) =>
                 {
                     IScheduleGroup academic = null;
                     IScheduleGroup eng = null;
@@ -218,7 +253,58 @@ namespace ScheduleBot.AspHost
                         eng = second;
                     if (eng == null || academic == null)
                         return false;
-                    if (eng.Name.ToLowerInvariant().Contains("мартынова") &&
+                    if (eng.Name.ToLowerInvariant().EndsWith(engEndsWith) &&
+                        eng.Name.ToLowerInvariant().Contains(engContains))
+                    {
+                        var trimmed = (academic.Name.Trim());
+                        if (trimmed.StartsWith(academicStarts) && Regex.IsMatch(trimmed, academicRegexp))
+                            return true;
+                        else
+                            return false;
+                    }
+
+                    return false;
+                };
+            }
+        }
+
+        private class SpecEngGroupsRule : CompatibleGroupsFuncRule
+        {
+            public SpecEngGroupsRule(string name, Func<string, string, bool> academicAndEngNamesFunc) : base(name, (g1, g2) => true)
+            {
+                CheckFunc = (first, second) =>
+                {
+                    IScheduleGroup academic = null;
+                    IScheduleGroup eng = null;
+                    if (first.GType == ScheduleGroupType.Academic)
+                        academic = first;
+                    if (first.GType == ScheduleGroupType.Eng)
+                        eng = first;
+                    if (second.GType == ScheduleGroupType.Academic)
+                        academic = second;
+                    if (second.GType == ScheduleGroupType.Eng)
+                        eng = second;
+                    if (eng == null || academic == null)
+                        return false;
+                    return academicAndEngNamesFunc(academic.Name.Trim().ToLowerInvariant(),
+                        eng.Name.Trim().ToLowerInvariant());
+                };
+            }
+            /*new CompatibleGroupsFuncRule("1stCourse_1stStream", (first, second) =>
+                {
+                    IScheduleGroup academic = null;
+                    IScheduleGroup eng = null;
+                    if (first.GType == ScheduleGroupType.Academic)
+                        academic = first;
+                    if (first.GType == ScheduleGroupType.Eng)
+                        eng = first;
+                    if (second.GType == ScheduleGroupType.Academic)
+                        academic = second;
+                    if (second.GType == ScheduleGroupType.Eng)
+                        eng = second;
+                    if (eng == null || academic == null)
+                        return false;
+                    if (eng.Name.ToLowerInvariant().EndsWith("1") &&
                         eng.Name.ToLowerInvariant().Contains("1курс"))
                     {
                         var trimmed = (academic.Name.Trim());
@@ -228,9 +314,7 @@ namespace ScheduleBot.AspHost
                             return false;
                     }
                     return false;
-                })
-                
-            };
+                })*/
         }
     }
 }

@@ -33,7 +33,7 @@ namespace ScheduleBot.AspHost.BotServices
         {
             this.servise = servise;
             this.notifiactionSender = notifiactionSender;
-            path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\BotStorage\\" + XmlFileName;
+            path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\BotServices\\" + XmlFileName;
             try
             {
                 var doc = XDocument.Load(path);
@@ -47,19 +47,7 @@ namespace ScheduleBot.AspHost.BotServices
                         {
                             if (long.TryParse(user.Element("chatId").Value, out long chatId))
                             {
-                                usersGroups.AddOrUpdate(chatId,
-                                    new List<IScheduleGroup> {group},
-                                    (id, old) =>
-                                    {
-                                        old.Add(group);
-                                        return old;
-                                    });
-                                groupToUsers.AddOrUpdate(group, new List<long>() {chatId}, (schGroup, oldList) =>
-                                {
-                                    oldList.Add(chatId);
-                                    return oldList;
-                                });
-                                group.ScheduleChanged += HandleGroupScheduleChanged;
+                                AddGroupToUserInMemory(chatId, group);
                             }
                         }
                         else
@@ -108,37 +96,7 @@ namespace ScheduleBot.AspHost.BotServices
             {
                 if (servise.GroupsMonitor.TryGetCorrectGroup(scheduleGroup, out var groupFromStorage))
                 {
-                    IScheduleGroup duplicate = null;
-                    usersGroups.AddOrUpdate(chat.Id, new List<IScheduleGroup> {groupFromStorage}, (id, oldList) =>
-                    {
-                        duplicate = oldList.FirstOrDefault(g =>
-                            g.GType == groupFromStorage.GType && !g.Equals(groupFromStorage));
-                        if (duplicate != null)
-                            oldList.Remove(duplicate);
-                        oldList.Add(groupFromStorage);
-                        return oldList;
-                    });
-                    try
-                    {
-                        groupToUsers.AddOrUpdate(groupFromStorage, new List<long>() {chat.Id}, (schGroup, oldList) =>
-                        {
-                            oldList.Add(chat.Id);
-                            return oldList;
-                        });
-                        groupFromStorage.ScheduleChanged += HandleGroupScheduleChanged;
-                        if (duplicate != null)
-                        {
-                            duplicate.ScheduleChanged -= HandleGroupScheduleChanged;
-                            if (groupToUsers.TryGetValue(duplicate, out var list))
-                            {
-                                list.Remove(chat.Id);
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                    }
+                    AddGroupToUserInMemory(chat.Id, groupFromStorage);
 
                     Task.Factory.StartNew(() =>
                         {
@@ -185,5 +143,62 @@ namespace ScheduleBot.AspHost.BotServices
                 return false;
             });
         }
+
+        private void AddGroupToUserInMemory(long chatId, IScheduleGroup group)
+        {
+            bool clearOther = group.Name.StartsWith("11-");
+            IScheduleGroup duplicate = null;
+            IList<IScheduleGroup> otherGroups = null;
+            usersGroups.AddOrUpdate(chatId, new List<IScheduleGroup> { group }, (id, oldList) =>
+            {
+                duplicate = oldList.FirstOrDefault(g =>
+                    g.GType == group.GType && !g.Equals(group));
+                if (duplicate != null && !duplicate.Equals(group))
+                {
+                    oldList.Remove(duplicate);
+                    if (clearOther)
+                    {
+                        otherGroups = oldList.ToList();
+                        oldList.Clear();
+                    }
+                    oldList.Add(group);
+                }
+                return oldList;
+            });
+            try
+            {
+                groupToUsers.AddOrUpdate(group, new List<long>() { chatId }, (schGroup, oldList) =>
+                {
+                    oldList.Add(chatId);
+                    return oldList;
+                });
+                group.ScheduleChanged += HandleGroupScheduleChanged;
+                if (duplicate != null && !duplicate.Equals(group))
+                {
+                    duplicate.ScheduleChanged -= HandleGroupScheduleChanged;
+                    if (groupToUsers.TryGetValue(duplicate, out var list))
+                    {
+                        list.Remove(chatId);
+                    }
+                    if (clearOther && otherGroups != null && otherGroups.Any())
+                    {
+                        foreach (var otherGroup in otherGroups)
+                        {
+                            otherGroup.ScheduleChanged -= HandleGroupScheduleChanged;
+                            if (groupToUsers.TryGetValue(duplicate, out var subs))
+                            {
+                                subs.Remove(chatId);
+                            }
+                        }
+                    }
+                }
+                
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+       
     }
 }
