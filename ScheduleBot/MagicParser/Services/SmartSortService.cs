@@ -43,8 +43,8 @@ namespace MagicParser.Services
                 if (Keywords.ElectiveCourse().Any(p => unparsedSubject.Content.Contains(p)))
                 {
                     var parsedSubject = _electiveParser.Parse(unparsedSubject);
-                    var marker = SetMarker(unparsedSubject);
-                    parsedSubjects.AddRange(ShareSubjects(parsedSubject, marker));
+                    //var marker = SetMarker(unparsedSubject);
+                    parsedSubjects.AddRange(ShareSubjects(parsedSubject, new Tuple<int, int>(1,8)));
                     continue;
                 }
 

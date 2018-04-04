@@ -20,12 +20,21 @@ namespace ScheduleBot.AspHost.Helpers
                 answerMessage.AppendLine("Пар нет 😄");
                 return answerMessage.ToString();
             }
-
+            
             foreach (var lesson in lessons)
                 answerMessage.AppendLine(
-                    $"{lesson.Discipline} {lesson.Notation} \n{lesson.Teacher} \n{lesson.BeginTime.ToString("hh\\:mm")}-{(lesson.BeginTime + lesson.Duration).ToString("hh\\:mm")} \t ауд. {lesson.Place} \n---------------------------");
+                    $"{lesson.Discipline} {ConvertBoolToString(lesson.IsOnEvenWeek)} {lesson.Notation} \n{lesson.Teacher} \n{lesson.BeginTime.ToString("hh\\:mm")}-{(lesson.BeginTime + lesson.Duration).ToString("hh\\:mm")} \t ауд. {lesson.Place} \n---------------------------");
 
             return answerMessage.ToString();
+        }
+
+        private static string ConvertBoolToString(bool? isEvenWeek)
+        {
+            if (isEvenWeek == null)
+                return "";
+            if ((bool) isEvenWeek)
+                return "(ч.н.)";
+            return "(н.н.)";
         }
     }
 }
