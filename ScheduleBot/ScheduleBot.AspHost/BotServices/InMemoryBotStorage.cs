@@ -161,8 +161,8 @@ namespace ScheduleBot.AspHost.BotServices
                         otherGroups = oldList.ToList();
                         oldList.Clear();
                     }
-                    oldList.Add(group);
                 }
+                oldList.Add(group);
                 return oldList;
             });
             try
