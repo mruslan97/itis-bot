@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -9,6 +10,7 @@ using System.Xml.Linq;
 using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Models.Interfaces;
+using ScheduleServices.Core.Models.ScheduleGroups;
 using Telegram.Bot.Types;
 
 namespace ScheduleBot.AspHost.BotServices
@@ -20,6 +22,7 @@ namespace ScheduleBot.AspHost.BotServices
 
         private readonly ConcurrentDictionary<long, ICollection<IScheduleGroup>> usersGroups =
             new ConcurrentDictionary<long, ICollection<IScheduleGroup>>();
+
         private readonly ConcurrentDictionary<IScheduleGroup, ICollection<long>> groupToUsers =
             new ConcurrentDictionary<IScheduleGroup, ICollection<long>>();
 
@@ -35,7 +38,6 @@ namespace ScheduleBot.AspHost.BotServices
             {
                 var doc = XDocument.Load(path);
                 var users = doc.Element("users")?.Elements("user");
-                // todo check for null???
                 foreach (var user in users)
                 {
                     var groups = user.Element("groups").Elements("group");
@@ -46,7 +48,7 @@ namespace ScheduleBot.AspHost.BotServices
                             if (long.TryParse(user.Element("chatId").Value, out long chatId))
                             {
                                 usersGroups.AddOrUpdate(chatId,
-                                    new List<IScheduleGroup> { group },
+                                    new List<IScheduleGroup> {group},
                                     (id, old) =>
                                     {
                                         old.Add(group);
@@ -59,7 +61,6 @@ namespace ScheduleBot.AspHost.BotServices
                                 });
                                 group.ScheduleChanged += HandleGroupScheduleChanged;
                             }
-                            
                         }
                         else
                             Console.Out.WriteLine(
@@ -78,9 +79,13 @@ namespace ScheduleBot.AspHost.BotServices
         {
             try
             {
-                var group = (IScheduleGroup) sender;
-                if (groupToUsers.TryGetValue(group, out var list) && list != null && list.Any())
-                    await notifiactionSender.SendNotificationsForIdsAsync(list);
+                if (args is ParamEventArgs<DayOfWeek> paramEventArgs)
+                {
+                    var group = (IScheduleGroup) sender;
+                    if (groupToUsers.TryGetValue(group, out var list) && list != null && list.Any())
+                        await notifiactionSender.SendNotificationsForIdsAsync(list,
+                            $"Изменилась {(new CultureInfo("ru-Ru")).DateTimeFormat.GetDayName(paramEventArgs.Param)}");
+                }
             }
             catch (Exception e)
             {
@@ -104,7 +109,7 @@ namespace ScheduleBot.AspHost.BotServices
                 if (servise.GroupsMonitor.TryGetCorrectGroup(scheduleGroup, out var groupFromStorage))
                 {
                     IScheduleGroup duplicate = null;
-                    usersGroups.AddOrUpdate(chat.Id, new List<IScheduleGroup> { groupFromStorage }, (id, oldList) =>
+                    usersGroups.AddOrUpdate(chat.Id, new List<IScheduleGroup> {groupFromStorage}, (id, oldList) =>
                     {
                         duplicate = oldList.FirstOrDefault(g =>
                             g.GType == groupFromStorage.GType && !g.Equals(groupFromStorage));
@@ -115,7 +120,7 @@ namespace ScheduleBot.AspHost.BotServices
                     });
                     try
                     {
-                        groupToUsers.AddOrUpdate(groupFromStorage, new List<long>() { chat.Id }, (schGroup, oldList) =>
+                        groupToUsers.AddOrUpdate(groupFromStorage, new List<long>() {chat.Id}, (schGroup, oldList) =>
                         {
                             oldList.Add(chat.Id);
                             return oldList;
@@ -134,47 +139,51 @@ namespace ScheduleBot.AspHost.BotServices
                     {
                         Console.WriteLine(e);
                     }
-                    
+
                     Task.Factory.StartNew(() =>
-                    {
-                        try
                         {
-                            var xdoc = XDocument.Load(path);
-                            var user = xdoc.Element("users")
-                                ?.Elements("user").FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString());
-                            if (user == null)
-                                xdoc.Element("users")?.Add(new XElement("user", new XAttribute("name", chat.FirstName),
-                                    new XElement("chatId", chat.Id.ToString()), new XElement("groups")));
-                            var group = user?.Element("groups")
-                                ?.Elements("group").FirstOrDefault(g =>
-                                    g.Attribute("type")?.Value == groupFromStorage.GType.ToString());
-                            if (group == null)
-                                xdoc.Element("users")
+                            try
+                            {
+                                var xdoc = XDocument.Load(path);
+                                var user = xdoc.Element("users")
                                     ?.Elements("user")
-                                    .FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString())
-                                    ?.Element("groups")
-                                    ?.Add(new XElement("group", new XAttribute("type", groupFromStorage.GType.ToString()),
-                                        new XAttribute("name", groupFromStorage.Name)));
-                            else
-                                xdoc.Element("users").Elements("user")
-                                    .FirstOrDefault(u => u.Element("chatId").Value == chat.Id.ToString())
-                                    .Element("groups").Elements("group").FirstOrDefault(g =>
-                                        g.Attribute("type").Value == groupFromStorage.GType.ToString()).Attribute("name")
-                                    .Value = groupFromStorage.Name;
-                            xdoc.Save(path);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e);
-                        }
-                    }, TaskCreationOptions.RunContinuationsAsynchronously).ContinueWith(async (t) => await t).ConfigureAwait(false);
-                    
+                                    .FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString());
+                                if (user == null)
+                                    xdoc.Element("users")?.Add(new XElement("user",
+                                        new XAttribute("name", chat.FirstName),
+                                        new XElement("chatId", chat.Id.ToString()), new XElement("groups")));
+                                var group = user?.Element("groups")
+                                    ?.Elements("group").FirstOrDefault(g =>
+                                        g.Attribute("type")?.Value == groupFromStorage.GType.ToString());
+                                if (group == null)
+                                    xdoc.Element("users")
+                                        ?.Elements("user")
+                                        .FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString())
+                                        ?.Element("groups")
+                                        ?.Add(new XElement("group",
+                                            new XAttribute("type", groupFromStorage.GType.ToString()),
+                                            new XAttribute("name", groupFromStorage.Name)));
+                                else
+                                    xdoc.Element("users").Elements("user")
+                                        .FirstOrDefault(u => u.Element("chatId").Value == chat.Id.ToString())
+                                        .Element("groups").Elements("group").FirstOrDefault(g =>
+                                            g.Attribute("type").Value == groupFromStorage.GType.ToString())
+                                        .Attribute("name")
+                                        .Value = groupFromStorage.Name;
+                                xdoc.Save(path);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e);
+                            }
+                        }, TaskCreationOptions.RunContinuationsAsynchronously).ContinueWith(async (t) => await t)
+                        .ConfigureAwait(false);
+
                     return true;
                 }
 
                 return false;
             });
-            
         }
     }
 }

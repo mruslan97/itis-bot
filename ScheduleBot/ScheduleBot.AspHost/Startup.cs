@@ -57,6 +57,7 @@ namespace ScheduleBot.AspHost
             services.AddTransient<IGroupsMonitor, GroupsMonitor>(provider => new GroupsMonitor(GetGroupsList(), GetRules()));
             services.AddTransient<IScheduleInfoProvider, ScheduleInfoProvider>();
             services.AddTransient<ISchedulesStorage, SchedulesInMemoryDbStorage>();
+            services.AddTransient<IScheduleEventArgsFactory, DefaultEventArgsFactory>();
             services.AddSingleton<IScheduleServise, ScheduleService>();
             services.AddSingleton<IBotDataStorage, InMemoryBotStorage>();
             services.AddSingleton<INotifiactionSender, Notificator>();

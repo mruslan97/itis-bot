@@ -19,7 +19,7 @@ namespace ScheduleBot.AspHost.BotServices
 
         
 
-        public async Task SendNotificationsForIdsAsync(IEnumerable<long> ids)
+        public async Task SendNotificationsForIdsAsync(IEnumerable<long> ids, string message)
         {
             if (Bot != null)
             {
@@ -29,7 +29,7 @@ namespace ScheduleBot.AspHost.BotServices
                     foreach (var id in list)
                     {
                         await Bot.Client.SendTextMessageAsync(id,
-                            "Спешу сообщить, что в твоем расписании произошли изменения. Слава роботам!",
+                            $"Спешу сообщить, что в твоем расписании произошли изменения. {message}. Слава роботам!",
                             replyMarkup: keyboards.GetPeriodOptionsKeyboard());
                         await Task.Delay(1000);
                     }

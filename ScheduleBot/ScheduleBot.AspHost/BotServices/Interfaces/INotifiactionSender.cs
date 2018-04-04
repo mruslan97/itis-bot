@@ -5,6 +5,6 @@ namespace ScheduleBot.AspHost.BotServices.Interfaces
 {
     public interface INotifiactionSender
     {
-        Task SendNotificationsForIdsAsync(IEnumerable<long> ids);
+        Task SendNotificationsForIdsAsync(IEnumerable<long> ids, string message);
     }
 }

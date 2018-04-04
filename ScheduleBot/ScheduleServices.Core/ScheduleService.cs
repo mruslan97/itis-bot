@@ -20,26 +20,28 @@ namespace ScheduleServices.Core
         private readonly ScheduleConstructor scheduleConstructor;
         public IGroupsMonitor GroupsMonitor { get; }
         private IScheduleInfoProvider freshInfoProvider;
+        private readonly IScheduleEventArgsFactory eventArgsFactory;
 
         public ScheduleService(ISchedulesStorage storage, IGroupsMonitor groupsMonitor,
-            IScheduleInfoProvider freshInfoProvider)
+            IScheduleInfoProvider freshInfoProvider, IScheduleEventArgsFactory eventArgsFactory)
         {
             this.storage = storage;
             this.freshInfoProvider = freshInfoProvider;
+            this.eventArgsFactory = eventArgsFactory;
             this.scheduleConstructor = new ScheduleConstructor(new DefaultSchElemsFactory());
             this.GroupsMonitor = groupsMonitor;
-            
+
             try
             {
                 for (int i = 1; i <= 6; i++)
-                    UpdateSchedulesAsync(groupsMonitor.AvailableGroups.ToList(), (DayOfWeek)i).Wait();
+                    UpdateSchedulesAsync(groupsMonitor.AvailableGroups.ToList(), (DayOfWeek) i).Wait();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 Console.WriteLine("UPDATE INTERRUPTED");
             }
-            
+
             Console.WriteLine("UPDATED");
         }
 
@@ -97,7 +99,9 @@ namespace ScheduleServices.Core
                 {
                     if (!freshSchedule.ScheduleRoot.Equals(storedSchedule.ScheduleRoot))
                         return storage.UpdateScheduleAsync(freshSchedule.ScheduleGroups.FirstOrDefault(),
-                            freshSchedule.ScheduleRoot).ContinueWith((t) =>  freshSchedule.ScheduleGroups.FirstOrDefault().RaiseScheduleChanged(this, EventArgs.Empty));
+                            freshSchedule.ScheduleRoot).ContinueWith((t) =>
+                            freshSchedule.ScheduleGroups.FirstOrDefault()
+                                .RaiseScheduleChanged(this, eventArgsFactory.GetArgs(freshSchedule)));
                     return Task.CompletedTask;
                 });
             }
@@ -133,7 +137,9 @@ namespace ScheduleServices.Core
                 //sync without waiting
                 var res = (await result).OrderScheduleRootAndChildren();
                 if (res.ScheduleRoot.Level == ScheduleElemLevel.Undefined)
-                    Console.Out.WriteLine("[" + DateTime.Now + $"] + UNDEFINED DAY {day.ToString()} SCHEDULE FOUND, groups:" + JsonConvert.SerializeObject(groups));
+                    Console.Out.WriteLine("[" + DateTime.Now +
+                                          $"] + UNDEFINED DAY {day.ToString()} SCHEDULE FOUND, groups:" +
+                                          JsonConvert.SerializeObject(groups));
                 return res;
             }
             catch (Exception e)
@@ -141,7 +147,6 @@ namespace ScheduleServices.Core
                 Console.Out.WriteLine(e);
                 throw;
             }
-           
         }
 
 
@@ -166,7 +171,7 @@ namespace ScheduleServices.Core
                 {
                     tasks.Add(Task.Factory.StartNew((index) =>
                     {
-                        foreach (var schedule in storage.GetSchedules(validated, (DayOfWeek)index))
+                        foreach (var schedule in storage.GetSchedules(validated, (DayOfWeek) index))
                         {
                             preparedSchedules.Add(schedule);
                         }
@@ -177,7 +182,8 @@ namespace ScheduleServices.Core
                 await Task.WhenAll(tasks).ContinueWith((t) => preparedSchedules.CompleteAdding());
                 var res = (await result).OrderScheduleRootAndChildren();
                 if (res.ScheduleRoot.Level == ScheduleElemLevel.Undefined)
-                    Console.Out.WriteLine("[" + DateTime.Now + "] + UNDEFINED WEEK SCHEDULE FOUND, groups:" + JsonConvert.SerializeObject(groups));
+                    Console.Out.WriteLine("[" + DateTime.Now + "] + UNDEFINED WEEK SCHEDULE FOUND, groups:" +
+                                          JsonConvert.SerializeObject(groups));
                 return res;
             }
             catch (Exception e)
@@ -185,7 +191,6 @@ namespace ScheduleServices.Core
                 Console.Out.WriteLine(e);
                 throw;
             }
-            
         }
 
         private DayOfWeek DayOfWeekFromPeriod(ScheduleRequiredFor period)
