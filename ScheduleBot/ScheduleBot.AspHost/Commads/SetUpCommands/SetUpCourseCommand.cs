@@ -16,9 +16,9 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
 {
     public class SetUpCourseCommand : CommandBase<DefaultCommandArgs>
     {
-        private readonly KeyboardsFactory keyboards;
+        private readonly IKeyboardsFactory keyboards;
 
-        public SetUpCourseCommand(KeyboardsFactory keyboards) : base("setupcourse")
+        public SetUpCourseCommand(IKeyboardsFactory keyboards) : base("setupcourse")
         {
             this.keyboards = keyboards;
         }

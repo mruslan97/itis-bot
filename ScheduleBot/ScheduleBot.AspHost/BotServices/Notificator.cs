@@ -9,10 +9,10 @@ namespace ScheduleBot.AspHost.BotServices
 {
     public class Notificator : INotifiactionSender
     {
-        private readonly KeyboardsFactory keyboards;
+        private readonly IKeyboardsFactory keyboards;
         public  IBot Bot { get; set; }
 
-        public Notificator(KeyboardsFactory keyboards)
+        public Notificator(IKeyboardsFactory keyboards)
         {
             this.keyboards = keyboards;
         }

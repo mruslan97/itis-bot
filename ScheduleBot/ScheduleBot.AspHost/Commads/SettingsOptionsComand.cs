@@ -16,9 +16,9 @@ namespace ScheduleBot.AspHost.Commads
 {
     public class SettingsOptionsCommand : CommandBase<DefaultCommandArgs>
     {
-        private readonly KeyboardsFactory keyboards;
+        private readonly IKeyboardsFactory keyboards;
 
-        public SettingsOptionsCommand(KeyboardsFactory keyboards) : base("getsettings")
+        public SettingsOptionsCommand(IKeyboardsFactory keyboards) : base("getsettings")
         {
             this.keyboards = keyboards;
         }
@@ -46,9 +46,9 @@ namespace ScheduleBot.AspHost.Commads
     }
     public class SettingsBackCommand : CommandBase<DefaultCommandArgs>
     {
-        private readonly KeyboardsFactory keyboards;
+        private readonly IKeyboardsFactory keyboards;
 
-        public SettingsBackCommand(KeyboardsFactory keyboards) : base("backtomain")
+        public SettingsBackCommand(IKeyboardsFactory keyboards) : base("backtomain")
         {
             this.keyboards = keyboards;
         }

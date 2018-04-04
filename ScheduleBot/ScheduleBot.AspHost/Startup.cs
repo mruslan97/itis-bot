@@ -61,7 +61,7 @@ namespace ScheduleBot.AspHost
             services.AddSingleton<IScheduleServise, ScheduleService>();
             services.AddSingleton<IBotDataStorage, InMemoryBotStorage>();
             services.AddSingleton<INotifiactionSender, Notificator>();
-            services.AddSingleton<KeyboardsFactory>(provider => new KeyboardsFactory(GetGroupsList()));
+            services.AddSingleton<IKeyboardsFactory>(provider => new KeyboardsFactory(GetGroupsList()));
             services.AddTelegramBot<ItisScheduleBot>(configuration.GetSection("ScheduleBot"))
                 .AddUpdateHandler<EchoCommand>()
                 .AddUpdateHandler<SetUpAcademicGroupCommand>()

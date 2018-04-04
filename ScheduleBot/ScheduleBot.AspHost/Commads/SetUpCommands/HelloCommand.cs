@@ -12,9 +12,9 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
 {
     public class HelloCommand : CommandBase<DefaultCommandArgs>
     {
-        private readonly KeyboardsFactory keyboards;
+        private readonly IKeyboardsFactory keyboards;
 
-        public HelloCommand(KeyboardsFactory keyboards) : base(name: "start")
+        public HelloCommand(IKeyboardsFactory keyboards) : base(name: "start")
         {
             this.keyboards = keyboards;
         }

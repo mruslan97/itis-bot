@@ -18,10 +18,10 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
     public abstract class SetUpGroupCommand : CommandBase<DefaultCommandArgs>
     {
         protected IScheduleServise Scheduler;
-        protected KeyboardsFactory Keyboards;
+        protected IKeyboardsFactory Keyboards;
         protected IBotDataStorage Storage;
 
-        public SetUpGroupCommand(IBotDataStorage storage, IScheduleServise scheduler, KeyboardsFactory keyboards,
+        public SetUpGroupCommand(IBotDataStorage storage, IScheduleServise scheduler, IKeyboardsFactory keyboards,
             string command) : base(command)
         {
             this.Storage = storage;
@@ -67,7 +67,7 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
     public class SetUpAcademicGroupCommand : SetUpGroupCommand
     {
         public SetUpAcademicGroupCommand(IBotDataStorage storage, IScheduleServise scheduler,
-            KeyboardsFactory keyboards) : base(storage, scheduler, keyboards, "setgroup")
+            IKeyboardsFactory keyboards) : base(storage, scheduler, keyboards, "setgroup")
         {
         }
 
@@ -85,7 +85,7 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
     public class NotFoundGroupCommand : SetUpGroupCommand
     {
         public NotFoundGroupCommand(IBotDataStorage storage, IScheduleServise scheduler,
-            KeyboardsFactory keyboards) : base(storage, scheduler, keyboards, "notfound")
+            IKeyboardsFactory keyboards) : base(storage, scheduler, keyboards, "notfound")
         {
         }
 

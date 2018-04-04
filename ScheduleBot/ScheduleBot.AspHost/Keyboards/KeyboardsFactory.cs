@@ -8,7 +8,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace ScheduleBot.AspHost.Keyboards
 {
-    public class KeyboardsFactory
+    public class KeyboardsFactory : IKeyboardsFactory
     {
         private readonly IEnumerable<IScheduleGroup> setUpGroupsList;
         private readonly int highestCourseGroupNum;

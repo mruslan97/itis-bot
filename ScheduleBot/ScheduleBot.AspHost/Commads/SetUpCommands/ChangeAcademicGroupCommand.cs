@@ -12,9 +12,9 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
 {
     public class ChangeAcademicGroupCommand : CommandBase<DefaultCommandArgs>
     {
-        private readonly KeyboardsFactory keyboards;
+        private readonly IKeyboardsFactory keyboards;
 
-        public ChangeAcademicGroupCommand(KeyboardsFactory keyboards) : base(name: "changecourse")
+        public ChangeAcademicGroupCommand(IKeyboardsFactory keyboards) : base(name: "changecourse")
         {
             this.keyboards = keyboards;
         }
