@@ -81,11 +81,7 @@ namespace ScheduleBot.AspHost.BotServices
 
         public Task<IEnumerable<IScheduleGroup>> GetGroupsForChatAsync(Chat chat)
         {
-            return Task.Run(() =>
-            {
-                usersGroups.TryGetValue(chat.Id, out var groups);
-                return (IEnumerable<IScheduleGroup>) groups;
-            });
+            return Task.Run(() => usersGroups.TryGetValue(chat.Id, out var groups) ? (IEnumerable<IScheduleGroup>) groups : new List<IScheduleGroup>());
         }
 
         public Task<bool> TryAddGroupToChatAsync(IScheduleGroup scheduleGroup, Chat chat)
