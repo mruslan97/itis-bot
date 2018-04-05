@@ -28,10 +28,18 @@ namespace ScheduleServices.Core
         Task UpdateSchedulesAsync(IEnumerable<IScheduleGroup> groups, DayOfWeek day);
 
         Task<ISchedule> CompileScheduleWithSelector(IScheduleSelector selector);
+
+        Task RunVisitorThrougthStorage(IDynamicElemVisitor visitor);
     }
 
     public interface IScheduleSelector
     {
         IEnumerable<ISchedule> SelectSchedulesFromSource(IEnumerable<ISchedule> source);
     }
+
+    public interface IDynamicElemVisitor
+    {
+        void VisitElem(IScheduleElem elem);
+    }
+    
 }

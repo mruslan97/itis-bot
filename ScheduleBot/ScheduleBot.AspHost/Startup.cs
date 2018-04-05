@@ -59,8 +59,8 @@ namespace ScheduleBot.AspHost
             services.AddTransient<IScheduleInfoProvider, ScheduleInfoProvider>();
             services.AddTransient<ISchedulesStorage, SchedulesInMemoryDbStorage>();
             services.AddTransient<TeacherScheduleSelector>();
-            //todo: remove mock
-            services.AddTransient<ITeachersSource, TeachersSourceMock>();
+            services.AddSingleton<UpdateTeachersListJob>();
+            services.AddSingleton<ITeachersSource>(prov => prov.GetRequiredService<UpdateTeachersListJob>());
             services.AddTransient<IScheduleEventArgsFactory, DefaultEventArgsFactory>();
             services.AddSingleton<IScheduleServise, ScheduleService>();
             services.AddSingleton<IBotDataStorage, InMemoryBotStorage>();

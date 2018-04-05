@@ -55,6 +55,11 @@ namespace ScheduleServices.Core
             return CompileSchedules(() => selector.SelectSchedulesFromSource(storage.GetAll(GroupsMonitor.AvailableGroups)));
         }
 
+        public Task RunVisitorThrougthStorage(IDynamicElemVisitor visitor)
+        {
+            return storage.RunVisitor(visitor);
+        }
+
         public async Task UpdateSchedulesAsync(IEnumerable<IScheduleGroup> groups, DayOfWeek day)
         {
             var validated = ValidateGroups(groups);

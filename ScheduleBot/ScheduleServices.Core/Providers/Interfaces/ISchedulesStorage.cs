@@ -9,5 +9,6 @@ namespace ScheduleServices.Core.Providers.Interfaces
         //add or update schedule elem for some group, replace schedule, exclude with root of 'Lesson' type
         Task<bool> UpdateScheduleAsync(IScheduleGroup targetGroup, IScheduleElem scheduleRoot);
         IEnumerable<ISchedule> GetAll(IEnumerable<IScheduleGroup> availableGroups);
+        Task RunVisitor(IDynamicElemVisitor visitor);
     }
 }

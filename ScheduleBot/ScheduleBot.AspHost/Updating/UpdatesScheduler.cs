@@ -27,7 +27,8 @@ namespace ScheduleBot.AspHost.Updating
             }
             registry = new Registry();
             var job = services.GetRequiredService<UpdateJob>();
-            registry.Schedule(job).ToRunEvery(MinutesBetweenRefreshing).Minutes();
+            var teachersUpdate = services.GetRequiredService<UpdateTeachersListJob>();
+            registry.Schedule(job).AndThen(teachersUpdate).ToRunNow().AndEvery(MinutesBetweenRefreshing).Minutes();
             JobManager.Initialize(registry);
         }
 

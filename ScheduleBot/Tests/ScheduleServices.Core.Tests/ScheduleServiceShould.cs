@@ -8,6 +8,7 @@ using FakeItEasy;
 using NUnit.Framework;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleElems;
+using ScheduleServices.Core.Modules;
 using ScheduleServices.Core.Modules.Interfaces;
 using ScheduleServices.Core.Providers.Interfaces;
 using ScheduleServices.Core.Tests.Utils;
@@ -45,7 +46,7 @@ namespace ScheduleServices.Core.Tests
             monitorFake = A.Fake<IGroupsMonitor>();
             A.CallTo(() => monitorFake.AvailableGroups).Returns(groups);
 
-            service = new ScheduleService(storageFake, monitorFake, infoProviderFake);
+            service = new ScheduleService(storageFake, monitorFake, infoProviderFake, new DefaultEventArgsFactory());
         }
 
         [Test]

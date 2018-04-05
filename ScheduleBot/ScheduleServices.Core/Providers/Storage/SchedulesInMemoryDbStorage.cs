@@ -113,7 +113,23 @@ namespace ScheduleServices.Core.Providers.Storage
             return GetSchedules(availableGroups, d => d);
         }
 
-        
+        public async Task RunVisitor(IDynamicElemVisitor visitor)
+        {
+            var queue = new BlockingCollection<IScheduleElem>(new ConcurrentQueue<IScheduleElem>());
+            var consumer = Task.Run(() =>
+            {
+                foreach (var scheduleElem in queue.GetConsumingEnumerable())
+                {
+                    visitor.VisitElem(scheduleElem);
+                }
+            });
+            foreach (var day in storage.Values.SelectMany(week => week))
+            {
+                queue.Add(day);
+            }
+            queue.CompleteAdding();
+            await consumer;
+        }
     }
 
 
