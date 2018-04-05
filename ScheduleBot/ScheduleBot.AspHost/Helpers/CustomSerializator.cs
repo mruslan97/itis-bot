@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using ScheduleBot.AspHost.BotServices;
 using ScheduleServices.Core.Models.ScheduleElems;
 
 namespace ScheduleBot.AspHost.Helpers
@@ -20,10 +21,16 @@ namespace ScheduleBot.AspHost.Helpers
                 answerMessage.AppendLine("Пар нет 😄");
                 return answerMessage.ToString();
             }
-            
+
             foreach (var lesson in lessons)
+            {
+                var inLesson = lesson is TeacherScheduleSelector.LessonWithGroup wg
+                    ? (wg.RelatedGroup?.Name ?? "")
+                    : lesson.Teacher;
                 answerMessage.AppendLine(
-                    $"{lesson.Discipline} {ConvertBoolToString(lesson.IsOnEvenWeek)} {lesson.Notation} \n{lesson.Teacher} \n{lesson.BeginTime.ToString("hh\\:mm")}-{(lesson.BeginTime + lesson.Duration).ToString("hh\\:mm")} \t ауд. {lesson.Place} \n---------------------------");
+                    $"{lesson.Discipline} {ConvertBoolToString(lesson.IsOnEvenWeek)} {lesson.Notation} \n{inLesson} \n{lesson.BeginTime.ToString("hh\\:mm")}-{(lesson.BeginTime + lesson.Duration).ToString("hh\\:mm")} \t ауд. {lesson.Place} \n---------------------------");
+            }
+
 
             return answerMessage.ToString();
         }
