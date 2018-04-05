@@ -1,7 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="AutoFixture.AutoFakeItEasy" Version="4.2.0" />
     <PackageReference Include="FakeItEasy" Version="4.5.1" />
@@ -10,7 +13,11 @@
     <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
     <PackageReference Include="Shouldly" Version="3.0.0" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\..\ScheduleServices.Core\ScheduleServices.Core.csproj" />
+    <ProjectReference Include="..\ScheduleBot.AspHost\ScheduleBot.AspHost.csproj" />
+    <ProjectReference Include="..\ScheduleServices.Core\ScheduleServices.Core.csproj" />
+    <ProjectReference Include="..\Tests\ScheduleServices.Core.Tests\ScheduleServices.Core.Tests.csproj" />
   </ItemGroup>
+
 </Project>

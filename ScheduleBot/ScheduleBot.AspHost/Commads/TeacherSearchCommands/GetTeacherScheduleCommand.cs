@@ -21,15 +21,15 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
     {
         private readonly ITeachersSource teachers;
         private readonly IKeyboardsFactory keyboards;
-        private readonly IScheduleServise scheduleServise;
+        private readonly IScheduleService scheduleService;
         private readonly TeacherScheduleSelector teacherSelector;
 
         public GetTeacherScheduleCommand(ITeachersSource teachers, IKeyboardsFactory keyboards,
-            IScheduleServise scheduleServise, TeacherScheduleSelector teacherSelector) : base("lec")
+            IScheduleService scheduleService, TeacherScheduleSelector teacherSelector) : base("lec")
         {
             this.teachers = teachers;
             this.keyboards = keyboards;
-            this.scheduleServise = scheduleServise;
+            this.scheduleService = scheduleService;
             this.teacherSelector = teacherSelector;
         }
 
@@ -48,7 +48,7 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
             if (teacher != null)
             {
                 teacherSelector.TeacherName = teacher;
-                var teacherSchedule = await scheduleServise.CompileScheduleWithSelector(teacherSelector);
+                var teacherSchedule = await scheduleService.CompileScheduleWithSelector(teacherSelector);
                 if (teacherSchedule.ScheduleRoot.Level == ScheduleElemLevel.Week)
                     foreach (var daySchedule in teacherSchedule.ScheduleRoot.Elems.Cast<Day>())
                     {

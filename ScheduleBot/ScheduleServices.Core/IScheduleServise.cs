@@ -12,7 +12,7 @@ namespace ScheduleServices.Core
         Today = 1,
         Tomorrow = 2
     }
-    public interface IScheduleServise
+    public interface IScheduleService
     {
         IGroupsMonitor GroupsMonitor { get; }
         Task<ISchedule> GetScheduleForAsync(IEnumerable<IScheduleGroup> groups, ScheduleRequiredFor period);

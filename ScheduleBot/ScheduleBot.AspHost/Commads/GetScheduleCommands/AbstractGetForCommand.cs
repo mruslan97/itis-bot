@@ -17,10 +17,10 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
 {
     public abstract class AbstractGetForCommand : CommandBase<DefaultCommandArgs>
     {
-        protected readonly IScheduleServise Scheduler;
+        protected readonly IScheduleService Scheduler;
         protected readonly IBotDataStorage Storage;
 
-        public AbstractGetForCommand(string name, IScheduleServise scheduler, IBotDataStorage storage) : base(name)
+        public AbstractGetForCommand(string name, IScheduleService scheduler, IBotDataStorage storage) : base(name)
         {
             Scheduler = scheduler;
             Storage = storage;

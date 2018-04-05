@@ -14,7 +14,7 @@ using ScheduleServices.Core.Modules.Interfaces;
 
 namespace ScheduleServices.Core
 {
-    public class ScheduleService : IScheduleServise
+    public class ScheduleService : IScheduleService
     {
         private readonly ISchedulesStorage storage;
         private readonly ScheduleConstructor scheduleConstructor;

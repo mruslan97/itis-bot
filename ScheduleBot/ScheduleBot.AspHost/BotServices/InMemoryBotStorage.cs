@@ -17,7 +17,7 @@ namespace ScheduleBot.AspHost.BotServices
 {
     public class InMemoryBotStorage : IBotDataStorage
     {
-        private readonly IScheduleServise servise;
+        private readonly IScheduleService service;
         private readonly INotifiactionSender notifiactionSender;
 
         private readonly ConcurrentDictionary<long, ICollection<IScheduleGroup>> usersGroups =
@@ -29,9 +29,9 @@ namespace ScheduleBot.AspHost.BotServices
         private const string XmlFileName = "usersgroups.xml";
         private readonly string path;
 
-        public InMemoryBotStorage(IScheduleServise servise, INotifiactionSender notifiactionSender)
+        public InMemoryBotStorage(IScheduleService service, INotifiactionSender notifiactionSender)
         {
-            this.servise = servise;
+            this.service = service;
             this.notifiactionSender = notifiactionSender;
             path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\BotServices\\" + XmlFileName;
             try
@@ -42,7 +42,7 @@ namespace ScheduleBot.AspHost.BotServices
                 {
                     var groups = user.Element("groups").Elements("group");
                     foreach (var subGroup in groups)
-                        if (servise.GroupsMonitor.TryFindGroupByName(subGroup.Attribute("name").Value, out var group))
+                        if (service.GroupsMonitor.TryFindGroupByName(subGroup.Attribute("name").Value, out var group))
                         {
                             if (long.TryParse(user.Element("chatId").Value, out var chatId))
                                 AddGroupToUserInMemory(chatId, group);
@@ -88,7 +88,7 @@ namespace ScheduleBot.AspHost.BotServices
         {
             return Task.Run(() =>
             {
-                if (servise.GroupsMonitor.TryGetCorrectGroup(scheduleGroup, out var groupFromStorage))
+                if (service.GroupsMonitor.TryGetCorrectGroup(scheduleGroup, out var groupFromStorage))
                 {
                     AddGroupToUserInMemory(chat.Id, groupFromStorage);
 

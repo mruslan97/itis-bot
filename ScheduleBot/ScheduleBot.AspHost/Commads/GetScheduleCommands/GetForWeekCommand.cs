@@ -16,10 +16,10 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
 {
     public class GetForWeekCommand : CommandBase<DefaultCommandArgs>
     {
-        protected readonly IScheduleServise Scheduler;
+        protected readonly IScheduleService Scheduler;
         protected readonly IBotDataStorage Storage;
 
-        public GetForWeekCommand(IScheduleServise scheduler, IBotDataStorage storage) : base("week")
+        public GetForWeekCommand(IScheduleService scheduler, IBotDataStorage storage) : base("week")
         {
             Scheduler = scheduler;
             Storage = storage;

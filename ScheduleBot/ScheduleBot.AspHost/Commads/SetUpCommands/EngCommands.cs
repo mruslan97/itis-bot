@@ -19,11 +19,11 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
 {
     public class GetEngGroupsCommand : CommandBase<DefaultCommandArgs>
     {
-        private readonly IScheduleServise scheduler;
+        private readonly IScheduleService scheduler;
         private readonly IKeyboardsFactory keyboards;
         private readonly IBotDataStorage storage;
 
-        public GetEngGroupsCommand(IBotDataStorage storage, IScheduleServise scheduler, IKeyboardsFactory keyboards) :
+        public GetEngGroupsCommand(IBotDataStorage storage, IScheduleService scheduler, IKeyboardsFactory keyboards) :
             base("getengs")
         {
             this.storage = storage;
@@ -115,7 +115,7 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
     public class SetUpEngGroupCommand : SetUpGroupCommand
     {
 
-        public SetUpEngGroupCommand(IBotDataStorage storage, IScheduleServise scheduler, IKeyboardsFactory keyboards) :
+        public SetUpEngGroupCommand(IBotDataStorage storage, IScheduleService scheduler, IKeyboardsFactory keyboards) :
             base(storage, scheduler, keyboards, "seteng")
         {
             

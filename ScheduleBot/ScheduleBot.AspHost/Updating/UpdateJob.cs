@@ -15,12 +15,12 @@ namespace ScheduleBot.AspHost.Updating
 
         //private static int lastUpdatedCourse = 0;
         private static DayOfWeek lastUpdatedDayOfWeek = DateTime.Now.DayOfWeek - 1;
-        private readonly IScheduleServise scheduleServise;
+        private readonly IScheduleService scheduleService;
         //private static int lowestCourseGroupNum = -1;
 
-        public UpdateJob(IScheduleServise scheduleServise)
+        public UpdateJob(IScheduleService scheduleService)
         {
-            this.scheduleServise = scheduleServise;
+            this.scheduleService = scheduleService;
             /*if (lowestCourseGroupNum < 0)
                 lowestCourseGroupNum = scheduleServise.GroupsMonitor.AvailableGroups
                     .Where(g => g.GType == ScheduleGroupType.Academic).Min(g =>
@@ -42,8 +42,8 @@ namespace ScheduleBot.AspHost.Updating
             lastUpdatedDayOfWeek = currentUpdateDayOfWeek;
             try
             {
-                await scheduleServise.UpdateSchedulesAsync(
-                    scheduleServise
+                await scheduleService.UpdateSchedulesAsync(
+                    scheduleService
                         .GroupsMonitor
                         .AvailableGroups.ToList(),
                     currentUpdateDayOfWeek);

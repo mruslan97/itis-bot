@@ -13,13 +13,13 @@ namespace ScheduleBot.AspHost.Updating
 {
     public class UpdateTeachersListJob : IJob, IDynamicElemVisitor, ITeachersSource
     {
-        private readonly IScheduleServise servise;
+        private readonly IScheduleService service;
         private List<string> teachersNames = new List<string>();
         private HashSet<string> foundNames;
         private byte ticks = 0;
-        public UpdateTeachersListJob(IScheduleServise servise)
+        public UpdateTeachersListJob(IScheduleService service)
         {
-            this.servise = servise;
+            this.service = service;
         }
 
         public void VisitElem(IScheduleElem elem)
@@ -68,7 +68,7 @@ namespace ScheduleBot.AspHost.Updating
                 try
                 {
                     foundNames = new HashSet<string>();
-                    await servise.RunVisitorThrougthStorage(this);
+                    await service.RunVisitorThrougthStorage(this);
                     lock (teachersNames)
                     {
                         teachersNames = foundNames.OrderBy(s => s).ToList();

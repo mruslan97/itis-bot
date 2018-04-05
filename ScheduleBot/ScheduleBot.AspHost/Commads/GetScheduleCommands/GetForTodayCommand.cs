@@ -15,7 +15,7 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
     public class GetForTodayCommand : AbstractGetForCommand
     {
 
-        public GetForTodayCommand(IScheduleServise scheduler, IBotDataStorage storage) : base(name: "today", scheduler: scheduler, storage: storage)
+        public GetForTodayCommand(IScheduleService scheduler, IBotDataStorage storage) : base(name: "today", scheduler: scheduler, storage: storage)
         {
         }
 

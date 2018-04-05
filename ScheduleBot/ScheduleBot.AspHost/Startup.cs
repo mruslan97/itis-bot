@@ -62,7 +62,7 @@ namespace ScheduleBot.AspHost
             services.AddSingleton<UpdateTeachersListJob>();
             services.AddSingleton<ITeachersSource>(prov => prov.GetRequiredService<UpdateTeachersListJob>());
             services.AddTransient<IScheduleEventArgsFactory, DefaultEventArgsFactory>();
-            services.AddSingleton<IScheduleServise, ScheduleService>();
+            services.AddSingleton<IScheduleService, ScheduleService>();
             services.AddSingleton<IBotDataStorage, InMemoryBotStorage>();
             services.AddSingleton<INotifiactionSender, Notificator>();
             services.AddSingleton<IKeyboardsFactory>(provider => new KeyboardsFactory(GetGroupsList()));
