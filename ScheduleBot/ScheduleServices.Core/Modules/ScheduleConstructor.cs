@@ -34,7 +34,7 @@ namespace ScheduleServices.Core.Modules
 
                     foreach (var schedule in schedules)
                     {
-                        if (!schedule.ScheduleGroups.Any(group => HasConflictsWithMemory(group, uniqGroups)))
+                        if (schedule.ScheduleGroups == null || !schedule.ScheduleGroups.Any(group => HasConflictsWithMemory(group, uniqGroups)))
                         {
                             var incomingRoot = schedule.ScheduleRoot;
                             var currentResultRoot = result.ScheduleRoot;

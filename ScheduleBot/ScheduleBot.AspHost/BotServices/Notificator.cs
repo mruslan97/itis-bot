@@ -30,7 +30,7 @@ namespace ScheduleBot.AspHost.BotServices
                     {
                         await Bot.Client.SendTextMessageAsync(id,
                             $"Спешу сообщить, что в твоем расписании произошли изменения. {message}. Слава роботам!",
-                            replyMarkup: keyboards.GetPeriodOptionsKeyboard());
+                            replyMarkup: keyboards.GetMainOptionsKeyboard());
                         await Task.Delay(1000);
                     }
                 });

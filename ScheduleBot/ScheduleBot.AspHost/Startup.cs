@@ -15,6 +15,7 @@ using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleBot.AspHost.Commads;
 using ScheduleBot.AspHost.Commads.GetScheduleCommands;
 using ScheduleBot.AspHost.Commads.SetUpCommands;
+using ScheduleBot.AspHost.Commads.TeacherSearchCommands;
 using ScheduleBot.AspHost.Keyboards;
 using ScheduleBot.AspHost.Updating;
 using ScheduleServices.Core;
@@ -57,6 +58,9 @@ namespace ScheduleBot.AspHost
             services.AddTransient<IGroupsMonitor, GroupsMonitor>(provider => new GroupsMonitor(GetGroupsList(), GetRules()));
             services.AddTransient<IScheduleInfoProvider, ScheduleInfoProvider>();
             services.AddTransient<ISchedulesStorage, SchedulesInMemoryDbStorage>();
+            services.AddTransient<TeacherScheduleSelector>();
+            //todo: remove mock
+            services.AddTransient<ITeachersSource, TeachersSourceMock>();
             services.AddTransient<IScheduleEventArgsFactory, DefaultEventArgsFactory>();
             services.AddSingleton<IScheduleServise, ScheduleService>();
             services.AddSingleton<IBotDataStorage, InMemoryBotStorage>();
@@ -68,6 +72,8 @@ namespace ScheduleBot.AspHost
                 .AddUpdateHandler<SetUpCourseCommand>()
                 .AddUpdateHandler<GetEngGroupsCommand>()
                 .AddUpdateHandler<SetUpEngGroupCommand>()
+                .AddUpdateHandler<GetTeacherScheduleCommand>()
+                .AddUpdateHandler<GetTeachersListCommand>()
                 .AddUpdateHandler<GetForTodayCommand>()
                 .AddUpdateHandler<GetForTomorrowCommand>()
                 .AddUpdateHandler<GetForWeekCommand>()

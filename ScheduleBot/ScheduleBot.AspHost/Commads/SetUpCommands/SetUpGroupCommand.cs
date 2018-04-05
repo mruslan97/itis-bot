@@ -50,7 +50,7 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
             {
                 await Bot.Client.SendTextMessageAsync(
                     update.Message.Chat.Id,
-                    "Установлено!", replyMarkup: Keyboards.GetPeriodOptionsKeyboard());
+                    "Установлено!", replyMarkup: Keyboards.GetMainOptionsKeyboard());
             }
             else
             {
@@ -103,7 +103,7 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
         {
             await Bot.Client.SendTextMessageAsync(
                 update.Message.Chat.Id,
-                "Прости...", replyMarkup: Keyboards.GetPeriodOptionsKeyboard());
+                "Прости...", replyMarkup: Keyboards.GetMainOptionsKeyboard());
 
 
             return UpdateHandlingResult.Handled;

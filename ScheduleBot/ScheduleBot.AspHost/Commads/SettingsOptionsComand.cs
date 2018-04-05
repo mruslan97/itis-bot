@@ -67,7 +67,7 @@ namespace ScheduleBot.AspHost.Commads
         {
 
             await Bot.Client.SendTextMessageAsync(
-                update.Message.Chat.Id, "ня",  replyMarkup: keyboards.GetPeriodOptionsKeyboard());
+                update.Message.Chat.Id, "ня",  replyMarkup: keyboards.GetMainOptionsKeyboard());
 
 
             return UpdateHandlingResult.Handled;

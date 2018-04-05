@@ -45,19 +45,14 @@ namespace ScheduleServices.Core
             Console.WriteLine("UPDATED");
         }
 
-        #region overloads
-
-        public Task<ISchedule> GetScheduleForAsync(IScheduleGroup @group, ScheduleRequiredFor period)
+        public Task<ISchedule> GetScheduleForAsync(IEnumerable<IScheduleGroup> groups, DayOfWeek day)
         {
-            if (period != ScheduleRequiredFor.Week)
-                return GetScheduleForAsync(new[] {group}, DayOfWeekFromPeriod(period));
-            else
-                return GetWeekScheduleForAsync(new[] {group});
+            return CompileSchedules(() => storage.GetSchedules(ValidateGroups(groups), day));
         }
 
-        public Task<ISchedule> GetScheduleForAsync(IScheduleGroup @group, DayOfWeek day)
+        public Task<ISchedule> CompileScheduleWithSelector(IScheduleSelector selector)
         {
-            return GetScheduleForAsync(new[] {group}, day);
+            return CompileSchedules(() => selector.SelectSchedulesFromSource(storage.GetAll(GroupsMonitor.AvailableGroups)));
         }
 
         public async Task UpdateSchedulesAsync(IEnumerable<IScheduleGroup> groups, DayOfWeek day)
@@ -107,18 +102,7 @@ namespace ScheduleServices.Core
             }
         }
 
-        public Task<ISchedule> GetScheduleForAsync(IEnumerable<IScheduleGroup> groups, ScheduleRequiredFor period)
-        {
-            if (period != ScheduleRequiredFor.Week)
-                return GetScheduleForAsync(groups, DayOfWeekFromPeriod(period));
-            else
-                return GetWeekScheduleForAsync(groups);
-        }
-
-        #endregion
-
-
-        public async Task<ISchedule> GetScheduleForAsync(IEnumerable<IScheduleGroup> groups, DayOfWeek day)
+        private async Task<ISchedule> CompileSchedules(Func<IEnumerable<ISchedule>> schedules)
         {
             try
             {
@@ -126,7 +110,7 @@ namespace ScheduleServices.Core
                 //collect tasks
                 var adding = Task.Run(() =>
                 {
-                    foreach (var schedule in storage.GetSchedules(ValidateGroups(groups), day))
+                    foreach (var schedule in schedules.Invoke())
                     {
                         preparedSchedules.Add(schedule);
                     }
@@ -138,8 +122,7 @@ namespace ScheduleServices.Core
                 var res = (await result).OrderScheduleRootAndChildren();
                 if (res.ScheduleRoot.Level == ScheduleElemLevel.Undefined)
                     Console.Out.WriteLine("[" + DateTime.Now +
-                                          $"] + UNDEFINED DAY {day.ToString()} SCHEDULE FOUND, groups:" +
-                                          JsonConvert.SerializeObject(groups));
+                                          $"] + UNDEFINED DAY SCHEDULE FOUND");
                 return res;
             }
             catch (Exception e)
@@ -148,13 +131,6 @@ namespace ScheduleServices.Core
                 throw;
             }
         }
-
-
-        private IEnumerable<IScheduleGroup> ValidateGroups(IEnumerable<IScheduleGroup> groups)
-        {
-            return GroupsMonitor.RemoveInvalidGroupsFrom(groups);
-        }
-
 
         private async Task<ISchedule> GetWeekScheduleForAsync(IEnumerable<IScheduleGroup> groups)
         {
@@ -192,6 +168,37 @@ namespace ScheduleServices.Core
                 throw;
             }
         }
+
+        #region overloads
+
+        public Task<ISchedule> GetScheduleForAsync(IScheduleGroup @group, ScheduleRequiredFor period)
+        {
+            if (period != ScheduleRequiredFor.Week)
+                return GetScheduleForAsync(new[] {group}, DayOfWeekFromPeriod(period));
+            else
+                return GetWeekScheduleForAsync(new[] {group});
+        }
+
+        public Task<ISchedule> GetScheduleForAsync(IScheduleGroup @group, DayOfWeek day)
+        {
+            return GetScheduleForAsync(new[] {group}, day);
+        }
+
+        public Task<ISchedule> GetScheduleForAsync(IEnumerable<IScheduleGroup> groups, ScheduleRequiredFor period)
+        {
+            if (period != ScheduleRequiredFor.Week)
+                return GetScheduleForAsync(groups, DayOfWeekFromPeriod(period));
+            else
+                return GetWeekScheduleForAsync(groups);
+        }
+
+        #endregion
+
+        private IEnumerable<IScheduleGroup> ValidateGroups(IEnumerable<IScheduleGroup> groups)
+        {
+            return GroupsMonitor.RemoveInvalidGroupsFrom(groups);
+        }
+
 
         private DayOfWeek DayOfWeekFromPeriod(ScheduleRequiredFor period)
         {

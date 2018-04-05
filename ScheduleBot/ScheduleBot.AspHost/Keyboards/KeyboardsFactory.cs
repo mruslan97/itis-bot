@@ -85,12 +85,13 @@ namespace ScheduleBot.AspHost.Keyboards
             return GetKeyboardForCollectionWithItemsCount(keyboardItems, buttonTextSelector, keyboardItems.Count());
         }
 
-        public ReplyKeyboardMarkup GetPeriodOptionsKeyboard()
+        public ReplyKeyboardMarkup GetMainOptionsKeyboard()
         {
             return new ReplyKeyboardMarkup(new[] {
                 new []{new KeyboardButton("На сегодня")},
                 new []{new KeyboardButton("На завтра")},
                 new []{new KeyboardButton("На неделю")},
+                new []{new KeyboardButton("Найти преподавателя")},
                 new []{new KeyboardButton("Настройки")}
             });
         }

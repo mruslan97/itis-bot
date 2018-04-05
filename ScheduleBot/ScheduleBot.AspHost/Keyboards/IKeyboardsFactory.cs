@@ -16,7 +16,7 @@ namespace ScheduleBot.AspHost.Keyboards
         ReplyKeyboardMarkup GetGroupsOfCourseKeyboard(int course);
 
         ReplyKeyboardMarkup GetKeyboardForCollection<TItem>(IEnumerable<TItem> keyboardItems, Func<TItem, string> buttonTextSelector);
-        ReplyKeyboardMarkup GetPeriodOptionsKeyboard();
+        ReplyKeyboardMarkup GetMainOptionsKeyboard();
         ReplyKeyboardMarkup GetSettingsKeyboard();
     }
 }

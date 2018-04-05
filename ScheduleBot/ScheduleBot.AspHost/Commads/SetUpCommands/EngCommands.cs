@@ -100,9 +100,9 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
                 return keyboards.GetKeyboardForCollection(keyboardItems, (item) => buttonTextSelector(item).Substring(0, buttonTextSelector(item).IndexOf("_")));
             }
 
-            public ReplyKeyboardMarkup GetPeriodOptionsKeyboard()
+            public ReplyKeyboardMarkup GetMainOptionsKeyboard()
             {
-                return keyboards.GetPeriodOptionsKeyboard();
+                return keyboards.GetMainOptionsKeyboard();
             }
 
             public ReplyKeyboardMarkup GetSettingsKeyboard()

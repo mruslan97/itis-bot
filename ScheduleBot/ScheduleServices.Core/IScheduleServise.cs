@@ -26,5 +26,12 @@ namespace ScheduleServices.Core
         /// <param name="day">day of week, which updated schedules related on</param>
         /// <returns></returns>
         Task UpdateSchedulesAsync(IEnumerable<IScheduleGroup> groups, DayOfWeek day);
+
+        Task<ISchedule> CompileScheduleWithSelector(IScheduleSelector selector);
+    }
+
+    public interface IScheduleSelector
+    {
+        IEnumerable<ISchedule> SelectSchedulesFromSource(IEnumerable<ISchedule> source);
     }
 }

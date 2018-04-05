@@ -28,6 +28,11 @@ namespace ScheduleServices.Core.Providers.Storage
 
         public IEnumerable<ISchedule> GetSchedules(IEnumerable<IScheduleGroup> availableGroups, DayOfWeek day)
         {
+            return GetSchedules(availableGroups, days => days.Where(d => d.DayOfWeek == day));
+        }
+
+        private IEnumerable<ISchedule> GetSchedules(IEnumerable<IScheduleGroup> availableGroups, Func<IEnumerable<Day>,IEnumerable<Day>> modificator)
+        {
             string key;
             ISchedule schedule;
             foreach (var availableGroup in availableGroups)
@@ -35,11 +40,11 @@ namespace ScheduleServices.Core.Providers.Storage
                 key = KeyFromGroup(availableGroup);
                 if (storage.TryGetValue(key, out ICollection<IScheduleElem> days))
                 {
-                    foreach (var resDay in days.OfType<Day>().Where(d => d.DayOfWeek == day))
+                    foreach (var resDay in modificator(days.OfType<Day>()))
                     {
                         schedule = factory.GetSchedule();
 
-                        schedule.ScheduleRoot = (IScheduleElem) resDay.Clone();
+                        schedule.ScheduleRoot = (IScheduleElem)resDay.Clone();
                         schedule.ScheduleGroups.Add(availableGroup);
                         yield return schedule;
                     }
@@ -103,9 +108,12 @@ namespace ScheduleServices.Core.Providers.Storage
             });
         }
 
-        private void CheckAndFill(ref ICollection<IScheduleElem> days, IScheduleElem scheduleRoot)
+        public IEnumerable<ISchedule> GetAll(IEnumerable<IScheduleGroup> availableGroups)
         {
+            return GetSchedules(availableGroups, d => d);
         }
+
+        
     }
 
 
