@@ -45,7 +45,7 @@ namespace ScheduleServices.Core.Tests
             monitorFake = A.Fake<IGroupsMonitor>();
             A.CallTo(() => monitorFake.AvailableGroups).Returns(groups);
 
-            service = new ScheduleService(storageFake, monitorFake, infoProviderFake);
+            //service = new ScheduleService(storageFake, monitorFake, infoProviderFake);
         }
 
         [Test]
