@@ -8,6 +8,7 @@ using ScheduleBot.AspHost.Commads.CommandArgs;
 using ScheduleBot.AspHost.Helpers;
 using ScheduleBot.AspHost.Keyboards;
 using ScheduleServices.Core;
+using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleElems;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
@@ -35,7 +36,8 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
         protected override bool CanHandleCommand(Update update)
         {
             if (!base.CanHandleCommand(update))
-                return update.Message.Text.StartsWith("f:") && teachers.GetTeachersNames().Contains(update.Message.Text.Substring(2));
+                return update.Message.Text.StartsWith("f:") &&
+                       teachers.GetTeachersNames().Contains(update.Message.Text.Substring(2));
             return true;
         }
 
@@ -46,15 +48,22 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
             if (teacher != null)
             {
                 teacherSelector.TeacherName = teacher;
-                var weekTeacherSchedule = await scheduleServise.CompileScheduleWithSelector(teacherSelector);
-                foreach (var daySchedule in weekTeacherSchedule.ScheduleRoot.Elems.Cast<Day>())
+                var teacherSchedule = await scheduleServise.CompileScheduleWithSelector(teacherSelector);
+                if (teacherSchedule.ScheduleRoot.Level == ScheduleElemLevel.Week)
+                    foreach (var daySchedule in teacherSchedule.ScheduleRoot.Elems.Cast<Day>())
+                    {
+                        await SendDay(daySchedule);
+                        await Task.Delay(200);
+                    }
+                else if (teacherSchedule.ScheduleRoot.Level == ScheduleElemLevel.Day)
                 {
-                    var answer =
-                        CustomSerializator.ProcessSchedule(daySchedule.Elems.Cast<Lesson>(), daySchedule.DayOfWeek);
+                    await SendDay((Day) teacherSchedule.ScheduleRoot);
+                }
+                else
+                {
                     await Bot.Client.SendTextMessageAsync(
                         update.Message.Chat.Id,
-                        answer, ParseMode.Html);
-                    Thread.Sleep(200);
+                        "Пар нет", replyMarkup: keyboards.GetMainOptionsKeyboard());
                 }
             }
             else
@@ -64,8 +73,17 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
                     "Нет такого преподавателя.", replyMarkup: keyboards.GetMainOptionsKeyboard());
             }
 
-
             return UpdateHandlingResult.Handled;
+
+            async Task SendDay(Day day)
+            {
+                var answer =
+                    CustomSerializator.ProcessSchedule(day.Elems.OfType<Lesson>(),
+                        day.DayOfWeek);
+                await Bot.Client.SendTextMessageAsync(
+                    update.Message.Chat.Id,
+                    answer, ParseMode.Html);
+            }
         }
     }
 }
