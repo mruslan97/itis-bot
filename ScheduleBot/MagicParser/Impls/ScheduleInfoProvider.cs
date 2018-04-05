@@ -29,7 +29,7 @@ namespace MagicParser.Impls
                         {
                             Level = ScheduleElemLevel.Day,
                             DayOfWeek = day,
-                            Elems = ConvertSubjects(subjects.Where(s => s.Group == group.Name))
+                            Elems = ConvertSubjects(subjects.Where(s => s.Group == group.Name && s.Type != ScheduleGroupType.Eng))
                         }
                     };
 
