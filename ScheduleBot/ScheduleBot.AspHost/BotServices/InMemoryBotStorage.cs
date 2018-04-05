@@ -42,18 +42,16 @@ namespace ScheduleBot.AspHost.BotServices
                 {
                     var groups = user.Element("groups").Elements("group");
                     foreach (var subGroup in groups)
-                    {
                         if (servise.GroupsMonitor.TryFindGroupByName(subGroup.Attribute("name").Value, out var group))
                         {
-                            if (long.TryParse(user.Element("chatId").Value, out long chatId))
-                            {
+                            if (long.TryParse(user.Element("chatId").Value, out var chatId))
                                 AddGroupToUserInMemory(chatId, group);
-                            }
                         }
                         else
+                        {
                             Console.Out.WriteLine(
                                 $"no group found of user {user.Element("chatId").Value} with name: {subGroup.Attribute("name").Value}");
-                    }
+                        }
                 }
             }
             catch (Exception e)
@@ -72,7 +70,7 @@ namespace ScheduleBot.AspHost.BotServices
                     var group = (IScheduleGroup) sender;
                     if (groupToUsers.TryGetValue(group, out var list) && list != null && list.Any())
                         await notifiactionSender.SendNotificationsForIdsAsync(list,
-                            $"Изменилась {(new CultureInfo("ru-Ru")).DateTimeFormat.GetDayName(paramEventArgs.Param)}");
+                            $"Изменилась {new CultureInfo("ru-Ru").DateTimeFormat.GetDayName(paramEventArgs.Param)}");
                 }
             }
             catch (Exception e)
@@ -114,6 +112,7 @@ namespace ScheduleBot.AspHost.BotServices
                                     ?.Elements("group").FirstOrDefault(g =>
                                         g.Attribute("type")?.Value == groupFromStorage.GType.ToString());
                                 if (group == null)
+                                {
                                     xdoc.Element("users")
                                         ?.Elements("user")
                                         .FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString())
@@ -121,20 +120,36 @@ namespace ScheduleBot.AspHost.BotServices
                                         ?.Add(new XElement("group",
                                             new XAttribute("type", groupFromStorage.GType.ToString()),
                                             new XAttribute("name", groupFromStorage.Name)));
+                                }
                                 else
+                                {
+                                    if (groupFromStorage.GType == ScheduleGroupType.Academic &&
+                                        group.Attribute("name").Value
+                                            .Substring(0, group.Attribute("name").Value.Length - 1) !=
+                                        groupFromStorage.Name.Substring(0, groupFromStorage.Name.Length - 1))
+                                    {
+
+                                        xdoc.Element("users").Elements("user")
+                                            .FirstOrDefault(u => u.Element("chatId").Value == chat.Id.ToString())
+                                            .Element("groups").Elements("group")
+                                            .Where(g => g.Attribute("type").Value != "Academic").Remove();
+                                    }
+
                                     xdoc.Element("users").Elements("user")
                                         .FirstOrDefault(u => u.Element("chatId").Value == chat.Id.ToString())
                                         .Element("groups").Elements("group").FirstOrDefault(g =>
                                             g.Attribute("type").Value == groupFromStorage.GType.ToString())
                                         .Attribute("name")
                                         .Value = groupFromStorage.Name;
+                                }
+
                                 xdoc.Save(path);
                             }
                             catch (Exception e)
                             {
                                 Console.WriteLine(e);
                             }
-                        }, TaskCreationOptions.RunContinuationsAsynchronously).ContinueWith(async (t) => await t)
+                        }, TaskCreationOptions.RunContinuationsAsynchronously).ContinueWith(async t => await t)
                         .ConfigureAwait(false);
 
                     return true;
@@ -146,10 +161,10 @@ namespace ScheduleBot.AspHost.BotServices
 
         private void AddGroupToUserInMemory(long chatId, IScheduleGroup group)
         {
-            bool clearOther = group.Name.StartsWith("11-");
+            var clearOther = group.Name.StartsWith("11-");
             IScheduleGroup duplicate = null;
             IList<IScheduleGroup> otherGroups = null;
-            usersGroups.AddOrUpdate(chatId, new List<IScheduleGroup> { group }, (id, oldList) =>
+            usersGroups.AddOrUpdate(chatId, new List<IScheduleGroup> {group}, (id, oldList) =>
             {
                 duplicate = oldList.FirstOrDefault(g =>
                     g.GType == group.GType && !g.Equals(group));
@@ -162,12 +177,13 @@ namespace ScheduleBot.AspHost.BotServices
                         oldList.Clear();
                     }
                 }
+
                 oldList.Add(group);
                 return oldList;
             });
             try
             {
-                groupToUsers.AddOrUpdate(group, new List<long>() { chatId }, (schGroup, oldList) =>
+                groupToUsers.AddOrUpdate(group, new List<long> {chatId}, (schGroup, oldList) =>
                 {
                     oldList.Add(chatId);
                     return oldList;
@@ -176,29 +192,19 @@ namespace ScheduleBot.AspHost.BotServices
                 if (duplicate != null && !duplicate.Equals(group))
                 {
                     duplicate.ScheduleChanged -= HandleGroupScheduleChanged;
-                    if (groupToUsers.TryGetValue(duplicate, out var list))
-                    {
-                        list.Remove(chatId);
-                    }
+                    if (groupToUsers.TryGetValue(duplicate, out var list)) list.Remove(chatId);
                     if (clearOther && otherGroups != null && otherGroups.Any())
-                    {
                         foreach (var otherGroup in otherGroups)
                         {
                             otherGroup.ScheduleChanged -= HandleGroupScheduleChanged;
-                            if (groupToUsers.TryGetValue(duplicate, out var subs))
-                            {
-                                subs.Remove(chatId);
-                            }
+                            if (groupToUsers.TryGetValue(duplicate, out var subs)) subs.Remove(chatId);
                         }
-                    }
                 }
-                
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
             }
         }
-       
     }
 }
