@@ -10,7 +10,7 @@ using Shouldly;
 
 namespace ScheduleServices.Core.Tests.Modules
 {
-    [TestFixture()]
+    [TestFixture]
     public class GroupsMonitorShould
     {
         private GroupsMonitor monitor;

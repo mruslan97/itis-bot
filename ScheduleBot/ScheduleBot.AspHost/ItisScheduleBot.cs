@@ -18,28 +18,28 @@ namespace ScheduleBot.AspHost
 
         public  override Task HandleUnknownUpdate(Update update)
         {
-            //if (update.CallbackQuery != null)
-            //{
-            //    var inlineKeyboard = new InlineKeyboardMarkup(new[]
-            //    {
-            //        new []
-            //        {
-            //            InlineKeyboardButton.WithCallbackData("Туда")
-            //        },
-            //        new []
-            //        {
-            //            InlineKeyboardButton.WithCallbackData("Сюда")
-            //        }
-            //    });
-            //    var answer = update.CallbackQuery.Message.Text;
-            //    var number = Convert.ToInt32(answer.Substring(answer.Length - 1));
-            //    number = update.CallbackQuery.Data == "Туда" ? number += 1 : number -= 1;
-            //    answer = answer.Substring(0, answer.Length - 1) + number;
-            //    //Client.AnswerCallbackQueryAsync(update.CallbackQuery.Id, update.CallbackQuery.Data);
-            //    return Client.EditMessageTextAsync(update.CallbackQuery.From.Id, update.CallbackQuery.Message.MessageId,
-            //        answer,replyMarkup:inlineKeyboard);
-            //}
-             return Client.SendTextMessageAsync(
+            if (update.CallbackQuery != null)
+            {
+                var inlineKeyboard = new InlineKeyboardMarkup(new[]
+                {
+                    new []
+                    {
+                        InlineKeyboardButton.WithCallbackData("Туда")
+                    },
+                    new []
+                    {
+                        InlineKeyboardButton.WithCallbackData("Сюда")
+                    }
+                });
+                var answer = update.CallbackQuery.Message.Text;
+                var number = Convert.ToInt32(answer.Substring(answer.Length - 1));
+                number = update.CallbackQuery.Data == "Туда" ? number += 1 : number -= 1;
+                answer = answer.Substring(0, answer.Length - 1) + number;
+                //Client.AnswerCallbackQueryAsync(update.CallbackQuery.Id, update.CallbackQuery.Data);
+                return Client.EditMessageTextAsync(update.CallbackQuery.From.Id, update.CallbackQuery.Message.MessageId,
+                    answer, replyMarkup: inlineKeyboard);
+            }
+            return Client.SendTextMessageAsync(
                 update.Message.Chat.Id,
                 "Я тебе что, Эйнштейн?",
                 replyToMessageId: update.Message.MessageId);

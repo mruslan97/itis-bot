@@ -25,7 +25,7 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
         private readonly TeacherScheduleSelector teacherSelector;
 
         public GetTeacherScheduleCommand(ITeachersSource teachers, IKeyboardsFactory keyboards,
-            IScheduleService scheduleService, TeacherScheduleSelector teacherSelector) : base("lec")
+            IScheduleService scheduleService, TeacherScheduleSelector teacherSelector) : base("f:")
         {
             this.teachers = teachers;
             this.keyboards = keyboards;

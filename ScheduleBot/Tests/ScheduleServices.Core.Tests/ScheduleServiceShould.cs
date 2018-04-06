@@ -62,5 +62,18 @@ namespace ScheduleServices.Core.Tests
             A.CallTo(() => storageFake.UpdateScheduleAsync(diffGroup, rootToUpd)).MustHaveHappened();
         }
 
+        [Test]
+        public async Task RemoveFromStorage_WhenGetLessGroupsFromSource()
+        {
+            var anyCommonDay = freshDays.FirstOrDefault();
+            storedDays = freshDays.ToList();
+            freshDays.Clear();
+            freshDays.Add(anyCommonDay);
+
+            await service.UpdateSchedulesAsync(groups, ((Day)anyCommonDay.ScheduleRoot).DayOfWeek);
+            var group = anyCommonDay.ScheduleGroups.FirstOrDefault();
+            A.CallTo(() => storageFake.RemoveScheduleAsync(null, 0)).WithAnyArguments().MustHaveHappened();
+            A.CallTo(() => storageFake.RemoveScheduleAsync(group, ((Day)anyCommonDay.ScheduleRoot).DayOfWeek)).MustNotHaveHappened();
+        }
     }
 }
