@@ -90,7 +90,7 @@ namespace ScheduleServices.Core
                 var freshSch = entry.FirstOrDefault(x => x.IsFresh);
                 var storedSch = entry.FirstOrDefault(x => !x.IsFresh);
                 if (freshSch != null)
-                    updateTasks.Add(CompareAndAddIfNotEqual(freshSch.Root, storedSch.Root, entry.Key));
+                    updateTasks.Add(CompareAndAddIfNotEqual(freshSch.Root, storedSch?.Root, entry.Key));
                 else
                     updateTasks.Add(storage.RemoveScheduleAsync(entry.Key, day).ContinueWith(t =>
                         entry.Key.RaiseScheduleChanged(this, eventArgsFactory.GetArgs(storedSch.Root))));

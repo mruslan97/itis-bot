@@ -25,6 +25,7 @@ namespace ScheduleServices.Core.Tests
         private List<ISchedule> freshDays;
         private List<ISchedule> storedDays;
         private List<IScheduleGroup> groups;
+
         [SetUp]
         public void SetUp()
         {
