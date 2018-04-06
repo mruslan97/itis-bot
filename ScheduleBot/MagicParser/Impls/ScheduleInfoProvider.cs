@@ -36,7 +36,8 @@ namespace MagicParser.Impls
                         {
                             Level = ScheduleElemLevel.Day,
                             DayOfWeek = day,
-                            Elems = ConvertSubjects(subjects.Where(s => s.Group == group.Name && s.Type != ScheduleGroupType.Eng))
+                            Elems = ConvertSubjects(subjects.Where(s =>
+                                s.Group == group.Name && s.Type != ScheduleGroupType.Eng))
                         }
                     };
 
@@ -60,6 +61,48 @@ namespace MagicParser.Impls
                                 && s.Type == ScheduleGroupType.Eng
                                 && s.Flow.ToString() == engGroup.Name[engGroup.Name.Length - 1].ToString()
                                 && s.Course.ToString() == engGroup.Name.Substring(engGroup.Name.IndexOf('_') + 1, 1)))
+                        }
+                    };
+
+                    if (result.ScheduleRoot.Elems.Count != 0)
+                        schedules.Add(result);
+                }
+
+                var scienticGroups = availableGroups.Where(g => g.GType == ScheduleGroupType.PickedScientic).ToList();
+                var scienticSubjects = subjects.Where(s => s.Type == ScheduleGroupType.PickedScientic);
+                foreach (var scienticGroup in scienticGroups)
+                {
+                    var result = new Schedule
+                    {
+                        ScheduleGroups = new List<IScheduleGroup> {scienticGroup},
+                        ScheduleRoot = new Day
+                        {
+                            Level = ScheduleElemLevel.Day,
+                            DayOfWeek = day,
+                            Elems = ConvertSubjects(scienticSubjects.Where(s =>
+                                scienticGroup.Name.Contains(s.SubjectName)))
+                        }
+                    };
+
+                    if (result.ScheduleRoot.Elems.Count != 0)
+                        schedules.Add(result);
+                }
+
+                var techGroups = availableGroups.Where(g => g.GType == ScheduleGroupType.PickedTech).ToList();
+                var techSubjects = subjects.Where(s => s.Type == ScheduleGroupType.PickedTech);
+                foreach (var techGroup in techGroups)
+                {
+                    var result = new Schedule
+                    {
+                        ScheduleGroups = new List<IScheduleGroup> {techGroup},
+                        ScheduleRoot = new Day
+                        {
+                            Level = ScheduleElemLevel.Day,
+                            DayOfWeek = day,
+                            Elems = ConvertSubjects(techSubjects.Where(s =>
+                                techGroup.Name.Contains(s.SubjectName)
+                                && s.Teacher == techGroup.Name.Split('_')[1]
+                                && s.Course.ToString() == techGroup.Name.Split('_')[2].Substring(0, 1)))
                         }
                     };
 

@@ -16,6 +16,13 @@ namespace ScheduleBot.AspHost
 
         public  override Task HandleUnknownUpdate(Update update)
         {
+            if (update.CallbackQuery != null)
+            {
+                Client.AnswerCallbackQueryAsync(update.CallbackQuery.Id, update.CallbackQuery.Data);
+                return Client.EditMessageTextAsync(update.CallbackQuery.From.Id, update.CallbackQuery.Message.MessageId,
+                    "Message edited from inline");
+                //return Client.SendTextMessageAsync(update.CallbackQuery.From.Id, "Я смог в инлайн");
+            }
              return Client.SendTextMessageAsync(
                 update.Message.Chat.Id,
                 "Я тебе что, Эйнштейн?",
