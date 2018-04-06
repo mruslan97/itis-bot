@@ -78,6 +78,7 @@ namespace ScheduleBot.AspHost
                 .AddUpdateHandler<GetForTomorrowCommand>()
                 .AddUpdateHandler<GetForWeekCommand>()
                 .AddUpdateHandler<HelloCommand>()
+                .AddUpdateHandler<TestCommand>()
                 .AddUpdateHandler<NotFoundGroupCommand>()
                 .AddUpdateHandler<SettingsOptionsCommand>()
                 .AddUpdateHandler<ChangeAcademicGroupCommand>()
@@ -217,7 +218,27 @@ namespace ScheduleBot.AspHost
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Эффективная разработка_Якупов А.Ш._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Скриптинг_Хусаинов Р.Р._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Проектирование веб- интерфейсов_Гиниятуллин Р.Г._3курс_1"},
-                
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Методы оптимизации_Фазылов В.Р._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Введение в исскуственный интеллект_Таланов М.О._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Введение в исскуственный интеллект_Кугуракова В.В._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Разработка корпоративных приложений_Сидиков М.Р._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Разработка корпоративных приложений_Аршинов М.Р._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Введение в робототехнику_Магид Е.А._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Интернет - программирование Django_Абрамский М.М._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Ruby_Бажанов В.А._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "PHP-_Кошарский И.Е._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Разработка мобильных приложений_Шахова И.С._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Визуализация данных_Костюк Д.И._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Программирование на С++_Сагитов А.Г._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Цифровая живопись_Евстафьев М.Е._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Кроссплатформенное прикладное программирование_Магид Е.А._4курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Мобильные информационные системы_Хайруллин А.Ф._4курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Интернет вещей_Даутов Р.И._4курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Механизмы защиты удаленного доступа_Зиятдинов М.Т._4курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Визуализация данных_Костюк Д.И._4курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Проектирование человеко- машинных интерфейсов_Зайдуллин С.С._4курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Аспектно-ориентированное проектирование и разработка_Костюк Д.И._4курс_1"},
+
             };
         }
 
