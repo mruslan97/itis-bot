@@ -16,7 +16,6 @@
   <ItemGroup>
     <PackageReference Include="FluentScheduler" Version="5.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.5" />
-    <PackageReference Include="Telegram.Bot.Framework" Version="1.1.4" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="appsettings.DevLocal.json">
@@ -35,6 +34,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MagicParser\MagicParser.csproj" />
     <ProjectReference Include="..\ScheduleServices.Core\ScheduleServices.Core.csproj" />
+    <ProjectReference Include="..\Telegram.Bot.Framework\Telegram.Bot.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="BotServices\usersgroups.xml">

@@ -15,11 +15,27 @@ namespace ScheduleBot.AspHost.Commads
         {
         }
 
+        public override bool CanHandleUpdate(IBot bot, Update update)
+        {
+            Bot = Bot ?? bot;
+            return CanHandleCommand(update);
+        }
+        public override async Task<UpdateHandlingResult> HandleUpdateAsync(IBot bot, Update update)
+        {
+            Bot = Bot ?? bot;
+            return await HandleCommand(update);
+        }
+
+        public override  Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
+        {
+            throw new NotImplementedException();
+        }
+
+        public abstract Task<UpdateHandlingResult> HandleCommand(Update update);
+
         protected override bool CanHandleCommand(Update update)
         {
-            if (!base.CanHandleCommand(update))
-                return update.CallbackQuery != null;
-            return false;
+            return update.CallbackQuery != null;
         }
     }
 }

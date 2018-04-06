@@ -17,7 +17,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
 {
-    public class GetTeacherScheduleCommand : CommandBase<DefaultCommandArgs>
+    public class GetTeacherScheduleCommand : InlineCommand
     {
         private readonly ITeachersSource teachers;
         private readonly IKeyboardsFactory keyboards;
@@ -25,7 +25,7 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
         private readonly TeacherScheduleSelector teacherSelector;
 
         public GetTeacherScheduleCommand(ITeachersSource teachers, IKeyboardsFactory keyboards,
-            IScheduleService scheduleService, TeacherScheduleSelector teacherSelector) : base("f:")
+            IScheduleService scheduleService, TeacherScheduleSelector teacherSelector) : base("f_")
         {
             this.teachers = teachers;
             this.keyboards = keyboards;
@@ -35,16 +35,15 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
 
         protected override bool CanHandleCommand(Update update)
         {
-            if (!base.CanHandleCommand(update))
-                return update.Message.Text.StartsWith("f:") &&
-                       teachers.GetTeachersNames().Contains(update.Message.Text.Substring(2));
-            return true;
+            if (base.CanHandleCommand(update))
+                return (teachers.GetTeachersNames().Contains(update.CallbackQuery.Data)) && update.CallbackQuery.Message.Text.Contains("препод");
+            return false;
         }
 
-        public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
+        public override async Task<UpdateHandlingResult> HandleCommand(Update update)
         {
             var teacher = teachers.GetTeachersNames()
-                .FirstOrDefault(x => x == args.RawInput.Substring(2));
+                .FirstOrDefault(x => x == update.CallbackQuery.Data);
             if (teacher != null)
             {
                 teacherSelector.TeacherName = teacher;
