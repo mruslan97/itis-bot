@@ -42,17 +42,20 @@ namespace MagicParser.Helpers
             };
         }
 
-        public static List<string> ElectiveCourse()
+        public static List<string> Scientic()
         {
             return new List<string>
             {
-                "Курс по выбору",
                 "Физика",
-                "Методы оптимизации Фазылов",
-                "Проектный практикум",
-                "Введение в исскуственный интеллект",
-                "Введение в робототехнику",
-                "Разработка корпоротивных приложений"
+                "Биоинформатика"
+            };
+        }
+
+        public static List<string> Tech()
+        {
+            return new List<string>
+            {
+                "Курс по выбору"
             };
         }
 
