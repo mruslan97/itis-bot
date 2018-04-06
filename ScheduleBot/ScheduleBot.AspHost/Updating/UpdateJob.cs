@@ -35,11 +35,11 @@ namespace ScheduleBot.AspHost.Updating
             var currentUpdateDayOfWeek = lastUpdatedDayOfWeek +
                                          //lastUpdatedCourse != 0 ? 0 :
                                          1;
-            if (currentUpdateDayOfWeek == DayOfWeek.Sunday)
-                currentUpdateDayOfWeek++;
+            if (currentUpdateDayOfWeek == DayOfWeek.Saturday || currentUpdateDayOfWeek == DayOfWeek.Sunday)
+                lastUpdatedDayOfWeek = DayOfWeek.Sunday;
+            else
+                lastUpdatedDayOfWeek = currentUpdateDayOfWeek;
 
-            //lastUpdatedCourse = currentUpdateCourse;
-            lastUpdatedDayOfWeek = currentUpdateDayOfWeek;
             try
             {
                 await scheduleService.UpdateSchedulesAsync(
@@ -52,6 +52,7 @@ namespace ScheduleBot.AspHost.Updating
             {
                 Console.WriteLine(e);
             }
+            
             
         }
 

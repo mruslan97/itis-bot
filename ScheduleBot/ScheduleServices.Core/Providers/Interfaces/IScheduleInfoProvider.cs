@@ -9,7 +9,13 @@ namespace ScheduleServices.Core.Providers.Interfaces
 {
     public interface IScheduleInfoProvider
     {
-        //Task<ISchedule> GetScheduleAsync(IScheduleGroup group, DayOfWeek day);
+        /// <summary>
+        /// Returns collection of schedules for each found group
+        /// If there no schedule on this day for some group, this group should not be included to result collection
+        /// </summary>
+        /// <param name="availableGroups"></param>
+        /// <param name="day"></param>
+        /// <returns></returns>
         IEnumerable<ISchedule> GetSchedules(IEnumerable<IScheduleGroup> availableGroups, DayOfWeek day);
         /*
          * var groups = monitor.AvaliableGroups.Where(type == Academic);

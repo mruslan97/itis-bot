@@ -52,7 +52,8 @@ namespace ScheduleServices.Core
 
         public Task<ISchedule> CompileScheduleWithSelector(IScheduleSelector selector)
         {
-            return CompileSchedules(() => selector.SelectSchedulesFromSource(storage.GetAll(GroupsMonitor.AvailableGroups)));
+            return CompileSchedules(() =>
+                selector.SelectSchedulesFromSource(storage.GetAll(GroupsMonitor.AvailableGroups)));
         }
 
         public Task RunVisitorThrougthStorage(IDynamicElemVisitor visitor)
@@ -78,32 +79,34 @@ namespace ScheduleServices.Core
                 //return checkresult.Successed;
                 return true;
             });
-            //left outer join: all from fresh and matching from storage or null
             List<Task> updateTasks = new List<Task>();
-            foreach (var pair in goodFresh.LeftJoin(stored, sch => sch.ScheduleGroups.FirstOrDefault(),
-                sch => sch.ScheduleGroups.FirstOrDefault(),
-                (fromFresh, fromStorage) => new {Fresh = fromFresh, Stored = fromStorage}))
+            //full outher join fresh <-> stored by group
+            foreach (var entry in fresh.Select(f =>
+                    new {Group = f.ScheduleGroups.FirstOrDefault(), IsFresh = true, Root = f.ScheduleRoot})
+                .Concat(stored.Select(s =>
+                    new {Group = s.ScheduleGroups.FirstOrDefault(), IsFresh = false, Root = s.ScheduleRoot}))
+                .GroupBy(sch => sch.Group))
             {
-                if (pair.Stored != null)
-                    updateTasks.Add(CompareAndAddIfNotEqual(pair.Fresh, pair.Stored));
+                var freshSch = entry.FirstOrDefault(x => x.IsFresh);
+                var storedSch = entry.FirstOrDefault(x => !x.IsFresh);
+                if (freshSch != null)
+                    updateTasks.Add(CompareAndAddIfNotEqual(freshSch.Root, storedSch.Root, entry.Key));
                 else
-                    updateTasks.Add(storage.UpdateScheduleAsync(pair.Fresh.ScheduleGroups.FirstOrDefault(),
-                        pair.Fresh.ScheduleRoot));
+                    updateTasks.Add(storage.RemoveScheduleAsync(entry.Key, day).ContinueWith(t =>
+                        entry.Key.RaiseScheduleChanged(this, eventArgsFactory.GetArgs(storedSch.Root))));
             }
+
 
             await Task.WhenAll(updateTasks);
 
-            Task CompareAndAddIfNotEqual(ISchedule freshSchedule, ISchedule storedSchedule)
+            Task CompareAndAddIfNotEqual(IScheduleElem freshSchedule, IScheduleElem storedSchedule,
+                IScheduleGroup group)
             {
-                return Task.Run(() =>
-                {
-                    if (!freshSchedule.ScheduleRoot.Equals(storedSchedule.ScheduleRoot))
-                        return storage.UpdateScheduleAsync(freshSchedule.ScheduleGroups.FirstOrDefault(),
-                            freshSchedule.ScheduleRoot).ContinueWith((t) =>
-                            freshSchedule.ScheduleGroups.FirstOrDefault()
-                                .RaiseScheduleChanged(this, eventArgsFactory.GetArgs(freshSchedule)));
-                    return Task.CompletedTask;
-                });
+                if (storedSchedule == null || freshSchedule.Equals(storedSchedule))
+                    return storage.UpdateScheduleAsync(group,
+                        freshSchedule).ContinueWith((t) =>
+                        group.RaiseScheduleChanged(this, eventArgsFactory.GetArgs(freshSchedule)));
+                return Task.CompletedTask;
             }
         }
 

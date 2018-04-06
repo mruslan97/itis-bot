@@ -5,6 +5,6 @@ namespace ScheduleServices.Core.Modules.Interfaces
 {
     public interface IScheduleEventArgsFactory
     {
-        EventArgs GetArgs(ISchedule schedule);
+        EventArgs GetArgs(IScheduleElem schedule);
     }
 }

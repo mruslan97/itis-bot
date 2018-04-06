@@ -10,9 +10,9 @@ namespace ScheduleServices.Core.Modules
 {
     public class DefaultEventArgsFactory : IScheduleEventArgsFactory
     {
-        public EventArgs GetArgs(ISchedule schedule)
+        public EventArgs GetArgs(IScheduleElem schedule)
         {
-            if (schedule.ScheduleRoot is Day day)
+            if (schedule is Day day)
             {
                 return new ParamEventArgs<DayOfWeek>() {Param = day.DayOfWeek};
             }

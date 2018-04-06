@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ScheduleServices.Core.Models.Interfaces;
 
@@ -10,5 +11,6 @@ namespace ScheduleServices.Core.Providers.Interfaces
         Task<bool> UpdateScheduleAsync(IScheduleGroup targetGroup, IScheduleElem scheduleRoot);
         IEnumerable<ISchedule> GetAll(IEnumerable<IScheduleGroup> availableGroups);
         Task RunVisitor(IDynamicElemVisitor visitor);
+        Task RemoveScheduleAsync(IScheduleGroup targetGroup, DayOfWeek day);
     }
 }

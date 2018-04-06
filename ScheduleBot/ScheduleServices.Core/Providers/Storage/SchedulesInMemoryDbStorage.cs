@@ -31,7 +31,8 @@ namespace ScheduleServices.Core.Providers.Storage
             return GetSchedules(availableGroups, days => days.Where(d => d.DayOfWeek == day));
         }
 
-        private IEnumerable<ISchedule> GetSchedules(IEnumerable<IScheduleGroup> availableGroups, Func<IEnumerable<Day>,IEnumerable<Day>> modificator)
+        private IEnumerable<ISchedule> GetSchedules(IEnumerable<IScheduleGroup> availableGroups,
+            Func<IEnumerable<Day>, IEnumerable<Day>> modificator)
         {
             string key;
             ISchedule schedule;
@@ -44,7 +45,7 @@ namespace ScheduleServices.Core.Providers.Storage
                     {
                         schedule = factory.GetSchedule();
 
-                        schedule.ScheduleRoot = (IScheduleElem)resDay.Clone();
+                        schedule.ScheduleRoot = (IScheduleElem) resDay.Clone();
                         schedule.ScheduleGroups.Add(availableGroup);
                         yield return schedule;
                     }
@@ -127,8 +128,23 @@ namespace ScheduleServices.Core.Providers.Storage
             {
                 queue.Add(day);
             }
+
             queue.CompleteAdding();
             await consumer;
+        }
+
+        public Task RemoveScheduleAsync(IScheduleGroup targetGroup, DayOfWeek day)
+        {
+            return Task.Run(() =>
+            {
+                string key = KeyFromGroup(targetGroup);
+                if (storage.TryGetValue(key, out var days))
+                {
+                    var toRemove = days.OfType<Day>().FirstOrDefault(d => d.DayOfWeek == day);
+                    if (toRemove != null)
+                        days.Remove(toRemove);
+                }
+            });
         }
     }
 

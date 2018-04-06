@@ -12,7 +12,7 @@ namespace ScheduleBot.AspHost.Updating
     {
         private  Registry registry;
         readonly IServiceProvider services;
-        public const int MinutesBetweenRefreshing = 5;
+        public const int MinutesBetweenRefreshing = 1;
 
         public UpdatesScheduler(IServiceProvider services)
         {
