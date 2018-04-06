@@ -19,24 +19,22 @@ namespace ScheduleBot.AspHost.Commads
 
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
-            var replyText = "test клавиатуры";
+            var replyText = "Считаем вместе 0";
             var inlineKeyboard = new InlineKeyboardMarkup(new[]
             {
-                new [] // first row
+                new [] 
                 {
-                    InlineKeyboardButton.WithCallbackData("test"),
-                    InlineKeyboardButton.WithCallbackData("1.2"),
+                    InlineKeyboardButton.WithCallbackData("Туда")
                 },
-                new [] // second row
+                new [] 
                 {
-                    InlineKeyboardButton.WithCallbackData("2.1"),
-                    InlineKeyboardButton.WithCallbackData("2.2"),
+                    InlineKeyboardButton.WithCallbackData("Сюда")
                 }
             });
 
             await Bot.Client.SendTextMessageAsync(
                 update.Message.Chat.Id,
-                "Message",replyMarkup:inlineKeyboard);
+                replyText,replyMarkup:inlineKeyboard);
 
             return UpdateHandlingResult.Handled;
         }
