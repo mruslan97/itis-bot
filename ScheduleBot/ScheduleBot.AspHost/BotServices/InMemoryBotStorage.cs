@@ -69,8 +69,12 @@ namespace ScheduleBot.AspHost.BotServices
                 {
                     var group = (IScheduleGroup) sender;
                     if (groupToUsers.TryGetValue(group, out var list) && list != null && list.Any())
+                    {
+                        var dayName = new CultureInfo("ru-Ru").DateTimeFormat.GetDayName(paramEventArgs.Param);
+                        var verbEnd = dayName.EndsWith('а') ? "ась" : "ся";
                         await notifiactionSender.SendNotificationsForIdsAsync(list,
-                            $"Изменилась {new CultureInfo("ru-Ru").DateTimeFormat.GetDayName(paramEventArgs.Param)}");
+                            $"Изменил{verbEnd} {dayName}");
+                    }
                 }
             }
             catch (Exception e)
@@ -81,7 +85,10 @@ namespace ScheduleBot.AspHost.BotServices
 
         public Task<IEnumerable<IScheduleGroup>> GetGroupsForChatAsync(Chat chat)
         {
-            return Task.Run(() => usersGroups.TryGetValue(chat.Id, out var groups) ? (IEnumerable<IScheduleGroup>) groups : new List<IScheduleGroup>());
+            return Task.Run(() =>
+                usersGroups.TryGetValue(chat.Id, out var groups)
+                    ? (IEnumerable<IScheduleGroup>) groups
+                    : new List<IScheduleGroup>());
         }
 
         public Task<bool> TryAddGroupToChatAsync(IScheduleGroup scheduleGroup, Chat chat)
@@ -124,7 +131,6 @@ namespace ScheduleBot.AspHost.BotServices
                                             .Substring(0, group.Attribute("name").Value.Length - 1) !=
                                         groupFromStorage.Name.Substring(0, groupFromStorage.Name.Length - 1))
                                     {
-
                                         xdoc.Element("users").Elements("user")
                                             .FirstOrDefault(u => u.Element("chatId").Value == chat.Id.ToString())
                                             .Element("groups").Elements("group")

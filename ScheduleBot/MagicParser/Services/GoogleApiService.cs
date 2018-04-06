@@ -18,9 +18,9 @@ namespace MagicParser.Services
     public class GoogleApiService
     {
         public string[] Scopes = { SheetsService.Scope.SpreadsheetsReadonly };
-        private const string ApplicationName = "itis-api";
-        private const string SpreadsheetId = "1DHir9K8KO8a2AX3AfPiE422HXgf_7AKgSOSS-UOMt_A";
-        private const string TimeCoordinates = "C3:C9";
+        protected readonly string ApplicationName;
+        protected readonly string SpreadsheetId;
+        protected readonly string TimeCoordinates = "C3:C9";
 
         private static UserCredential Auth(string[] scopes)
         {
@@ -41,6 +41,11 @@ namespace MagicParser.Services
             }
         }
 
+        public GoogleApiService(string appName, string spreadsheetId)
+        {
+            ApplicationName = appName;
+            SpreadsheetId = spreadsheetId;
+        }
         public List<TmpObject> SendRequest(int course, int day)
         {
             var service = new SheetsService(new BaseClientService.Initializer

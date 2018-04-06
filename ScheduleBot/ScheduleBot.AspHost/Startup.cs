@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using MagicParser.Configuration;
 using MagicParser.Impls;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -19,6 +20,7 @@ using ScheduleBot.AspHost.Commads.TeacherSearchCommands;
 using ScheduleBot.AspHost.Keyboards;
 using ScheduleBot.AspHost.Updating;
 using ScheduleServices.Core;
+using ScheduleServices.Core.Config;
 using ScheduleServices.Core.Factories;
 using ScheduleServices.Core.Factories.Interafaces;
 using ScheduleServices.Core.Models.Interfaces;
@@ -51,21 +53,21 @@ namespace ScheduleBot.AspHost
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            //schedules upd
+            //configure parser
+            services.AddGoogleApiParser(configuration.GetSection("GoogleApi"));
+            //configure schedule service core
+            services.AddDefaultScheduleServiceCore(GetGroupsList(), GetRules());
+            //update jobs
             services.AddTransient<UpdateJob>();
-            //service
-            services.AddTransient<ISchElemsFactory, DefaultSchElemsFactory>();
-            services.AddTransient<IGroupsMonitor, GroupsMonitor>(provider => new GroupsMonitor(GetGroupsList(), GetRules()));
-            services.AddTransient<IScheduleInfoProvider, ScheduleInfoProvider>();
-            services.AddTransient<ISchedulesStorage, SchedulesInMemoryDbStorage>();
-            services.AddTransient<TeacherScheduleSelector>();
             services.AddSingleton<UpdateTeachersListJob>();
             services.AddSingleton<ITeachersSource>(prov => prov.GetRequiredService<UpdateTeachersListJob>());
+            //services about bot infrastruct
+            services.AddTransient<TeacherScheduleSelector>();
             services.AddTransient<IScheduleEventArgsFactory, DefaultEventArgsFactory>();
-            services.AddSingleton<IScheduleService, ScheduleService>();
             services.AddSingleton<IBotDataStorage, InMemoryBotStorage>();
             services.AddSingleton<INotifiactionSender, Notificator>();
             services.AddSingleton<IKeyboardsFactory>(provider => new KeyboardsFactory(GetGroupsList()));
+
             services.AddTelegramBot<ItisScheduleBot>(configuration.GetSection("ScheduleBot"))
                 .AddUpdateHandler<EchoCommand>()
                 .AddUpdateHandler<SetUpAcademicGroupCommand>()

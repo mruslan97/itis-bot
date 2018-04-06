@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MagicParser.Configuration;
 using MagicParser.Models;
 using MagicParser.Services;
 using ScheduleServices.Core.Models;
@@ -13,6 +14,12 @@ namespace MagicParser.Impls
 {
     public class ScheduleInfoProvider : IScheduleInfoProvider
     {
+        private readonly GoogleApiConfig config;
+
+        public ScheduleInfoProvider(GoogleApiConfig config)
+        {
+            this.config = config;
+        }
         public IEnumerable<ISchedule> GetSchedules(IEnumerable<IScheduleGroup> availableGroups, DayOfWeek day)
         {
             try
@@ -71,7 +78,7 @@ namespace MagicParser.Impls
 
         private IEnumerable<ParsedSubject> GetAllGroups(DayOfWeek day)
         {
-            var googleApi = new GoogleApiService();
+            var googleApi = new GoogleApiService(config.ApplicationName, config.SpreadsheetId);
             var smartSorter = new SmartSortService();
             var result = new List<ParsedSubject>();
             for (var i = 1; i <= 4; i++) result.AddRange(smartSorter.SortContent(googleApi.SendRequest(i, (int) day)));
