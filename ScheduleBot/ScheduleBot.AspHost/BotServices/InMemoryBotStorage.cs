@@ -169,7 +169,7 @@ namespace ScheduleBot.AspHost.BotServices
             usersGroups.AddOrUpdate(chatId, new List<IScheduleGroup> {group}, (id, oldList) =>
             {
                 duplicate = oldList.FirstOrDefault(g =>
-                    g.GType == group.GType && !g.Equals(group));
+                    g.GType == group.GType);
                 if (duplicate != null)
                 {
                     if (!duplicate.Equals(group))
@@ -180,6 +180,7 @@ namespace ScheduleBot.AspHost.BotServices
                             otherGroups = oldList.ToList();
                             oldList.Clear();
                         }
+                        oldList.Add(group);
                     }
                 }
                 else
