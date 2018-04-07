@@ -20,7 +20,7 @@ namespace MagicParser.Parsers
             {
                 var fixedName = Regex.Match(subject, @"[А-ЯA-Z].*").Value;
                 var cabinet = Regex.Match(fixedName, @"\d+").Value;
-                var teacher = Regex.Match(fixedName, @"[А-Я][а-я]+\s[А-Я].[А-Я].").Value;
+                var teacher = Regex.Match(fixedName, @"[А-Я][а-я]+\s?[А-Я].[А-Я]?.?").Value;
                 var notation = "";
                 if (fixedName.Contains("("))
                     notation = fixedName.Split('(', ')')[1];
@@ -41,6 +41,7 @@ namespace MagicParser.Parsers
                     Cabinet = cabinet,
                     Teacher = teacher,
                     Type = groupType,
+                    Course = input.Course,
                     Notation = '(' +notation + ')'
                 };
                 if (parsedSubject.SubjectName.Length < 5)

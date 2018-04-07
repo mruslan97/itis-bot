@@ -23,6 +23,19 @@ namespace MagicParser.Services
             {
                 unparsedSubject.Content = ProcessTrash(unparsedSubject);
                 unparsedSubject.IsOnEvenWeek = CheckWeeks(unparsedSubject);
+                if (Keywords.Scientic().Any(p => unparsedSubject.Content.Contains(p)))
+                {
+                    var parsedCourses = _electiveParser.Parse(unparsedSubject, ScheduleGroupType.PickedScientic);
+                    parsedSubjects.AddRange(parsedCourses);
+                    continue;
+                }
+
+                if (Keywords.Tech().Any(p => unparsedSubject.Content.Contains(p)))
+                {
+                    var parsedCourses = _electiveParser.Parse(unparsedSubject, ScheduleGroupType.PickedTech);
+                    parsedSubjects.AddRange(parsedCourses);
+                    continue;
+                }
                 if (Keywords.Lecture().Any(l => unparsedSubject.Content.Contains(l))
                     && !Keywords.NotLecture().Any(n => unparsedSubject.Content.Contains(n)))
                 {
@@ -37,20 +50,6 @@ namespace MagicParser.Services
                     var parsedSubject = _physCultureParser.Parse(unparsedSubject);
                     var marker = SetMarker(unparsedSubject);
                     parsedSubjects.AddRange(ShareSubjects(parsedSubject, marker));
-                    continue;
-                }
-
-                if (Keywords.Scientic().Any(p => unparsedSubject.Content.Contains(p)))
-                {
-                    var parsedCourses = _electiveParser.Parse(unparsedSubject, ScheduleGroupType.PickedScientic);
-                    parsedSubjects.AddRange(parsedCourses);
-                    continue;
-                }
-
-                if (Keywords.Tech().Any(p => unparsedSubject.Content.Contains(p)))
-                {
-                    var parsedCourses = _electiveParser.Parse(unparsedSubject, ScheduleGroupType.PickedTech);
-                    parsedSubjects.AddRange(parsedCourses);
                     continue;
                 }
 
