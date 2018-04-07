@@ -16,6 +16,7 @@ using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleBot.AspHost.Commads;
 using ScheduleBot.AspHost.Commads.GetScheduleCommands;
 using ScheduleBot.AspHost.Commads.SetUpCommands;
+using ScheduleBot.AspHost.Commads.SetUpCommands.ElectivesSetUpCommands;
 using ScheduleBot.AspHost.Commads.TeacherSearchCommands;
 using ScheduleBot.AspHost.Keyboards;
 using ScheduleBot.AspHost.Updating;
@@ -69,23 +70,35 @@ namespace ScheduleBot.AspHost
             services.AddSingleton<IKeyboardsFactory>(provider => new KeyboardsFactory(GetGroupsList()));
 
             services.AddTelegramBot<ItisScheduleBot>(configuration.GetSection("ScheduleBot"))
+                //organize
                 .AddUpdateHandler<EchoCommand>()
-                .AddUpdateHandler<UpdTeachersListCommand>()
-                .AddUpdateHandler<SetUpAcademicGroupCommand>()
-                .AddUpdateHandler<SetUpCourseCommand>()
-                .AddUpdateHandler<GetEngGroupsCommand>()
-                .AddUpdateHandler<SetUpEngGroupCommand>()
-                .AddUpdateHandler<GetTeacherScheduleCommand>()
-                .AddUpdateHandler<GetTeachersListCommand>()
+                .AddUpdateHandler<HelloCommand>()
+                .AddUpdateHandler<SettingsOptionsCommand>()
+                .AddUpdateHandler<SettingsBackCommand>()
+                .AddUpdateHandler<NotFoundGroupCommand>()
+                //get schedules
                 .AddUpdateHandler<GetForTodayCommand>()
                 .AddUpdateHandler<GetForTomorrowCommand>()
                 .AddUpdateHandler<GetForWeekCommand>()
-                .AddUpdateHandler<HelloCommand>()
-                .AddUpdateHandler<TestCommand>()
-                .AddUpdateHandler<NotFoundGroupCommand>()
-                .AddUpdateHandler<SettingsOptionsCommand>()
+                .AddUpdateHandler<GetTeacherScheduleCommand>()
+                //academic
                 .AddUpdateHandler<ChangeAcademicGroupCommand>()
-                .AddUpdateHandler<SettingsBackCommand>()
+                .AddUpdateHandler<SetUpCourseCommand>()
+                .AddUpdateHandler<SetUpAcademicGroupCommand>()
+                //teachers get and upd inlines
+                .AddUpdateHandler<UpdTeachersListCommand>()
+                .AddUpdateHandler<GetTeachersListCommand>()
+                //electives get
+                .AddUpdateHandler<GetEngGroupsCommand>()
+                .AddUpdateHandler<GetTechGroupsCommand>()
+                .AddUpdateHandler<GetScienticGroupsCommand>()
+                //electives set
+                .AddUpdateHandler<SetUpEngGroupCommand>()
+                .AddUpdateHandler<SetUpTechGroupCommand>()
+                .AddUpdateHandler<SetUpScienticGroupCommand>()
+                //
+                .AddUpdateHandler<ForDevelopersCommand>()
+                .AddUpdateHandler<TestCommand>()
                 .Configure();
         }
 
@@ -275,9 +288,44 @@ namespace ScheduleBot.AspHost
                     return false;
                 } ),
                 new CommonEngGroupsRule("1stCourse_2stStream", "2", "1курс", "11-7", $@"[6-9]$"),
-                new CommonEngGroupsRule("2stCourse_1stStream", "1", "2курс", "11-6", $@"[1-8]$")
-
+                new CommonEngGroupsRule("2stCourse_1stStream", "1", "2курс", "11-6", $@"[1-8]$"),
+                new CommonTypedRule("ScienticThirdCourse", ScheduleGroupType.PickedScientic, "11-5", "3курс"),
+                new CommonTypedRule("TechSecondCourse", ScheduleGroupType.PickedTech, "11-6", "2курс"),
+                new CommonTypedRule("TechThirdCourse", ScheduleGroupType.PickedTech, "11-5", "3курс"),
+                new CommonTypedRule("Tech4Course", ScheduleGroupType.PickedTech, "11-4", "4курс"),
             };
+        }
+
+        private class CommonTypedRule : CompatibleGroupsFuncRule
+        {
+            public CommonTypedRule(string name, ScheduleGroupType secondType,
+                string academicStarts, string targetCourse, string flow = "1",
+                string academicRegexp = null) : base(name, (g1, g2) => true)
+            {
+                CheckFunc = (first, second) =>
+                {
+                    IScheduleGroup academic = null;
+                    IScheduleGroup typed = null;
+                    if (first.GType == ScheduleGroupType.Academic)
+                        academic = first;
+                    if (first.GType == secondType)
+                        typed = first;
+                    if (second.GType == ScheduleGroupType.Academic)
+                        academic = second;
+                    if (second.GType == secondType)
+                        typed = second;
+                    if (typed == null || academic == null)
+                        return false;
+                    if (typed.Name.ToLowerInvariant().EndsWith(flow) &&
+                        typed.Name.ToLowerInvariant().Contains(targetCourse))
+                    {
+                        var trimmed = (academic.Name.Trim());
+                        return trimmed.StartsWith(academicStarts) && (academicRegexp == null || Regex.IsMatch(trimmed, academicRegexp));
+                    }
+
+                    return false;
+                };
+            }
         }
 
         private class CommonEngGroupsRule : CompatibleGroupsFuncRule

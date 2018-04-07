@@ -170,42 +170,63 @@ namespace ScheduleBot.AspHost.BotServices
             {
                 duplicate = oldList.FirstOrDefault(g =>
                     g.GType == group.GType && !g.Equals(group));
-                if (duplicate != null && !duplicate.Equals(group))
+                if (duplicate != null)
                 {
-                    oldList.Remove(duplicate);
-                    if (clearOther)
+                    if (!duplicate.Equals(group))
                     {
-                        otherGroups = oldList.ToList();
-                        oldList.Clear();
+                        oldList.Remove(duplicate);
+                        if (clearOther)
+                        {
+                            otherGroups = oldList.ToList();
+                            oldList.Clear();
+                        }
                     }
                 }
-
-                oldList.Add(group);
+                else
+                {
+                    oldList.Add(group);
+                }
                 return oldList;
             });
             try
             {
+                if (!groupToUsers.ContainsKey(group))
+                    group.ScheduleChanged += HandleGroupScheduleChanged;
                 groupToUsers.AddOrUpdate(group, new List<long> {chatId}, (schGroup, oldList) =>
                 {
-                    oldList.Add(chatId);
+                    if (!oldList.Contains(chatId))
+                        oldList.Add(chatId);
                     return oldList;
                 });
-                group.ScheduleChanged += HandleGroupScheduleChanged;
+                
+                
                 if (duplicate != null && !duplicate.Equals(group))
                 {
-                    duplicate.ScheduleChanged -= HandleGroupScheduleChanged;
-                    if (groupToUsers.TryGetValue(duplicate, out var list)) list.Remove(chatId);
+
+                    RemoveIdFromGroup(duplicate, chatId);
                     if (clearOther && otherGroups != null && otherGroups.Any())
                         foreach (var otherGroup in otherGroups)
                         {
-                            otherGroup.ScheduleChanged -= HandleGroupScheduleChanged;
-                            if (groupToUsers.TryGetValue(duplicate, out var subs)) subs.Remove(chatId);
+                            RemoveIdFromGroup(otherGroup, chatId);
                         }
+                    
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
+            }
+
+            void RemoveIdFromGroup(IScheduleGroup rgroup, long id)
+            {
+                if (groupToUsers.TryGetValue(rgroup, out var list))
+                {
+                    list.Remove(id);
+                    if (!list.Any())
+                        groupToUsers.Remove(rgroup, out list);
+                }
+                if (!groupToUsers.ContainsKey(rgroup))
+                    rgroup.ScheduleChanged -= HandleGroupScheduleChanged;
             }
         }
     }

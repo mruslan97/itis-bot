@@ -40,14 +40,14 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
             var teachersButtonsCount = replyList.Count;
             var endButtons = new[]
             {
-                InlineKeyboardButton.WithCallbackData("Туда")
+                InlineKeyboardButton.WithCallbackData("Тудык")
             };
             var keyboard = new InlineKeyboardButton[teachersButtonsCount + 1][];
             for (int i = 0; i < keyboard.Length - 1; i++)
-                keyboard[i] = new[] { InlineKeyboardButton.WithCallbackData(replyList[i]) };
+                keyboard[i] = new[] {InlineKeyboardButton.WithCallbackData(replyList[i])};
             keyboard[keyboard.Length - 1] = endButtons;
             var inlineKeyboard = new InlineKeyboardMarkup(keyboard);
-            
+
             await Bot.Client.SendTextMessageAsync(
                 update.Message.Chat.Id,
                 "Список преподавателей 1", replyMarkup: inlineKeyboard);
@@ -56,6 +56,7 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
             return UpdateHandlingResult.Handled;
         }
     }
+
     public class UpdTeachersListCommand : InlineCommand
     {
         private readonly ITeachersSource teachers;
@@ -70,7 +71,8 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
         protected override bool CanHandleCommand(Update update)
         {
             if (base.CanHandleCommand(update))
-                return (update.CallbackQuery.Data == "Туда" || update.CallbackQuery.Data == "Сюда") && update.CallbackQuery.Message.Text.Contains("препод");
+                return (update.CallbackQuery.Data == "Тудык" || update.CallbackQuery.Data == "Сюдык") &&
+                       update.CallbackQuery.Message.Text.Contains("препод");
             return false;
         }
 
@@ -78,21 +80,22 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
         {
             if (update.CallbackQuery != null)
             {
-               
                 if (int.TryParse(update.CallbackQuery.Message.Text.Last().ToString(), out var index))
                 {
-                   
-                    var number = update.CallbackQuery.Data == "Туда" ? 1 : -1;
+                    var number = update.CallbackQuery.Data == "Тудык" ? 1 : -1;
                     var current = number + index;
                     var replyList = teachers.GetTeachersNames().Skip(10 * current).Take(10).ToList();
                     var teachersButtonsCount = replyList.Count;
                     InlineKeyboardMarkup inlineKeyboard;
                     if (current > 0)
                     {
-                        var endButtons = new[]
+                        var endButtons = replyList.Count < 10 ? new[]
                         {
-                            InlineKeyboardButton.WithCallbackData("Туда"),
-                            InlineKeyboardButton.WithCallbackData("Сюда")
+                            InlineKeyboardButton.WithCallbackData("Сюдык")
+                        } : new[]
+                        {
+                            InlineKeyboardButton.WithCallbackData("Сюдык"),
+                            InlineKeyboardButton.WithCallbackData("Тудык")
                         };
                         var keyboard = new InlineKeyboardButton[teachersButtonsCount + 1][];
                         for (int i = 0; i < keyboard.Length - 1; i++)
@@ -104,19 +107,20 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
                     {
                         var endButtons = new[]
                         {
-                            InlineKeyboardButton.WithCallbackData("Туда")
+                            InlineKeyboardButton.WithCallbackData("Тудык")
                         };
                         var keyboard = new InlineKeyboardButton[teachersButtonsCount + 1][];
                         for (int i = 0; i < keyboard.Length - 1; i++)
-                            keyboard[i] = new[] { InlineKeyboardButton.WithCallbackData(replyList[i]) };
+                            keyboard[i] = new[] {InlineKeyboardButton.WithCallbackData(replyList[i])};
                         keyboard[keyboard.Length - 1] = endButtons;
                         inlineKeyboard = new InlineKeyboardMarkup(keyboard);
                     }
+
                     //Client.AnswerCallbackQueryAsync(update.CallbackQuery.Id, update.CallbackQuery.Data);
-                    await Bot.Client.EditMessageTextAsync(update.CallbackQuery.From.Id, update.CallbackQuery.Message.MessageId,
+                    await Bot.Client.EditMessageTextAsync(update.CallbackQuery.From.Id,
+                        update.CallbackQuery.Message.MessageId,
                         "Список преподавателей " + current, replyMarkup: inlineKeyboard);
                 }
-                
             }
 
 

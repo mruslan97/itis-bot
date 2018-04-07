@@ -24,11 +24,11 @@ namespace ScheduleBot.AspHost.Commads
             {
                 new [] 
                 {
-                    InlineKeyboardButton.WithCallbackData("Туда")
+                    InlineKeyboardButton.WithCallbackData("Тудык")
                 },
                 new [] 
                 {
-                    InlineKeyboardButton.WithCallbackData("Сюда")
+                    InlineKeyboardButton.WithCallbackData("Сюдык")
                 }
             });
 

@@ -84,7 +84,7 @@ namespace ScheduleBot.AspHost.Updating
 
         }
 
-        public IEnumerable<string> GetTeachersNames()
+        public IList<string> GetTeachersNames()
         {
             lock (teachersNames)
             {

@@ -24,16 +24,16 @@ namespace ScheduleBot.AspHost
                 {
                     new []
                     {
-                        InlineKeyboardButton.WithCallbackData("Туда")
+                        InlineKeyboardButton.WithCallbackData("Тудык")
                     },
                     new []
                     {
-                        InlineKeyboardButton.WithCallbackData("Сюда")
+                        InlineKeyboardButton.WithCallbackData("Сюдык")
                     }
                 });
                 var answer = update.CallbackQuery.Message.Text;
                 var number = Convert.ToInt32(answer.Substring(answer.Length - 1));
-                number = update.CallbackQuery.Data == "Туда" ? number += 1 : number -= 1;
+                number = update.CallbackQuery.Data == "Тудык" ? number += 1 : number -= 1;
                 answer = answer.Substring(0, answer.Length - 1) + number;
                 //Client.AnswerCallbackQueryAsync(update.CallbackQuery.Id, update.CallbackQuery.Data);
                 return Client.EditMessageTextAsync(update.CallbackQuery.From.Id, update.CallbackQuery.Message.MessageId,

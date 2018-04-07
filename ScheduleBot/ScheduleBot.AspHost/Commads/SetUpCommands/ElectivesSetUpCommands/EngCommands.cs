@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using ScheduleBot.AspHost.BotServices;
 using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleBot.AspHost.Commads.CommandArgs;
 using ScheduleBot.AspHost.Keyboards;
@@ -13,18 +10,17 @@ using ScheduleServices.Core.Models.Interfaces;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
 
-namespace ScheduleBot.AspHost.Commads.SetUpCommands
+namespace ScheduleBot.AspHost.Commads.SetUpCommands.ElectivesSetUpCommands
 {
-    /*public class GetScienticGroupsCommand : CommandBase<DefaultCommandArgs>
+    public class GetEngGroupsCommand : CommandBase<DefaultCommandArgs>
     {
         private readonly IScheduleService scheduler;
         private readonly IKeyboardsFactory keyboards;
         private readonly IBotDataStorage storage;
 
-        public GetScienticGroupsCommand(IBotDataStorage storage, IScheduleService scheduler, IKeyboardsFactory keyboards) :
-            base("getsci")
+        public GetEngGroupsCommand(IBotDataStorage storage, IScheduleService scheduler, IKeyboardsFactory keyboards) :
+            base("getengs")
         {
             this.storage = storage;
             this.scheduler = scheduler;
@@ -35,9 +31,9 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
         {
             if (!base.CanHandleCommand(update))
             {
-                return update.Message.Text.ToLowerInvariant().StartsWith("sci");
+                return update.Message.Text.ToLowerInvariant().StartsWith("eng");
             }
-            return false;
+            return true;
         }
 
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
@@ -75,40 +71,7 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
 
             return UpdateHandlingResult.Handled;
         }
-        private class EngKeyboardDecorator : IKeyboardsFactory
-        {
-            private readonly IKeyboardsFactory keyboards;
-
-            public EngKeyboardDecorator(IKeyboardsFactory impl)
-            {
-                keyboards = impl;
-            }
-
-            public ReplyKeyboardMarkup GetCoursesKeyboad()
-            {
-                return keyboards.GetCoursesKeyboad();
-            }
-
-            public ReplyKeyboardMarkup GetGroupsOfCourseKeyboard(int course)
-            {
-                return keyboards.GetGroupsOfCourseKeyboard(course);
-            }
-
-            public ReplyKeyboardMarkup GetKeyboardForCollection<TItem>(IEnumerable<TItem> keyboardItems, Func<TItem, string> buttonTextSelector)
-            {
-                return keyboards.GetKeyboardForCollection(keyboardItems, (item) => buttonTextSelector(item).Substring(0, buttonTextSelector(item).IndexOf("_")));
-            }
-
-            public ReplyKeyboardMarkup GetMainOptionsKeyboard()
-            {
-                return keyboards.GetMainOptionsKeyboard();
-            }
-
-            public ReplyKeyboardMarkup GetSettingsKeyboard()
-            {
-                return keyboards.GetSettingsKeyboard();
-            }
-        }
+        
     }
     
     public class SetUpEngGroupCommand : SetUpGroupCommand
@@ -126,8 +89,7 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
             {
                 return Scheduler.GroupsMonitor.AvailableGroups.Any(g => g.GType == ScheduleGroupType.Eng && g.Name.ToLowerInvariant().StartsWith(update.Message.Text.ToLowerInvariant().Trim()));
             }
-            else
-                return true;
+            return true;
         }
 
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
@@ -166,7 +128,7 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands
         }
 
         
-    }*/
+    }
 
     
 }

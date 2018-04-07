@@ -49,26 +49,34 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
                 teacherSelector.TeacherName = teacher;
                 var teacherSchedule = await scheduleService.CompileScheduleWithSelector(teacherSelector);
                 if (teacherSchedule.ScheduleRoot.Level == ScheduleElemLevel.Week)
+                {
+                    await Bot.Client.SendTextMessageAsync(
+                        update.CallbackQuery.Message.Chat.Id,
+                        teacher);
                     foreach (var daySchedule in teacherSchedule.ScheduleRoot.Elems.Cast<Day>())
                     {
                         await SendDay(daySchedule);
                         await Task.Delay(200);
                     }
+                }
                 else if (teacherSchedule.ScheduleRoot.Level == ScheduleElemLevel.Day)
                 {
+                    await Bot.Client.SendTextMessageAsync(
+                        update.CallbackQuery.Message.Chat.Id,
+                        teacher);
                     await SendDay((Day) teacherSchedule.ScheduleRoot);
                 }
                 else
                 {
                     await Bot.Client.SendTextMessageAsync(
-                        update.Message.Chat.Id,
+                        update.CallbackQuery.Message.Chat.Id,
                         "Пар нет", replyMarkup: keyboards.GetMainOptionsKeyboard());
                 }
             }
             else
             {
                 await Bot.Client.SendTextMessageAsync(
-                    update.Message.Chat.Id,
+                    update.CallbackQuery.Message.Chat.Id,
                     "Нет такого преподавателя.", replyMarkup: keyboards.GetMainOptionsKeyboard());
             }
 
@@ -80,8 +88,8 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
                     CustomSerializator.ProcessSchedule(day.Elems.OfType<Lesson>(),
                         day.DayOfWeek);
                 await Bot.Client.SendTextMessageAsync(
-                    update.Message.Chat.Id,
-                    answer, ParseMode.Html);
+                    update.CallbackQuery.Message.Chat.Id,
+                    answer, ParseMode.Html, replyMarkup: keyboards.GetMainOptionsKeyboard());
             }
         }
     }

@@ -102,7 +102,7 @@ namespace ScheduleServices.Core
             Task CompareAndAddIfNotEqual(IScheduleElem freshSchedule, IScheduleElem storedSchedule,
                 IScheduleGroup group)
             {
-                if (storedSchedule == null || freshSchedule.Equals(storedSchedule))
+                if (storedSchedule == null || !freshSchedule.Equals(storedSchedule))
                     return storage.UpdateScheduleAsync(group,
                         freshSchedule).ContinueWith((t) =>
                         group.RaiseScheduleChanged(this, eventArgsFactory.GetArgs(freshSchedule)));
