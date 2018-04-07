@@ -32,6 +32,8 @@ namespace MagicParser.Impls
                             Elems = ConvertSubjects(subjects.Where(s => s.Group == group.Name))
                         }
                     };
+
+                    if(result.ScheduleRoot.Elems.Count != 0)
                     schedules.Add(result);
                 }
 
@@ -61,7 +63,8 @@ namespace MagicParser.Impls
             ICollection<IScheduleElem> result = new List<IScheduleElem>();
             foreach (var subject in oldFormatSubjects)
             {
-                result.Add(new Lesson
+                if (subject.SubjectName.Any(char.IsLetter))
+                    result.Add(new Lesson
                 {
                     Discipline = subject.SubjectName,
                     Teacher = subject.Teacher,
@@ -69,6 +72,7 @@ namespace MagicParser.Impls
                     BeginTime = TimeSpan.Parse(subject.Time.Replace('.', ':').Substring(0, 5)),
                     Duration = TimeSpan.FromMinutes(90),
                     Notation = subject.Notation,
+                    IsOnEvenWeek = subject.IsOnEvenWeek,
                     Elems = null
                 });
             }

@@ -17,7 +17,8 @@ namespace MagicParser.Parsers
                 SubjectName = "",
                 Teacher = "",
                 Time = input.Time,
-                Group = input.Group
+                Group = input.Group,
+                IsOnEvenWeek = input.IsOnEvenWeek
             };
             var notationCheck = false;
             var upperCaseCheck = false;

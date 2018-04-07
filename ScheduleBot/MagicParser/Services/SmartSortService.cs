@@ -21,6 +21,7 @@ namespace MagicParser.Services
             var parsedSubjects = new List<ParsedSubject>();
             foreach (var unparsedSubject in inputSubjects)
             {
+                unparsedSubject.IsOnEvenWeek = CheckWeeks(unparsedSubject);
                 if (Keywords.Lecture().Any(l => unparsedSubject.Content.Contains(l))
                     && !Keywords.NotLecture().Any(n => unparsedSubject.Content.Contains(n)))
                 {
@@ -79,7 +80,7 @@ namespace MagicParser.Services
             }
 
             if ((unparsedObject.Content.Contains("Макаев") || unparsedObject.Content.Contains("Мартынова")) &&
-                unparsedObject.Group.StartsWith("11-7") && !unparsedObject.Time.Contains("11.50"))
+                unparsedObject.Group.StartsWith("11-7") && !unparsedObject.Content.Contains("Переточкина"))
                 return new Tuple<int, int>(1, 5);
 
             if (unparsedObject.Content.Contains("Переточкина") && unparsedObject.Group.StartsWith("11-7"))
@@ -88,6 +89,15 @@ namespace MagicParser.Services
             if (unparsedObject.Group.StartsWith("11-7"))
                 return new Tuple<int, int>(1, 9);
             return new Tuple<int, int>(1, 8);
+        }
+
+        private bool? CheckWeeks(TmpObject inputSubject)
+        {
+            if (inputSubject.Content.Contains("н.н"))
+                return false;
+            if (inputSubject.Content.Contains("ч.н"))
+                return  true;
+            return null;
         }
 
         private IEnumerable<ParsedSubject> ShareSubjects(ParsedSubject parsedSubject, Tuple<int, int> marker)

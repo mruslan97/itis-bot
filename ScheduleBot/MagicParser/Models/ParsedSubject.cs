@@ -12,5 +12,6 @@ namespace MagicParser.Models
         public string Teacher { get; set; }
         public string Cabinet { get; set; }
         public string Notation { get; set; }
+        public bool? IsOnEvenWeek { get; set; }
     }
 }

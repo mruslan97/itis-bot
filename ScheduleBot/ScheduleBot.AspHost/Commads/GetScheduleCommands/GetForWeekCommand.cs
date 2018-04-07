@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ScheduleBot.AspHost.BotStorage;
 using ScheduleBot.AspHost.Commads.CommandArgs;
@@ -43,7 +44,7 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
                     await Bot.Client.SendTextMessageAsync(
                         update.Message.Chat.Id,
                         answer, ParseMode.Html);
-                    System.Threading.Thread.Sleep(200);
+                    Thread.Sleep(200);
                 }
             }
             else
@@ -52,6 +53,7 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
                     update.Message.Chat.Id,
                     "А группа?");
             }
+
             return UpdateHandlingResult.Handled;
         }
     }
