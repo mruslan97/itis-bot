@@ -41,9 +41,12 @@ namespace MagicParser.Parsers
                     Cabinet = cabinet,
                     Teacher = teacher,
                     Type = groupType,
-                    Course = input.Course,
-                    Notation = '(' +notation + ')'
+                    Course = input.Course
                 };
+                if (notation.Length > 2)
+                {
+                    parsedSubject.Notation = '(' + notation + ')';
+                }
                 if (parsedSubject.SubjectName.Length < 5)
                     parsedSubject.SubjectName = lastSubjectName;
                 else
