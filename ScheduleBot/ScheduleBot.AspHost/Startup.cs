@@ -237,11 +237,11 @@ namespace ScheduleBot.AspHost
 
                 //tech groups
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Введение в теорию и практику анимации_Костюк Д.И._3курс_1"},
-                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Проектирование веб- интерфейсов_Шахова И.С._3курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "(Шахова) Проектирование веб- интерфейсов_Шахова И.С._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Технологии Net_Гумеров К.А._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Эффективная разработка_Якупов А.Ш._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Скриптинг_Хусаинов Р.Р._3курс_1"},
-                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Проектирование веб- интерфейсов_Гиниятуллин Р.Г._3курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "(Гиниятуллин) Проектирование веб- интерфейсов_Гиниятуллин Р.Г._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Методы оптимизации_Фазылов В.Р._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "(Таланов) Введение в исскуственный интеллект_Таланов М.О._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "(Кугуракова) Введение в исскуственный интеллект_Кугуракова В.В._2курс_1"},
