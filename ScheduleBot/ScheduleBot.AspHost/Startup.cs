@@ -114,7 +114,6 @@ namespace ScheduleBot.AspHost
             {
                 app.UseDeveloperExceptionPage();
             }
-
             // TO RUN LONGPOOLING UNCOMMENT IT AND COMMNENT `app.UseTelegramBotWebhook<ItisScheduleBot>();` BELOW
             /*Task.Factory.StartNew(async () =>
             {
