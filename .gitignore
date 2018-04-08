@@ -260,3 +260,4 @@ paket-files/
 __pycache__/
 *.pyc
 appsettings.DevLocal.json
+client_secret.json
