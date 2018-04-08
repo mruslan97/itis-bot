@@ -15,9 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ScheduleBot.AspHost\ScheduleBot.AspHost.csproj" />
-    <ProjectReference Include="..\ScheduleServices.Core\ScheduleServices.Core.csproj" />
-    <ProjectReference Include="..\Tests\ScheduleServices.Core.Tests\ScheduleServices.Core.Tests.csproj" />
+    <ProjectReference Include="..\..\ScheduleBot.AspHost\ScheduleBot.AspHost.csproj" />
+    <ProjectReference Include="..\..\ScheduleServices.Core\ScheduleServices.Core.csproj" />
+    <ProjectReference Include="..\ScheduleServices.Core.Tests\ScheduleServices.Core.Tests.csproj" />
   </ItemGroup>
 
 </Project>
