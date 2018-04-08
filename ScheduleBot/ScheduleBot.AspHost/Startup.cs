@@ -30,6 +30,7 @@ using ScheduleServices.Core.Modules;
 using ScheduleServices.Core.Modules.Interfaces;
 using ScheduleServices.Core.Providers.Interfaces;
 using ScheduleServices.Core.Providers.Storage;
+using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 
 namespace ScheduleBot.AspHost
@@ -114,35 +115,35 @@ namespace ScheduleBot.AspHost
                 app.UseDeveloperExceptionPage();
             }
 
-            Task.Factory.StartNew(async () =>
-            {
-                var botManager = app.ApplicationServices.GetRequiredService<IBotManager<ItisScheduleBot>>();
-                await botManager.SetWebhookStateAsync(false);
+            //Task.Factory.StartNew(async () =>
+            //{
+            //    var botManager = app.ApplicationServices.GetRequiredService<IBotManager<ItisScheduleBot>>();
+            //   // await botManager.SetWebhookStateAsync(true);
 
                 
-                var notifier = (Notificator) app.ApplicationServices.GetRequiredService<INotifiactionSender>();
-                notifier.Bot = app.ApplicationServices.GetRequiredService<ItisScheduleBot>();
+            //    var notifier = (Notificator) app.ApplicationServices.GetRequiredService<INotifiactionSender>();
+            //    notifier.Bot = app.ApplicationServices.GetRequiredService<ItisScheduleBot>();
 
-                while (true)
-                {
-                    try
-                    {
-                        await botManager.GetAndHandleNewUpdatesAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Exception: {e}");
-                        logger.LogError($"Exception: {e}");
-                    }
-                }
-            }).ContinueWith(t =>
-            {
-                if (t.IsFaulted) throw t.Exception;
-            });
+            //    while (true)
+            //    {
+            //        try
+            //        {
+            //            await botManager.GetAndHandleNewUpdatesAsync();
+            //        }
+            //        catch (Exception e)
+            //        {
+            //            Console.WriteLine($"Exception: {e}");
+            //            logger.LogError($"Exception: {e}");
+            //        }
+            //    }
+            //}).ContinueWith(t =>
+            //{
+            //    if (t.IsFaulted) throw t.Exception;
+            //});
 
             updates = new UpdatesScheduler(app.ApplicationServices);
             updates.Start();
-
+            app.UseTelegramBotWebhook<ItisScheduleBot>();
             app.Run(async (context) => { });
         }
 

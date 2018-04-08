@@ -11,6 +11,7 @@ using ScheduleServices.Core.Models.Interfaces;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace ScheduleBot.AspHost.Commads
@@ -36,9 +37,16 @@ namespace ScheduleBot.AspHost.Commads
 
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
+            var answer = "Меню настроек. 🛠️\n" +
+                         "<b>Eng</b> - выбор преподавателя по английскому языку\n" +
+                         "<b>Tech</b> - курс по выбору(лабы)\n" +
+                         "<b>Science</b> - курс по выбору, научный блок.(физика, машинное обучение) \n" +
+                         "<b>Сменить группу</b> - смена академической группы\n" +
+                         @"<b>Для разработчиков</b> - без комментариев ¯\_(ツ)_/¯";
+                             
             await Bot.Client.SendTextMessageAsync(
                 update.Message.Chat.Id,
-                "Лол, удачи братан!", replyMarkup: keyboards.GetSettingsKeyboard());
+                answer, replyMarkup: keyboards.GetSettingsKeyboard(), parseMode:ParseMode.Html);
 
 
             return UpdateHandlingResult.Handled;
@@ -67,7 +75,7 @@ namespace ScheduleBot.AspHost.Commads
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
             await Bot.Client.SendTextMessageAsync(
-                update.Message.Chat.Id, "ня", replyMarkup: keyboards.GetMainOptionsKeyboard());
+                update.Message.Chat.Id, "Главное меню", replyMarkup: keyboards.GetMainOptionsKeyboard());
 
 
             return UpdateHandlingResult.Handled;
@@ -164,7 +172,7 @@ namespace ScheduleBot.AspHost.Commads
                 update.Message.Chat.Id, next.Item2, replyMarkup: new ReplyKeyboardMarkup(new[]
                 {
                     new[] {new KeyboardButton(next.Item3)},
-                    new[] {new KeyboardButton("Back")}
+                    new[] {new KeyboardButton("Back⬅️") }
                 }));
 
             return UpdateHandlingResult.Handled;

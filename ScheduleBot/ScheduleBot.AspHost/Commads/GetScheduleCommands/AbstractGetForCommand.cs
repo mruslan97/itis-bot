@@ -35,7 +35,7 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
             if (DateTime.Today.DayOfWeek == DayOfWeek.Sunday && period == ScheduleRequiredFor.Today
                 || DateTime.Today.DayOfWeek == DayOfWeek.Saturday && period == ScheduleRequiredFor.Tomorrow)
             {
-                await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Выходной день 😄");
+                await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Выходной день 😃");
                 return UpdateHandlingResult.Handled;
             }
 
@@ -45,7 +45,7 @@ namespace ScheduleBot.AspHost.Commads.GetScheduleCommands
                 var schedule = await Scheduler.GetScheduleForAsync(userGroups, period);
                 if (schedule.ScheduleRoot.Level == ScheduleElemLevel.Undefined)
                 {
-                    await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Пар нет 😄");
+                    await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Пар нет 😃");
                     return UpdateHandlingResult.Handled;
                 }
 

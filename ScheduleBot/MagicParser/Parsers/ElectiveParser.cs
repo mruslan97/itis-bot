@@ -33,7 +33,7 @@ namespace MagicParser.Parsers
                 {
                     subjectName = subjectName.Replace(notation, "");
                 }
-                subjectName = Regex.Replace(subjectName, @"[\d-]", string.Empty);
+                subjectName = Regex.Replace(subjectName, @"[\d]", string.Empty);
                 var parsedSubject = new ParsedSubject
                 {
                     SubjectName = subjectName,
@@ -47,7 +47,7 @@ namespace MagicParser.Parsers
                 {
                     parsedSubject.Notation = '(' + notation + ')';
                 }
-                if (parsedSubject.SubjectName.Length < 5)
+                if (parsedSubject.SubjectName.Length < 2)
                     parsedSubject.SubjectName = lastSubjectName;
                 else
                     lastSubjectName = subjectName;

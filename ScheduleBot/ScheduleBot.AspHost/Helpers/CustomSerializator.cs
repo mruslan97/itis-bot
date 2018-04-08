@@ -18,7 +18,7 @@ namespace ScheduleBot.AspHost.Helpers
             answerMessage.AppendLine($"<b>{dayOfWeek.ToUpper()}</b>");
             if (lessons.Count() == 0)
             {
-                answerMessage.AppendLine("Пар нет 😄");
+                answerMessage.AppendLine("Пар нет 😃");
                 return answerMessage.ToString();
             }
 

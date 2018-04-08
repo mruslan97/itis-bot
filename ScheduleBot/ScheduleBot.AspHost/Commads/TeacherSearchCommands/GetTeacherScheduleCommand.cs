@@ -53,10 +53,15 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
                     await Bot.Client.SendTextMessageAsync(
                         update.CallbackQuery.Message.Chat.Id,
                         teacher);
+                    await Bot.Client.AnswerCallbackQueryAsync(update.CallbackQuery.Id, teacher);
                     foreach (var daySchedule in teacherSchedule.ScheduleRoot.Elems.Cast<Day>())
                     {
-                        await SendDay(daySchedule);
-                        await Task.Delay(200);
+                        // todo fix sunday
+                        if (daySchedule.DayOfWeek != DayOfWeek.Sunday)
+                        {
+                            await SendDay(daySchedule);
+                            await Task.Delay(200);
+                        }
                     }
                 }
                 else if (teacherSchedule.ScheduleRoot.Level == ScheduleElemLevel.Day)
@@ -64,6 +69,7 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
                     await Bot.Client.SendTextMessageAsync(
                         update.CallbackQuery.Message.Chat.Id,
                         teacher);
+                    await Bot.Client.AnswerCallbackQueryAsync(update.CallbackQuery.Id, teacher);
                     await SendDay((Day) teacherSchedule.ScheduleRoot);
                 }
                 else

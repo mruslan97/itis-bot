@@ -16,6 +16,7 @@ namespace ScheduleBot.AspHost
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseKestrel()
                 .UseStartup<Startup>()
+                .UseUrls("http://+:8443")
                 .Build();
         }
     }
