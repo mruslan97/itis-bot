@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleBot.AspHost.Keyboards;
 using Telegram.Bot.Framework.Abstractions;
+using Telegram.Bot.Types.Enums;
 
 namespace ScheduleBot.AspHost.BotServices
 {
@@ -33,8 +34,8 @@ namespace ScheduleBot.AspHost.BotServices
                     foreach (var id in list)
                     {
                         await Bot.Client.SendTextMessageAsync(id,
-                            $"Спешу сообщить, что в твоем расписании произошли изменения. {message}. Слава роботам!",
-                            replyMarkup: keyboards.GetMainOptionsKeyboard());
+                            $"⚠️ В твоем расписании есть обновления! <b>{message}</b>.",
+                            replyMarkup: keyboards.GetMainOptionsKeyboard(), parseMode:ParseMode.Html);
                         await Task.Delay(1000);
                     }
                 });

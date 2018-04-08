@@ -22,8 +22,8 @@ namespace MagicParser.Impls
         }
         public IEnumerable<ISchedule> GetSchedules(IEnumerable<IScheduleGroup> availableGroups, DayOfWeek day)
         {
-            try
-            {
+            //try
+            //{
                 var groups = availableGroups.Where(g => g.GType == ScheduleGroupType.Academic).ToList();
                 var schedules = new List<Schedule>();
                 var subjects = GetAllGroups(day);
@@ -92,6 +92,14 @@ namespace MagicParser.Impls
                 var techSubjects = subjects.Where(s => s.Type == ScheduleGroupType.PickedTech).ToList();
                 foreach (var techGroup in techGroups)
                 {
+                    var helpName = "";
+                    var subjectName = techGroup.Name.Split('_')[0];
+                    if (subjectName.Contains('('))
+                    {
+                        helpName = subjectName.Split('(', ')')[1];
+                        subjectName = subjectName.Substring(subjectName.IndexOf(')')+2);
+                    }
+
                     var result = new Schedule
                     {
                         ScheduleGroups = new List<IScheduleGroup> {techGroup},
@@ -100,8 +108,8 @@ namespace MagicParser.Impls
                             Level = ScheduleElemLevel.Day,
                             DayOfWeek = day,
                             Elems = ConvertSubjects(techSubjects.Where(s =>
-                                s.SubjectName.Contains(techGroup.Name.Split('_')[0])
-                                && s.Teacher == techGroup.Name.Split('_')[1]
+                                s.SubjectName.Contains(subjectName) 
+                                && (s.Teacher == techGroup.Name.Split('_')[1] || s.Teacher.Contains(helpName)) 
                                 && s.Course.ToString() == techGroup.Name.Split('_')[2].Substring(0, 1)))
                         }
                     };
@@ -112,11 +120,11 @@ namespace MagicParser.Impls
 
 
                 return schedules;
-            }
-            catch (Exception e)
-            {
-                throw new ScheduleConstructorException("An exception occured while constructing schedule.", e);
-            }
+            //}
+            //catch (Exception e)
+            //{
+            //    throw new ScheduleConstructorException("An exception occured while constructing schedule.", e);
+            //}
         }
 
         private IEnumerable<ParsedSubject> GetAllGroups(DayOfWeek day)

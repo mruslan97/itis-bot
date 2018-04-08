@@ -18,21 +18,28 @@ namespace MagicParser.Parsers
             var lastSubjectName = "";
             foreach (var subject in subjects)
             {
-                var fixedName = Regex.Match(subject, @"[А-ЯA-Z].*").Value;
+                var notation = "";
+                var fixedName = "";
+                if (subject.Contains("("))
+                {
+                    notation = "(" + subject.Split('(', ')')[1] + ")";
+                    fixedName = subject.Replace(notation, "");
+                }
+                else
+                {
+                    fixedName = subject;
+                }
+
+                fixedName = Regex.Match(fixedName, @"[А-ЯA-Z].*").Value;
                 var cabinet = Regex.Match(fixedName, @"\d+").Value;
                 var teacher = Regex.Match(fixedName, @"[А-Я][а-я]+\s?[А-Я].[А-Я]?.?").Value;
-                var notation = "";
-                if (fixedName.Contains("("))
-                    notation = fixedName.Split('(', ')')[1];
+                
                 var subjectName = fixedName
                     .Replace(teacher, "")
                     .Replace(cabinet, "")
                     .Replace("()", "")
-                    .Replace("  ", "");
-                if (notation.Length > 0)
-                {
-                    subjectName = subjectName.Replace(notation, "");
-                }
+                    .Replace("  ", "")
+                    .Replace("\t", ""); 
                 subjectName = Regex.Replace(subjectName, @"[\d]", string.Empty);
                 var parsedSubject = new ParsedSubject
                 {
@@ -41,12 +48,9 @@ namespace MagicParser.Parsers
                     Cabinet = cabinet,
                     Teacher = teacher,
                     Type = groupType,
-                    Course = input.Course
+                    Course = input.Course,
+                    Notation = notation
                 };
-                if (notation.Length > 2)
-                {
-                    parsedSubject.Notation = '(' + notation + ')';
-                }
                 if (parsedSubject.SubjectName.Length < 2)
                     parsedSubject.SubjectName = lastSubjectName;
                 else
