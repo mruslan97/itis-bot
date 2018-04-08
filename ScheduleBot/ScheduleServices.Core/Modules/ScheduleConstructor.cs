@@ -16,10 +16,10 @@ namespace ScheduleServices.Core.Modules
         private readonly ISchElemsFactory elemsFactory;
         private SchElemsMerger branchMerger;
 
-        public ScheduleConstructor(ISchElemsFactory elemsFactory)
+        public ScheduleConstructor(ISchElemsFactory elemsFactory, SchElemsMerger branchMerger)
         {
             this.elemsFactory = elemsFactory;
-            this.branchMerger = new SchElemsMerger(elemsFactory);
+            this.branchMerger = branchMerger;
         }
 
         public Task<ISchedule> ConstructFromMany(IEnumerable<ISchedule> schedules) 

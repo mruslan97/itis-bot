@@ -90,7 +90,8 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
                     var number = update.CallbackQuery.Data == "➡️" ? 1 : -1;
                     var current = number + index;
                     var replyList = teachers.GetTeachersNames().Skip(10 * current).Take(10).ToList();
-                    var teachersButtonsCount = replyList.Count/2;
+                    bool lastTeacherIsAlone = replyList.Count % 2 != 0;
+                    var teachersButtonsCount = (replyList.Count / 2) + (lastTeacherIsAlone ? 1 : 0);
                     InlineKeyboardMarkup inlineKeyboard;
                     if (current > 0)
                     {
@@ -106,7 +107,10 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
                         var keyboardCounter = 0;
                         for (int i = 0; i < keyboard.Length - 1; i++)
                         {
-                            keyboard[i] = new[] { InlineKeyboardButton.WithCallbackData(replyList[keyboardCounter]), InlineKeyboardButton.WithCallbackData(replyList[keyboardCounter + 1]) };
+                            if (lastTeacherIsAlone && i == keyboard.Length - 2)
+                                keyboard[i] = new[] { InlineKeyboardButton.WithCallbackData(replyList[keyboardCounter]) };
+                            else
+                                keyboard[i] = new[] { InlineKeyboardButton.WithCallbackData(replyList[keyboardCounter]), InlineKeyboardButton.WithCallbackData(replyList[keyboardCounter + 1]) };
                             keyboardCounter += 2;
                         }
                         keyboard[keyboard.Length - 1] = endButtons;
@@ -122,7 +126,10 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
                         var keyboardCounter = 0;
                         for (int i = 0; i < keyboard.Length - 1; i++)
                         {
-                            keyboard[i] = new[] { InlineKeyboardButton.WithCallbackData(replyList[keyboardCounter]), InlineKeyboardButton.WithCallbackData(replyList[keyboardCounter + 1]) };
+                            if (lastTeacherIsAlone && i == keyboard.Length - 2)
+                                keyboard[i] = new[] { InlineKeyboardButton.WithCallbackData(replyList[keyboardCounter]) };
+                            else
+                                keyboard[i] = new[] { InlineKeyboardButton.WithCallbackData(replyList[keyboardCounter]), InlineKeyboardButton.WithCallbackData(replyList[keyboardCounter + 1]) };
                             keyboardCounter += 2;
                         }
 

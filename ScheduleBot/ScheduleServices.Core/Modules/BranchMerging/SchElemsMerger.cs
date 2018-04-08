@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using ScheduleServices.Core.Factories.Interafaces;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleElems;
@@ -11,10 +12,14 @@ namespace ScheduleServices.Core.Modules.BranchMerging
     public class SchElemsMerger
     {
         private readonly ISchElemsFactory defaultFactory;
+        private readonly ILogger<SchElemsMerger> logger;
+        private readonly ILogger<DayMergeStrategy> dmLogger;
 
-        public SchElemsMerger(ISchElemsFactory defaultFactory)
+        public SchElemsMerger(ISchElemsFactory defaultFactory, ILogger<SchElemsMerger> logger = null, ILogger<DayMergeStrategy> dmLogger = null)
         {
             this.defaultFactory = defaultFactory;
+            this.logger = logger;
+            this.dmLogger = dmLogger;
         }
 
         public void Merge(ref IScheduleElem sourceNode, ref IScheduleElem targetNode)
@@ -61,7 +66,7 @@ namespace ScheduleServices.Core.Modules.BranchMerging
                 case ScheduleElemLevel.Week:
                     return new WeekMergeStrategy(this);
                 case ScheduleElemLevel.Day:
-                    return new DayMergeStrategy(this);
+                    return new DayMergeStrategy(this, dmLogger);
                 case ScheduleElemLevel.Undefined:
                     return new UndefinedMergeStrategy(this);
                 default:

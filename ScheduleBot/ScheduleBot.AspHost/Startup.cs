@@ -31,6 +31,7 @@ using ScheduleServices.Core.Modules.Interfaces;
 using ScheduleServices.Core.Providers.Interfaces;
 using ScheduleServices.Core.Providers.Storage;
 using Telegram.Bot.Framework;
+using NLog.Web;
 using Telegram.Bot.Framework.Abstractions;
 
 namespace ScheduleBot.AspHost
@@ -48,6 +49,7 @@ namespace ScheduleBot.AspHost
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
                 .AddJsonFile($"appsettings.DevLocal.json", optional: true)
                 .AddEnvironmentVariables();
+                
             configuration = builder.Build();
         }
 
@@ -106,24 +108,21 @@ namespace ScheduleBot.AspHost
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole(configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
+            
             ILogger logger = loggerFactory.CreateLogger<Startup>();
-
+            logger.LogInformation("Configuration started");
+            logger.LogInformation($"Env: {env.EnvironmentName}");
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
+            logger.LogInformation("Bot up");
             // TO RUN LONGPOOLING UNCOMMENT IT AND COMMNENT `app.UseTelegramBotWebhook<ItisScheduleBot>();` BELOW
             /*Task.Factory.StartNew(async () =>
             {
                 var botManager = app.ApplicationServices.GetRequiredService<IBotManager<ItisScheduleBot>>();
                 await botManager.SetWebhookStateAsync(false);
-
-
-               
-
                 while (true)
                 {
                     try
@@ -132,7 +131,6 @@ namespace ScheduleBot.AspHost
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine($"Exception: {e}");
                         logger.LogError($"Exception: {e}");
                     }
                 }
@@ -143,14 +141,17 @@ namespace ScheduleBot.AspHost
             // TO RUN WEBHOOK UNCOMMENT IT AND COMMNENT `Task.Factory.StartNew( ..` UPPER
             app.UseTelegramBotWebhook<ItisScheduleBot>();
 
+            logger.LogInformation("Set up bot to notifier");
             //set up bot for notifier to fix DI-loop
             var notifier = (Notificator)app.ApplicationServices.GetRequiredService<INotifiactionSender>();
             notifier.Bot = app.ApplicationServices.GetRequiredService<ItisScheduleBot>();
             //run scheduled updates
+            logger.LogInformation("Run schedules updating");
             updates = new UpdatesScheduler(app.ApplicationServices);
             updates.Start();
 
             app.Run(async (context) => { });
+            logger.LogInformation("Configuration ended");
         }
 
         private IList<IScheduleGroup> GetGroupsList()

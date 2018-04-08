@@ -1,5 +1,8 @@
 ﻿using System.IO;
+using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
+using NLog.Web;
 
 namespace ScheduleBot.AspHost
 {
@@ -7,6 +10,8 @@ namespace ScheduleBot.AspHost
     {
         public static void Main(string[] args)
         {
+            Directory.CreateDirectory(Directory.GetParent(Assembly.GetExecutingAssembly().Location) + "/logs");
+            Directory.CreateDirectory(Directory.GetParent(Assembly.GetExecutingAssembly().Location) + "/logs/messages");
             BuildWebHost(args).Run();
         }
 
@@ -17,6 +22,7 @@ namespace ScheduleBot.AspHost
                 .UseKestrel()
                 .UseStartup<Startup>()
                 .UseUrls("http://+:8443")
+                .UseNLog()
                 .Build();
         }
     }

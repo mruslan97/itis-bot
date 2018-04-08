@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleBot.AspHost.Commads.CommandArgs;
 using ScheduleBot.AspHost.Keyboards;
@@ -17,19 +19,23 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands.ElectivesSetUpCommands
     {
         protected IScheduleService Scheduler;
         protected IKeyboardsFactory Keyboards;
+        private readonly ILogger logger;
         protected readonly ScheduleGroupType GroupType;
         protected IBotDataStorage Storage;
         protected Dictionary<long, ValueTuple<IScheduleGroup, IScheduleGroup>> Cache;
 
-        protected SetUpElectiveGroupCommand(ScheduleGroupType type, IBotDataStorage storage, IScheduleService scheduler, IKeyboardsFactory keyboards,
-            string command) : base(command)
+        protected SetUpElectiveGroupCommand(ScheduleGroupType type, IBotDataStorage storage, IScheduleService scheduler,
+            IKeyboardsFactory keyboards, 
+            string command, ILogger logger = null) : base(command)
         {
             this.GroupType = type;
             this.Storage = storage;
             this.Scheduler = scheduler;
             this.Keyboards = keyboards;
+            this.logger = logger;
             Cache = new Dictionary<long, ValueTuple<IScheduleGroup, IScheduleGroup>>();
         }
+
         protected override bool CanHandleCommand(Update update)
         {
             if (!base.CanHandleCommand(update))
@@ -45,10 +51,13 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands.ElectivesSetUpCommands
                         return true;
                     }
                 }
+
                 return false;
             }
+
             return true;
         }
+
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
             IScheduleGroup userAcademicGroup;
@@ -82,11 +91,13 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands.ElectivesSetUpCommands
             }
             else
             {
-                Console.Out.WriteLine($"Bad situation: allowed group not found but it can handle this command: {GroupType}");
+                logger?.LogError(
+                    "Bad situation: allowed group not found but it can handle this command: {0}, {1}", GroupType, JsonConvert.SerializeObject(update));
                 await Bot.Client.SendTextMessageAsync(
                     update.Message.Chat.Id,
                     "Сначала надо установить группу ☝️. Выбери курс.", replyMarkup: Keyboards.GetCoursesKeyboad());
             }
+
             return UpdateHandlingResult.Handled;
         }
 
@@ -99,10 +110,12 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands.ElectivesSetUpCommands
                                                     .StartsWith(update.Message.Text.ToLowerInvariant()
                                                         .Trim()));
         }
+
         protected IScheduleGroup GetAcademic(Update update)
         {
             return GetAcademicAsync(update).Result;
         }
+
         protected async Task<IScheduleGroup> GetAcademicAsync(Update update)
         {
             return (await Storage.GetGroupsForChatAsync(update.Message.Chat)).FirstOrDefault(g =>
@@ -120,7 +133,9 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands.ElectivesSetUpCommands
         protected readonly string NotFoundResponseText;
         protected IBotDataStorage Storage;
 
-        protected GetElectiveGroupsCommand(ScheduleGroupType type, string triggerName, string responseText, string notFoundResponseText, IBotDataStorage storage, IScheduleService scheduler, IKeyboardsFactory keyboards,
+        protected GetElectiveGroupsCommand(ScheduleGroupType type, string triggerName, string responseText,
+            string notFoundResponseText, IBotDataStorage storage, IScheduleService scheduler,
+            IKeyboardsFactory keyboards,
             string command) :
             base(command)
         {
@@ -179,6 +194,5 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands.ElectivesSetUpCommands
 
             return UpdateHandlingResult.Handled;
         }
-
     }
 }

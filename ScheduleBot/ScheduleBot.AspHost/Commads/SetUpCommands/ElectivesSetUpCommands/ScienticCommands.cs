@@ -1,4 +1,5 @@
-﻿using ScheduleBot.AspHost.BotServices.Interfaces;
+﻿using Microsoft.Extensions.Logging;
+using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleBot.AspHost.Keyboards;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Models.Interfaces;
@@ -17,8 +18,8 @@ namespace ScheduleBot.AspHost.Commads.SetUpCommands.ElectivesSetUpCommands
     public class SetUpScienticGroupCommand : SetUpElectiveGroupCommand
     {
         public SetUpScienticGroupCommand(IBotDataStorage storage, IScheduleService scheduler,
-            IKeyboardsFactory keyboards) :
-            base(ScheduleGroupType.PickedScientic, storage, scheduler, keyboards, "setsci")
+            IKeyboardsFactory keyboards, ILogger<SetUpScienticGroupCommand> logger = null) :
+            base(ScheduleGroupType.PickedScientic, storage, scheduler, keyboards, "setsci", logger)
         {
         }
     }

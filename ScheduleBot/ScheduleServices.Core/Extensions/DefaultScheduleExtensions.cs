@@ -83,7 +83,7 @@ namespace ScheduleServices.Core.Extensions
                                       (result, elem) => result + CheckElemIsCorrect(elem)) ?? res;
                             scheduleElem.Elems?.OfType<Lesson>()?.OrderBy(l => l.BeginTime).Aggregate((prev, current) =>
                             {
-                                if (current.BeginTime <= prev.BeginTime + prev.Duration &&
+                                if (current.BeginTime <= prev.BeginTime &&
                                     (current.IsOnEvenWeek == null || prev.IsOnEvenWeek == null ||
                                      prev.IsOnEvenWeek == current.IsOnEvenWeek))
                                     res.AddError($"incompatible lessons in day {((Day)scheduleElem).DayOfWeek}:" +
@@ -113,7 +113,6 @@ namespace ScheduleServices.Core.Extensions
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
                 return res.AddExeption(e);
             }
         }

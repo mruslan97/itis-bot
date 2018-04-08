@@ -6,10 +6,12 @@ using ScheduleServices.Core.Providers.Interfaces;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Runtime.Serialization.Json;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using ScheduleServices.Core.Extensions;
 using ScheduleServices.Core.Factories;
 using ScheduleServices.Core.Modules;
+using ScheduleServices.Core.Modules.BranchMerging;
 using ScheduleServices.Core.Modules.Interfaces;
 
 namespace ScheduleServices.Core
@@ -21,14 +23,17 @@ namespace ScheduleServices.Core
         public IGroupsMonitor GroupsMonitor { get; }
         private IScheduleInfoProvider freshInfoProvider;
         private readonly IScheduleEventArgsFactory eventArgsFactory;
+        private readonly ILogger<ScheduleService> logger;
 
         public ScheduleService(ISchedulesStorage storage, IGroupsMonitor groupsMonitor,
-            IScheduleInfoProvider freshInfoProvider, IScheduleEventArgsFactory eventArgsFactory)
+            IScheduleInfoProvider freshInfoProvider, IScheduleEventArgsFactory eventArgsFactory, SchElemsMerger branchMerger,
+            ILogger<ScheduleService> logger = null)
         {
             this.storage = storage;
             this.freshInfoProvider = freshInfoProvider;
             this.eventArgsFactory = eventArgsFactory;
-            this.scheduleConstructor = new ScheduleConstructor(new DefaultSchElemsFactory());
+            this.logger = logger;
+            this.scheduleConstructor = new ScheduleConstructor(new DefaultSchElemsFactory(), branchMerger);
             this.GroupsMonitor = groupsMonitor;
 
             try
@@ -38,11 +43,21 @@ namespace ScheduleServices.Core
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                Console.WriteLine("UPDATE INTERRUPTED");
+                if (logger == null)
+                {
+                    Console.WriteLine(e);
+                    Console.WriteLine("UPDATE INTERRUPTED");
+                }
+                else
+                    logger.LogError("First time schedules update interrupted", e);
             }
 
-            Console.WriteLine("UPDATED");
+            if (logger == null)
+            {
+                Console.WriteLine("UPDATED");
+            }
+            else
+                logger.LogInformation("First time schedules updates");
         }
 
         public Task<ISchedule> GetScheduleForAsync(IEnumerable<IScheduleGroup> groups, DayOfWeek day)
@@ -75,13 +90,13 @@ namespace ScheduleServices.Core
                 var checkresult = schedule.ScheduleRoot.CheckElemIsCorrect();
                 if (!checkresult.Successed)
                     foreach (var error in checkresult.ErrorsList)
-                        Console.WriteLine("[" + DateTime.Now + "] + WHILE CHECK FRESH SCHEDULE ERROR FOUND:" + error);
+                        logger?.LogWarning("WHILE CHECK FRESH SCHEDULE ERROR FOUND:" + error);
                 //return checkresult.Successed;
                 return true;
             });
             List<Task> updateTasks = new List<Task>();
             //full outher join fresh <-> stored by group
-            foreach (var entry in fresh.Select(f =>
+            foreach (var entry in goodFresh.Select(f =>
                     new {Group = f.ScheduleGroups.FirstOrDefault(), IsFresh = true, Root = f.ScheduleRoot})
                 .Concat(stored.Select(s =>
                     new {Group = s.ScheduleGroups.FirstOrDefault(), IsFresh = false, Root = s.ScheduleRoot}))
@@ -112,69 +127,54 @@ namespace ScheduleServices.Core
 
         private async Task<ISchedule> CompileSchedules(Func<IEnumerable<ISchedule>> schedules)
         {
-            try
+            var preparedSchedules = new BlockingCollection<ISchedule>(new ConcurrentQueue<ISchedule>());
+            //collect tasks
+            var adding = Task.Run(() =>
             {
-                var preparedSchedules = new BlockingCollection<ISchedule>(new ConcurrentQueue<ISchedule>());
-                //collect tasks
-                var adding = Task.Run(() =>
+                foreach (var schedule in schedules.Invoke())
                 {
-                    foreach (var schedule in schedules.Invoke())
-                    {
-                        preparedSchedules.Add(schedule);
-                    }
-                }).ContinueWith((t) => preparedSchedules.CompleteAdding());
-                //start consuming
-                var result = scheduleConstructor.ConstructFromMany(preparedSchedules.GetConsumingEnumerable());
-                await Task.WhenAll(adding, result);
-                //sync without waiting
-                var res = (await result).OrderScheduleRootAndChildren();
-                if (res.ScheduleRoot.Level == ScheduleElemLevel.Undefined)
-                    Console.Out.WriteLine("[" + DateTime.Now +
-                                          $"] + UNDEFINED DAY SCHEDULE FOUND");
-                return res;
-            }
-            catch (Exception e)
+                    preparedSchedules.Add(schedule);
+                }
+            }).ContinueWith((t) => preparedSchedules.CompleteAdding());
+            //start consuming
+            var result = scheduleConstructor.ConstructFromMany(preparedSchedules.GetConsumingEnumerable());
+            await Task.WhenAll(adding, result);
+            //sync without waiting
+            var res = (await result).OrderScheduleRootAndChildren();
+            if (res.ScheduleRoot.Level == ScheduleElemLevel.Undefined)
             {
-                Console.Out.WriteLine(e);
-                throw;
+                logger?.LogWarning("Udefined schedule returns.");
             }
+
+            return res;
         }
 
         private async Task<ISchedule> GetWeekScheduleForAsync(IEnumerable<IScheduleGroup> groups)
         {
-            try
-            {
-                var preparedSchedules = new BlockingCollection<ISchedule>(new ConcurrentQueue<ISchedule>());
-                //collect tasks
-                var tasks = new List<Task>();
-                //start consuming
-                var result = scheduleConstructor.ConstructFromMany(preparedSchedules.GetConsumingEnumerable());
+            var preparedSchedules = new BlockingCollection<ISchedule>(new ConcurrentQueue<ISchedule>());
+            //collect tasks
+            var tasks = new List<Task>();
+            //start consuming
+            var result = scheduleConstructor.ConstructFromMany(preparedSchedules.GetConsumingEnumerable());
 
-                var validated = ValidateGroups(groups);
-                for (int i = 1; i <= 6; i++)
+            var validated = ValidateGroups(groups);
+            for (int i = 1; i <= 6; i++)
+            {
+                tasks.Add(Task.Factory.StartNew((index) =>
                 {
-                    tasks.Add(Task.Factory.StartNew((index) =>
+                    foreach (var schedule in storage.GetSchedules(validated, (DayOfWeek) index))
                     {
-                        foreach (var schedule in storage.GetSchedules(validated, (DayOfWeek) index))
-                        {
-                            preparedSchedules.Add(schedule);
-                        }
-                    }, i));
-                }
+                        preparedSchedules.Add(schedule);
+                    }
+                }, i));
+            }
 
 
-                await Task.WhenAll(tasks).ContinueWith((t) => preparedSchedules.CompleteAdding());
-                var res = (await result).OrderScheduleRootAndChildren();
-                if (res.ScheduleRoot.Level == ScheduleElemLevel.Undefined)
-                    Console.Out.WriteLine("[" + DateTime.Now + "] + UNDEFINED WEEK SCHEDULE FOUND, groups:" +
-                                          JsonConvert.SerializeObject(groups));
-                return res;
-            }
-            catch (Exception e)
-            {
-                Console.Out.WriteLine(e);
-                throw;
-            }
+            await Task.WhenAll(tasks).ContinueWith((t) => preparedSchedules.CompleteAdding());
+            var res = (await result).OrderScheduleRootAndChildren();
+            if (res.ScheduleRoot.Level == ScheduleElemLevel.Undefined)
+                logger?.LogWarning("UNDEFINED WEEK SCHEDULE FOUND groups {0}", groups);
+            return res;
         }
 
         #region overloads

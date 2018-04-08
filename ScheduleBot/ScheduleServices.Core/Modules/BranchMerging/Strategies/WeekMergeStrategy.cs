@@ -10,7 +10,7 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
 {
     public class WeekMergeStrategy : MergeStrategy
     {
-        public WeekMergeStrategy(SchElemsMerger schElemsMerger) : base(schElemsMerger)
+        public WeekMergeStrategy(SchElemsMerger schElemsMerger)
         {
         }
 

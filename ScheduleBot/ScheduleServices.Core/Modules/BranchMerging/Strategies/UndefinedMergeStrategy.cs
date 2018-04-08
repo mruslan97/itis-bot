@@ -7,7 +7,7 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
 {
     public class UndefinedMergeStrategy : MergeStrategy
     {
-        public UndefinedMergeStrategy(SchElemsMerger schElemsMerger) : base(schElemsMerger)
+        public UndefinedMergeStrategy(SchElemsMerger schElemsMerger)
         {
         }
 

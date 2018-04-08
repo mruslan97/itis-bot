@@ -7,6 +7,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Models.Interfaces;
@@ -19,6 +21,7 @@ namespace ScheduleBot.AspHost.BotServices
     {
         private readonly IScheduleService service;
         private readonly INotifiactionSender notifiactionSender;
+        private readonly ILogger<InMemoryBotStorage> logger;
 
         private readonly ConcurrentDictionary<long, ICollection<IScheduleGroup>> usersGroups =
             new ConcurrentDictionary<long, ICollection<IScheduleGroup>>();
@@ -29,10 +32,11 @@ namespace ScheduleBot.AspHost.BotServices
         private const string XmlFileName = "usersgroups.xml";
         private readonly string path;
 
-        public InMemoryBotStorage(IScheduleService service, INotifiactionSender notifiactionSender)
+        public InMemoryBotStorage(IScheduleService service, INotifiactionSender notifiactionSender, ILogger<InMemoryBotStorage> logger = null)
         {
             this.service = service;
             this.notifiactionSender = notifiactionSender;
+            this.logger = logger;
             path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\BotServices\\" + XmlFileName;
             try
             {
@@ -49,15 +53,15 @@ namespace ScheduleBot.AspHost.BotServices
                         }
                         else
                         {
-                            Console.Out.WriteLine(
+                            logger?.LogError(
                                 $"no group found of user {user.Element("chatId").Value} with name: {subGroup.Attribute("name").Value}");
                         }
                 }
             }
             catch (Exception e)
             {
-                Console.Out.WriteLine(e);
-                Console.Out.WriteLine("but i'm alive");
+                logger?.LogError(e, "Exc");
+                logger?.LogWarning("but i'm alive");
             }
         }
 
@@ -65,21 +69,25 @@ namespace ScheduleBot.AspHost.BotServices
         {
             try
             {
+                
                 if (args is ParamEventArgs<DayOfWeek> paramEventArgs)
                 {
                     var group = (IScheduleGroup) sender;
+                    logger?.LogInformation("Get notification about changed sch in group {0}", JsonConvert.SerializeObject(group));
                     if (groupToUsers.TryGetValue(group, out var list) && list != null && list.Any())
                     {
+                        logger?.LogInformation("Prepare notification about changed sch in group {0}, users: {1}", JsonConvert.SerializeObject(group), JsonConvert.SerializeObject(list));
                         var dayName = new CultureInfo("ru-Ru").DateTimeFormat.GetDayName(paramEventArgs.Param);
                         var verbEnd = dayName.EndsWith('а') ? "ась" : "ся";
                         await notifiactionSender.SendNotificationsForIdsAsync(list,
                             $"Изменил{verbEnd} {dayName}");
+                        
                     }
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                logger?.LogError(e, "Exc");
             }
         }
 
@@ -149,7 +157,7 @@ namespace ScheduleBot.AspHost.BotServices
                             }
                             catch (Exception e)
                             {
-                                Console.WriteLine(e);
+                                logger?.LogError(e, "Exc");
                             }
                         }, TaskCreationOptions.RunContinuationsAsynchronously).ContinueWith(async t => await t)
                         .ConfigureAwait(false);
@@ -215,7 +223,7 @@ namespace ScheduleBot.AspHost.BotServices
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                logger?.LogError(e, "Exc");
             }
 
             void RemoveIdFromGroup(IScheduleGroup rgroup, long id)

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Telegram.Bot.Framework.Abstractions;
 using Telegram.Bot.Types;
 
@@ -34,6 +36,7 @@ namespace Telegram.Bot.Framework
         private readonly TBot _bot;
 
         private readonly IUpdateParser<TBot> _updateParser;
+        private readonly ILogger<BotManager<TBot>> logger;
 
         private readonly BotOptions<TBot> _botOptions;
 
@@ -45,16 +48,19 @@ namespace Telegram.Bot.Framework
         /// <param name="bot">Bot to be managed</param>
         /// <param name="updateParser">List of update parsers for the bot</param>
         /// <param name="botOptions">Options used to configure the bot</param>
-        public BotManager(TBot bot, IUpdateParser<TBot> updateParser, IOptions<BotOptions<TBot>> botOptions)
+        /// <param name="logger"></param>
+        public BotManager(TBot bot, IUpdateParser<TBot> updateParser, IOptions<BotOptions<TBot>> botOptions, ILogger<BotManager<TBot>> logger = null)
         {
             _bot = bot;
             _updateParser = updateParser;
+            this.logger = logger;
             _botOptions = botOptions.Value;
 
             if (_botOptions.WebhookUrl != null)
             {
                 WebhookUrl = ReplaceUrlTokens(_botOptions.WebhookUrl);
             }
+            logger?.LogInformation("Bot logging started");
         }
 
         /// <summary>
@@ -64,6 +70,7 @@ namespace Telegram.Bot.Framework
         /// <returns></returns>
         public async Task HandleUpdateAsync(Update update)
         {
+            logger?.LogInformation("Incoming update: {0}", JsonConvert.SerializeObject(update));
             bool anyHandlerExists = false;
             try
             {
@@ -123,7 +130,10 @@ namespace Telegram.Bot.Framework
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    if (logger == null)
+                        Console.WriteLine(e);
+                    else
+                        logger.LogError("Exc {0}", e);
                 }
                 finally
                 {

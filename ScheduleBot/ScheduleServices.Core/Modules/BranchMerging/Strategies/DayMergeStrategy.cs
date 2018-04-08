@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleElems;
@@ -10,8 +11,11 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
 {
     public class DayMergeStrategy : MergeStrategy
     {
-        public DayMergeStrategy(SchElemsMerger schElemsMerger) : base(schElemsMerger)
+        private readonly ILogger<DayMergeStrategy> logger;
+
+        public DayMergeStrategy(SchElemsMerger schElemsMerger, ILogger<DayMergeStrategy> logger = null)
         {
+            this.logger = logger;
         }
 
         public override bool TryRootToRootMerge(IScheduleElem source, IScheduleElem target,
@@ -48,12 +52,12 @@ namespace ScheduleServices.Core.Modules.BranchMerging.Strategies
                     continue;
                 }
 
-                if (lesson.BeginTime <= prev.BeginTime + prev.Duration &&
+                if (lesson.BeginTime <= prev.BeginTime &&
                     (lesson.IsOnEvenWeek == null || prev.IsOnEvenWeek == null ||
                      prev.IsOnEvenWeek == lesson.IsOnEvenWeek))
                     //throw new ScheduleConstructorException(
                 //todo: throw exc!!!!!
-                     Console.Out.WriteLine(String.Format(
+                     logger?.LogError(String.Format(
                         "Day's lessons merge exception: time intersects: {0}, {1}", JsonConvert.SerializeObject(prev),
                         JsonConvert.SerializeObject(lesson)));
             }

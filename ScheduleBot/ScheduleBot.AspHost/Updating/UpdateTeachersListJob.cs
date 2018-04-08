@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentScheduler;
+using Microsoft.Extensions.Logging;
 using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Models.Interfaces;
@@ -14,12 +15,14 @@ namespace ScheduleBot.AspHost.Updating
     public class UpdateTeachersListJob : IJob, IDynamicElemVisitor, ITeachersSource
     {
         private readonly IScheduleService service;
+        private readonly ILogger<UpdateTeachersListJob> logger;
         private List<string> teachersNames = new List<string>();
         private HashSet<string> foundNames;
         private byte ticks = 0;
-        public UpdateTeachersListJob(IScheduleService service)
+        public UpdateTeachersListJob(IScheduleService service, ILogger<UpdateTeachersListJob> logger = null)
         {
             this.service = service;
+            this.logger = logger;
         }
 
         public void VisitElem(IScheduleElem elem)
@@ -30,7 +33,7 @@ namespace ScheduleBot.AspHost.Updating
 
         protected void Visit(Undefined elem)
         {
-            Console.WriteLine($"Undefind type found while visiting IScheduleElems: {elem.GetType().FullName}");
+            logger?.LogWarning($"Undefind type found while visiting IScheduleElems: {elem.GetType().FullName}");
         }
 
         protected  void Visit(Lesson elem)
@@ -77,7 +80,7 @@ namespace ScheduleBot.AspHost.Updating
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    logger?.LogError(e, "Exc");
                 }
             }
             ticks++;

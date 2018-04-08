@@ -10,6 +10,7 @@ using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleElems;
 using ScheduleServices.Core.Models.ScheduleGroups;
 using ScheduleServices.Core.Modules;
+using ScheduleServices.Core.Modules.BranchMerging;
 
 namespace ScheduleServices.Core.Tests.Modules
 {
@@ -23,7 +24,7 @@ namespace ScheduleServices.Core.Tests.Modules
         [SetUp]
         public void SetUp()
         {
-            constructor = new ScheduleConstructor(factory);
+            constructor = new ScheduleConstructor(factory, new SchElemsMerger(factory));
         }
 
         [Test]
