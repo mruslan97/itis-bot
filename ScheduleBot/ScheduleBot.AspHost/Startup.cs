@@ -115,35 +115,41 @@ namespace ScheduleBot.AspHost
                 app.UseDeveloperExceptionPage();
             }
 
-            //Task.Factory.StartNew(async () =>
-            //{
-            //    var botManager = app.ApplicationServices.GetRequiredService<IBotManager<ItisScheduleBot>>();
-            //   // await botManager.SetWebhookStateAsync(true);
+            // TO RUN LONGPOOLING UNCOMMENT IT AND COMMNENT `app.UseTelegramBotWebhook<ItisScheduleBot>();` BELOW
+            /*Task.Factory.StartNew(async () =>
+            {
+                var botManager = app.ApplicationServices.GetRequiredService<IBotManager<ItisScheduleBot>>();
+                await botManager.SetWebhookStateAsync(false);
 
-                
-            //    var notifier = (Notificator) app.ApplicationServices.GetRequiredService<INotifiactionSender>();
-            //    notifier.Bot = app.ApplicationServices.GetRequiredService<ItisScheduleBot>();
 
-            //    while (true)
-            //    {
-            //        try
-            //        {
-            //            await botManager.GetAndHandleNewUpdatesAsync();
-            //        }
-            //        catch (Exception e)
-            //        {
-            //            Console.WriteLine($"Exception: {e}");
-            //            logger.LogError($"Exception: {e}");
-            //        }
-            //    }
-            //}).ContinueWith(t =>
-            //{
-            //    if (t.IsFaulted) throw t.Exception;
-            //});
+               
 
+                while (true)
+                {
+                    try
+                    {
+                        await botManager.GetAndHandleNewUpdatesAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Exception: {e}");
+                        logger.LogError($"Exception: {e}");
+                    }
+                }
+            }).ContinueWith(t =>
+            {
+                if (t.IsFaulted) throw t.Exception;
+            });*/
+            // TO RUN WEBHOOK UNCOMMENT IT AND COMMNENT `Task.Factory.StartNew( ..` UPPER
+            app.UseTelegramBotWebhook<ItisScheduleBot>();
+
+            //set up bot for notifier to fix DI-loop
+            var notifier = (Notificator)app.ApplicationServices.GetRequiredService<INotifiactionSender>();
+            notifier.Bot = app.ApplicationServices.GetRequiredService<ItisScheduleBot>();
+            //run scheduled updates
             updates = new UpdatesScheduler(app.ApplicationServices);
             updates.Start();
-            app.UseTelegramBotWebhook<ItisScheduleBot>();
+
             app.Run(async (context) => { });
         }
 
@@ -236,10 +242,10 @@ namespace ScheduleBot.AspHost
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Скриптинг_Хусаинов Р.Р._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Проектирование веб- интерфейсов_Гиниятуллин Р.Г._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Методы оптимизации_Фазылов В.Р._2курс_1"},
-                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Введение в исскуственный интеллект_Таланов М.О._2курс_1"},
-                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Введение в исскуственный интеллект_Кугуракова В.В._2курс_1"},
-                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Разработка корпоративных приложений_Сидиков М.Р._2курс_1"},
-                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Разработка корпоративных приложений_Аршинов М.Р._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "(Таланов) Введение в исскуственный интеллект_Таланов М.О._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "(Кугуракова) Введение в исскуственный интеллект_Кугуракова В.В._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "(Сидиков) Разработка корпоративных приложений_Сидиков М.Р._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "(Аршинов) Разработка корпоративных приложений_Аршинов М.Р._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Введение в робототехнику_Магид Е.А._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Интернет - программирование Django_Абрамский М.М._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Ruby_Бажанов В.А._2курс_1"},

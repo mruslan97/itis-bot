@@ -35,7 +35,7 @@ namespace ScheduleBot.AspHost.Updating
 
         protected  void Visit(Lesson elem)
         {
-            if (!String.IsNullOrWhiteSpace(elem?.Teacher))
+            if (!String.IsNullOrWhiteSpace(elem?.Teacher) && elem.Teacher.Trim().Length > 2)
             {
                 var firstSpace = elem.Teacher.Trim().IndexOf(' ');
                 foundNames.Add(elem.Teacher.TrimStart().Substring(0, firstSpace > 0 ? firstSpace : elem.Teacher.TrimStart().Length).TrimEnd());

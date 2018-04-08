@@ -14,7 +14,7 @@ namespace ScheduleBot.AspHost.Updating
 
 
         //private static int lastUpdatedCourse = 0;
-        private static DayOfWeek lastUpdatedDayOfWeek = DateTime.Now.DayOfWeek - 1;
+        private static DayOfWeek lastUpdatedDayOfWeek = DayOfWeek.Monday;
         private readonly IScheduleService scheduleService;
         //private static int lowestCourseGroupNum = -1;
 

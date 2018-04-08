@@ -36,7 +36,8 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
         protected override bool CanHandleCommand(Update update)
         {
             if (base.CanHandleCommand(update))
-                return (teachers.GetTeachersNames().Contains(update.CallbackQuery.Data)) && update.CallbackQuery.Message.Text.Contains("препод");
+                return (teachers.GetTeachersNames().Contains(update.CallbackQuery.Data)) &&
+                       update.CallbackQuery.Message.Text.Contains("препод");
             return false;
         }
 
@@ -56,12 +57,8 @@ namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
                     await Bot.Client.AnswerCallbackQueryAsync(update.CallbackQuery.Id, teacher);
                     foreach (var daySchedule in teacherSchedule.ScheduleRoot.Elems.Cast<Day>())
                     {
-                        // todo fix sunday
-                        if (daySchedule.DayOfWeek != DayOfWeek.Sunday)
-                        {
-                            await SendDay(daySchedule);
-                            await Task.Delay(200);
-                        }
+                        await SendDay(daySchedule);
+                        await Task.Delay(200);
                     }
                 }
                 else if (teacherSchedule.ScheduleRoot.Level == ScheduleElemLevel.Day)
