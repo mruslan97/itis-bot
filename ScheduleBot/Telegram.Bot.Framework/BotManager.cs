@@ -70,7 +70,7 @@ namespace Telegram.Bot.Framework
         /// <returns></returns>
         public async Task HandleUpdateAsync(Update update)
         {
-            logger?.LogInformation("Incoming update: {0}", JsonConvert.SerializeObject(update));
+            logger?.LogInformation("Incoming update: {0}", JsonConvert.SerializeObject(update, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
             bool anyHandlerExists = false;
             try
             {
