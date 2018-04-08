@@ -70,7 +70,8 @@ namespace Telegram.Bot.Framework
         /// <returns></returns>
         public async Task HandleUpdateAsync(Update update)
         {
-            logger?.LogInformation("Incoming update: {0}", JsonConvert.SerializeObject(update, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+            if(update.Message != null)
+                logger?.LogInformation("Incoming update: {0}", $"chatId: {update.Message?.Chat?.Id} // message: {update.Message?.Text}");
             bool anyHandlerExists = false;
             try
             {
