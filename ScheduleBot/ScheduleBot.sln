@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScheduleServices.Core.Tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MagicParser", "MagicParser\MagicParser.csproj", "{13506C33-2C8B-4876-968A-950A8DF6C2EC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScheduleBot.AspHost.Tests", "ScheduleBot.AspHost.Tests\ScheduleBot.AspHost.Tests.csproj", "{C7A10173-AEB6-4E15-B374-2BDB2A681313}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScheduleBot.AspHost.Tests", "Tests\ScheduleBot.AspHost.Tests\ScheduleBot.AspHost.Tests.csproj", "{C7A10173-AEB6-4E15-B374-2BDB2A681313}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Telegram.Bot.Framework", "Telegram.Bot.Framework\Telegram.Bot.Framework.csproj", "{E59BC051-C401-46EA-82A0-86D2F3A05B91}"
 EndProject
