@@ -92,6 +92,11 @@ namespace ScheduleBot.AspHost.BotServices
             }
         }
 
+        public IEnumerable<long> GetAllUsersChatIds()
+        {
+            return usersGroups.Keys.ToList();
+        }
+
         public Task<IEnumerable<IScheduleGroup>> GetGroupsForChatAsync(Chat chat)
         {
             return Task.Run(() =>

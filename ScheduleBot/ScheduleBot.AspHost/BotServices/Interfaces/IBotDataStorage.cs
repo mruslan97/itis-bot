@@ -9,5 +9,6 @@ namespace ScheduleBot.AspHost.BotServices.Interfaces
     {
         Task<IEnumerable<IScheduleGroup>> GetGroupsForChatAsync(Chat chat);
         Task<bool> TryAddGroupToChatAsync(IScheduleGroup scheduleGroup, Chat chat);
+        IEnumerable<long> GetAllUsersChatIds();
     }
 }

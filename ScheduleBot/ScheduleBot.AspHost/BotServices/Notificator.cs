@@ -47,5 +47,27 @@ namespace ScheduleBot.AspHost.BotServices
             
             
         }
+
+        public async Task SendPureMessageForIdsAsync(IEnumerable<long> ids, string message)
+        {
+            if (Bot != null)
+            {
+                var list = ids.ToList();
+                await Task.Run(async () =>
+                {
+                    foreach (var id in list)
+                    {
+                        await Bot.Client.SendTextMessageAsync(id,
+                            $"{message}",
+                            replyMarkup: keyboards.GetMainOptionsKeyboard());
+                        await Task.Delay(1000);
+                    }
+                });
+            }
+            else
+            {
+                logger?.LogError("Bot not found");
+            }
+        }
     }
 }

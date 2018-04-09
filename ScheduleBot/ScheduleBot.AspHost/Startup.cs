@@ -71,9 +71,11 @@ namespace ScheduleBot.AspHost
             services.AddSingleton<IBotDataStorage, InMemoryBotStorage>();
             services.AddSingleton<INotifiactionSender, Notificator>();
             services.AddSingleton<IKeyboardsFactory>(provider => new KeyboardsFactory(GetGroupsList()));
-
+            services.AddTransient(prov =>
+                configuration.GetSection("NotificationsSecret").Get<DistributionCommand.SecretKey>());
             services.AddTelegramBot<ItisScheduleBot>(configuration.GetSection("ScheduleBot"))
                 //organize
+                .AddUpdateHandler<DistributionCommand>()
                 .AddUpdateHandler<EchoCommand>()
                 .AddUpdateHandler<HelloCommand>()
                 .AddUpdateHandler<SettingsOptionsCommand>()
@@ -230,25 +232,29 @@ namespace ScheduleBot.AspHost
                 new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Сабирова Р.Н._2курс_1"},
 
                 //Scientic groups
+                    //third course
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "Биоинформатика_Булыгина Е.А._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "Вычислительная статистика_Новиков П.А._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "Обработка текстов на естественном языке_Тутубаллина Е.В._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "Введение в исскуственный интеллект_Таланов М.О._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "Физика_Мутыгуллина А.А._3курс_1"},
+                    //second course
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "(Таланов) Введение в исскуственный интеллект_Таланов М.О._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "(Кугуракова) Введение в исскуственный интеллект_Кугуракова В.В._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "Введение в робототехнику_Магид Е.А._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "Методы оптимизации_Фазылов В.Р._2курс_1"},
 
                 //tech groups
+                    //third course
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Введение в теорию и практику анимации_Костюк Д.И._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "(Шахова) Проектирование веб- интерфейсов_Шахова И.С._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Технологии Net_Гумеров К.А._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Эффективная разработка_Якупов А.Ш._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Скриптинг_Хусаинов Р.Р._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "(Гиниятуллин) Проектирование веб- интерфейсов_Гиниятуллин Р.Г._3курс_1"},
-                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Методы оптимизации_Фазылов В.Р._2курс_1"},
-                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "(Таланов) Введение в исскуственный интеллект_Таланов М.О._2курс_1"},
-                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "(Кугуракова) Введение в исскуственный интеллект_Кугуракова В.В._2курс_1"},
+                    //second course
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "(Сидиков) Разработка корпоративных приложений_Сидиков М.Р._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "(Аршинов) Разработка корпоративных приложений_Аршинов М.Р._2курс_1"},
-                new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Введение в робототехнику_Магид Е.А._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Интернет - программирование Django_Абрамский М.М._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Ruby_Бажанов В.А._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "PHP-_Кошарский И.Е._2курс_1"},
@@ -256,6 +262,7 @@ namespace ScheduleBot.AspHost
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Визуализация данных_Костюк Д.И._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Программирование на С++_Сагитов А.Г._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Цифровая живопись_Евстафьев М.Е._2курс_1"},
+                    //4th course
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Кроссплатформенное прикладное программирование_Магид Е.А._4курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Мобильные информационные системы_Хайруллин А.Ф._4курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedTech, Name = "Интернет вещей_Даутов Р.И._4курс_1"},
@@ -299,6 +306,7 @@ namespace ScheduleBot.AspHost
                 new CommonEngGroupsRule("1stCourse_2stStream", "2", "1курс", "11-7", $@"[6-9]$"),
                 new CommonEngGroupsRule("2stCourse_1stStream", "1", "2курс", "11-6", $@"[1-8]$"),
                 new CommonTypedRule("ScienticThirdCourse", ScheduleGroupType.PickedScientic, "11-5", "3курс"),
+                new CommonTypedRule("ScienticSecondCourse", ScheduleGroupType.PickedScientic, "11-6", "2курс"),
                 new CommonTypedRule("TechSecondCourse", ScheduleGroupType.PickedTech, "11-6", "2курс"),
                 new CommonTypedRule("TechThirdCourse", ScheduleGroupType.PickedTech, "11-5", "3курс"),
                 new CommonTypedRule("Tech4Course", ScheduleGroupType.PickedTech, "11-4", "4курс"),

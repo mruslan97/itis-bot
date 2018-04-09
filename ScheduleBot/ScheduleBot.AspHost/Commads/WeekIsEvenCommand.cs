@@ -20,8 +20,7 @@ namespace ScheduleBot.AspHost.Commads
         {
             this.keyboards = keyboards;
         }
-
-        Random Random = new Random(3);
+        
 
         protected override bool CanHandleCommand(Update update)
         {
