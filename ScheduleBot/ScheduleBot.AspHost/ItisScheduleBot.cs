@@ -24,14 +24,14 @@ namespace ScheduleBot.AspHost
         public  override Task HandleUnknownUpdate(Update update)
         {
             logger?.LogWarning("Handler not found: {0}", JsonConvert.SerializeObject(update));
-            if (update.CallbackQuery != null){
+            //if (update.CallbackQuery != null){
                 
-                return Client.EditMessageTextAsync(update.CallbackQuery.From.Id, update.CallbackQuery.Message.MessageId,
-                    "Я тебе что, Эйнштейн?");
-            }
+            //    return Client.EditMessageTextAsync(update.CallbackQuery.From.Id, update.CallbackQuery.Message.MessageId,
+            //        "Я тебе что, Эйнштейн?");
+            //}
             return Client.SendTextMessageAsync(
                 update.Message.Chat.Id,
-                "Я тебе что, Эйнштейн?",
+                "Нет такой команды :(",
                 replyToMessageId: update.Message.MessageId);
         }
 
