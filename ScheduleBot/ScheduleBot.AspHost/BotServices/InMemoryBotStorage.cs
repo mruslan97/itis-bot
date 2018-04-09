@@ -32,7 +32,8 @@ namespace ScheduleBot.AspHost.BotServices
         private const string XmlFileName = "usersgroups.xml";
         private readonly string path;
 
-        public InMemoryBotStorage(IScheduleService service, INotifiactionSender notifiactionSender, ILogger<InMemoryBotStorage> logger = null)
+        public InMemoryBotStorage(IScheduleService service, INotifiactionSender notifiactionSender,
+            ILogger<InMemoryBotStorage> logger = null)
         {
             this.service = service;
             this.notifiactionSender = notifiactionSender;
@@ -69,19 +70,19 @@ namespace ScheduleBot.AspHost.BotServices
         {
             try
             {
-                
                 if (args is ParamEventArgs<DayOfWeek> paramEventArgs)
                 {
                     var group = (IScheduleGroup) sender;
-                    logger?.LogInformation("Get notification about changed sch in group {0}", JsonConvert.SerializeObject(group));
+                    logger?.LogInformation("Get notification about changed sch in group {0}",
+                        JsonConvert.SerializeObject(group));
                     if (groupToUsers.TryGetValue(group, out var list) && list != null && list.Any())
                     {
-                        logger?.LogInformation("Prepare notification about changed sch in group {0}, users: {1}", JsonConvert.SerializeObject(group), JsonConvert.SerializeObject(list));
+                        logger?.LogInformation("Prepare notification about changed sch in group {0}, users: {1}",
+                            JsonConvert.SerializeObject(group), JsonConvert.SerializeObject(list));
                         var dayName = new CultureInfo("ru-Ru").DateTimeFormat.GetDayName(paramEventArgs.Param);
                         var verbEnd = dayName.EndsWith('а') ? "ась" : "ся";
                         await notifiactionSender.SendNotificationsForIdsAsync(list,
                             $"Изменил{verbEnd} {dayName}");
-                        
                     }
                 }
             }
@@ -111,49 +112,50 @@ namespace ScheduleBot.AspHost.BotServices
                         {
                             try
                             {
-                                var xdoc = XDocument.Load(path);
-                                var user = xdoc.Element("users")
-                                    ?.Elements("user")
-                                    .FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString());
-                                if (user == null)
-                                    xdoc.Element("users")?.Add(new XElement("user",
-                                        new XAttribute("name", chat.FirstName),
-                                        new XElement("chatId", chat.Id.ToString()), new XElement("groups")));
-                                var group = user?.Element("groups")
-                                    ?.Elements("group").FirstOrDefault(g =>
-                                        g.Attribute("type")?.Value == groupFromStorage.GType.ToString());
-                                if (group == null)
+                                lock (path)
                                 {
-                                    xdoc.Element("users")
+                                    var xdoc = XDocument.Load(path);
+                                    var user = xdoc.Element("users")
                                         ?.Elements("user")
-                                        .FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString())
-                                        ?.Element("groups")
-                                        ?.Add(new XElement("group",
-                                            new XAttribute("type", groupFromStorage.GType.ToString()),
-                                            new XAttribute("name", groupFromStorage.Name)));
-                                }
-                                else
-                                {
-                                    if (groupFromStorage.GType == ScheduleGroupType.Academic &&
-                                        group.Attribute("name").Value
-                                            .Substring(0, group.Attribute("name").Value.Length - 1) !=
-                                        groupFromStorage.Name.Substring(0, groupFromStorage.Name.Length - 1))
+                                        .FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString());
+                                    if (user == null)
+                                        xdoc.Element("users")?.Add(new XElement("user",
+                                            new XAttribute("name", chat.FirstName),
+                                            new XElement("chatId", chat.Id.ToString()), new XElement("groups")));
+                                    var group = user?.Element("groups")
+                                        ?.Elements("group").FirstOrDefault(g =>
+                                            g.Attribute("type")?.Value == groupFromStorage.GType.ToString());
+                                    if (group == null)
                                     {
+                                        xdoc.Element("users")
+                                            ?.Elements("user")
+                                            .FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString())
+                                            ?.Element("groups")
+                                            ?.Add(new XElement("group",
+                                                new XAttribute("type", groupFromStorage.GType.ToString()),
+                                                new XAttribute("name", groupFromStorage.Name)));
+                                    }
+                                    else
+                                    {
+                                        if (groupFromStorage.GType == ScheduleGroupType.Academic &&
+                                            group.Attribute("name").Value
+                                                .Substring(0, group.Attribute("name").Value.Length - 1) !=
+                                            groupFromStorage.Name.Substring(0, groupFromStorage.Name.Length - 1))
+                                            xdoc.Element("users").Elements("user")
+                                                .FirstOrDefault(u => u.Element("chatId").Value == chat.Id.ToString())
+                                                .Element("groups").Elements("group")
+                                                .Where(g => g.Attribute("type").Value != "Academic").Remove();
+
                                         xdoc.Element("users").Elements("user")
                                             .FirstOrDefault(u => u.Element("chatId").Value == chat.Id.ToString())
-                                            .Element("groups").Elements("group")
-                                            .Where(g => g.Attribute("type").Value != "Academic").Remove();
+                                            .Element("groups").Elements("group").FirstOrDefault(g =>
+                                                g.Attribute("type").Value == groupFromStorage.GType.ToString())
+                                            .Attribute("name")
+                                            .Value = groupFromStorage.Name;
                                     }
 
-                                    xdoc.Element("users").Elements("user")
-                                        .FirstOrDefault(u => u.Element("chatId").Value == chat.Id.ToString())
-                                        .Element("groups").Elements("group").FirstOrDefault(g =>
-                                            g.Attribute("type").Value == groupFromStorage.GType.ToString())
-                                        .Attribute("name")
-                                        .Value = groupFromStorage.Name;
+                                    xdoc.Save(path);
                                 }
-
-                                xdoc.Save(path);
                             }
                             catch (Exception e)
                             {
@@ -188,6 +190,7 @@ namespace ScheduleBot.AspHost.BotServices
                             otherGroups = oldList.ToList();
                             oldList.Clear();
                         }
+
                         oldList.Add(group);
                     }
                 }
@@ -195,6 +198,7 @@ namespace ScheduleBot.AspHost.BotServices
                 {
                     oldList.Add(group);
                 }
+
                 return oldList;
             });
             try
@@ -207,18 +211,14 @@ namespace ScheduleBot.AspHost.BotServices
                         oldList.Add(chatId);
                     return oldList;
                 });
-                
-                
+
+
                 if (duplicate != null && !duplicate.Equals(group))
                 {
-
                     RemoveIdFromGroup(duplicate, chatId);
                     if (clearOther && otherGroups != null && otherGroups.Any())
                         foreach (var otherGroup in otherGroups)
-                        {
                             RemoveIdFromGroup(otherGroup, chatId);
-                        }
-                    
                 }
             }
             catch (Exception e)
@@ -234,6 +234,7 @@ namespace ScheduleBot.AspHost.BotServices
                     if (!list.Any())
                         groupToUsers.Remove(rgroup, out list);
                 }
+
                 if (!groupToUsers.ContainsKey(rgroup))
                     rgroup.ScheduleChanged -= HandleGroupScheduleChanged;
             }

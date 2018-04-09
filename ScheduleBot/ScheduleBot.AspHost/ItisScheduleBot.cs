@@ -29,10 +29,11 @@ namespace ScheduleBot.AspHost
             //    return Client.EditMessageTextAsync(update.CallbackQuery.From.Id, update.CallbackQuery.Message.MessageId,
             //        "Я тебе что, Эйнштейн?");
             //}
-            return Client.SendTextMessageAsync(
-                update.Message.Chat.Id,
-                "Нет такой команды :(",
-                replyToMessageId: update.Message.MessageId);
+            //return Client.SendTextMessageAsync(
+            //    update.Message.Chat.Id,
+            //    "Нет такой команды :(",
+            //    replyToMessageId: update.Message.MessageId);
+            return Task.Run(() => Console.WriteLine($"unexpected message: {update?.Message?.Text} from {update?.Message?.Chat}"));
         }
 
         public override Task HandleFaultedUpdate(Update update, Exception e)
