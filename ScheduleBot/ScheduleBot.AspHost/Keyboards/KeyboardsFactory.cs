@@ -89,7 +89,7 @@ namespace ScheduleBot.AspHost.Keyboards
         {
             return new ReplyKeyboardMarkup(new[] {
                 new []{new KeyboardButton("На сегодня"), new KeyboardButton("На завтра"), new KeyboardButton("На неделю")},
-                new []{new KeyboardButton("Найти преподавателя 🔍") },
+                new []{new KeyboardButton("Найти преподавателя  🔍"), new KeyboardButton("Четность недели 📆") },
                 new []{new KeyboardButton("Настройки 🛠️") }
             });
         }

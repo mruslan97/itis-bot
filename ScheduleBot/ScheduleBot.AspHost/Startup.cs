@@ -79,6 +79,7 @@ namespace ScheduleBot.AspHost
                 .AddUpdateHandler<SettingsOptionsCommand>()
                 .AddUpdateHandler<SettingsBackCommand>()
                 .AddUpdateHandler<NotFoundGroupCommand>()
+                .AddUpdateHandler<WeekIsEvenCommand>()
                 //get schedules
                 .AddUpdateHandler<GetForTodayCommand>()
                 .AddUpdateHandler<GetForTomorrowCommand>()
