@@ -1,6 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Telegram.Bot.Framework.Abstractions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -91,23 +93,30 @@ namespace Telegram.Bot.Framework
         /// <returns><value>true</value> if this command should handle the update; otherwise <value>false</value></returns>
         protected virtual bool CanHandleCommand(Update update)
         {
+
             bool canHandle = false;
-
-            var zippedMessageEntity = update.Message.Entities
-                .Zip(update.Message.EntityValues, (entity, val) => new
-                {
-                    MessageEntity = entity,
-                    Value = val
-                })
-                .SingleOrDefault(zipped =>
-                    zipped.MessageEntity.Type == MessageEntityType.BotCommand &&
-                    zipped.MessageEntity.Offset == 0
-                );
-
-            if (zippedMessageEntity != null)
+            try
             {
-                canHandle = Regex.IsMatch(zippedMessageEntity.Value,
-                    $@"^/{Name}(?:@{Bot.UserName})?$", RegexOptions.IgnoreCase);
+                var zippedMessageEntity = update.Message.Entities
+                    .Zip(update.Message.EntityValues, (entity, val) => new
+                    {
+                        MessageEntity = entity,
+                        Value = val
+                    })
+                    .SingleOrDefault(zipped =>
+                        zipped.MessageEntity.Type == MessageEntityType.BotCommand &&
+                        zipped.MessageEntity.Offset == 0
+                    );
+
+                if (zippedMessageEntity != null)
+                {
+                    canHandle = Regex.IsMatch(zippedMessageEntity.Value,
+                        $@"^/{Name}(?:@{Bot.UserName})?$", RegexOptions.IgnoreCase);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"FAILED HANDLE MESSAGE, ex: {JsonConvert.SerializeObject(e)}");
             }
 
             return canHandle;
