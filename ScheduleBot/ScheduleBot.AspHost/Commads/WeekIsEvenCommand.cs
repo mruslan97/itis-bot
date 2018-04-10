@@ -41,7 +41,7 @@ namespace ScheduleBot.AspHost.Commads
             var weeksSpent = diffDaysCount / 7;
             bool isEven = weeksSpent % 2 == 0;
             await Bot.Client.SendTextMessageAsync(
-                update.Message.Chat.Id, isEven ? $"Это {weeksSpent - 2}-я неделя - четная." : $"Это {weeksSpent - 2}-я неделя - нечетная.", replyMarkup: keyboards.GetMainOptionsKeyboard());
+                update.Message.Chat.Id, isEven ? $"Это {weeksSpent + 2}-я неделя - четная." : $"Это {weeksSpent + 2}-я неделя - нечетная.", replyMarkup: keyboards.GetMainOptionsKeyboard());
 
             return UpdateHandlingResult.Handled;
 
