@@ -236,11 +236,12 @@ namespace ScheduleBot.AspHost
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "Биоинформатика_Булыгина Е.А._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "Вычислительная статистика_Новиков П.А._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "Обработка текстов на естественном языке_Тутубаллина Е.В._3курс_1"},
-                new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "Введение в исскуственный интеллект_Таланов М.О._3курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "Введение в искусственный интеллект_Таланов М.О._3курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "Физика_Мутыгуллина А.А._3курс_1"},
                     //second course
-                new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "(Таланов) Введение в исскуственный интеллект_Таланов М.О._2курс_1"},
-                new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "(Кугуракова) Введение в исскуственный интеллект_Кугуракова В.В._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "(Таланов) Введение в искусственный интеллект_Таланов М.О._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "(Закиров) Введение в искусственный интеллект_Закиров Л.А._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "(Кугуракова) Введение в искусственный интеллект_Кугуракова В.В._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "Введение в робототехнику_Магид Е.А._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.PickedScientic, Name = "Методы оптимизации_Фазылов В.Р._2курс_1"},
 

@@ -72,21 +72,35 @@ namespace MagicParser.Impls
                 var scienticSubjects = subjects.Where(s => s.Type == ScheduleGroupType.PickedScientic);
                 foreach (var scienticGroup in scienticGroups)
                 {
+                var helpName = "";
+                    var subjectName = scienticGroup.Name.Split('_')[0];
+                    if (subjectName.Contains('('))
+                    {
+                        helpName = subjectName.Split('(', ')')[1];
+                        subjectName = subjectName.Substring(subjectName.IndexOf(')') + 2);
+                    }
+
+                    var test = ConvertSubjects(scienticSubjects.Where(s =>
+                        s.SubjectName.Contains(subjectName)
+                        && (s.Teacher == scienticGroup.Name.Split('_')[1] || s.Teacher.Contains(helpName))
+                        && s.Course.ToString() == scienticGroup.Name.Split('_')[2].Substring(0, 1)));
                     var result = new Schedule
                     {
-                        ScheduleGroups = new List<IScheduleGroup> {scienticGroup},
+                        ScheduleGroups = new List<IScheduleGroup> { scienticGroup },
                         ScheduleRoot = new Day
                         {
                             Level = ScheduleElemLevel.Day,
                             DayOfWeek = day,
                             Elems = ConvertSubjects(scienticSubjects.Where(s =>
-                                scienticGroup.Name.Contains(s.SubjectName)))
+                                s.SubjectName.Contains(subjectName)
+                                && (s.Teacher == scienticGroup.Name.Split('_')[1] || s.Teacher.Contains(helpName))
+                                && s.Course.ToString() == scienticGroup.Name.Split('_')[2].Substring(0, 1)))
                         }
                     };
 
                     if (result.ScheduleRoot.Elems.Count != 0)
                         schedules.Add(result);
-                }
+            }
 
                 var techGroups = availableGroups.Where(g => g.GType == ScheduleGroupType.PickedTech).ToList();
                 var techSubjects = subjects.Where(s => s.Type == ScheduleGroupType.PickedTech).ToList();
