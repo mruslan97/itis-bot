@@ -29,9 +29,10 @@ namespace ScheduleServices.Core.Models.ScheduleElems
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Level == other.Level  && IsOnEvenWeek == other.IsOnEvenWeek &&
+            return Level == other.Level && IsOnEvenWeek == other.IsOnEvenWeek &&
                    string.Equals(Discipline, other.Discipline) && string.Equals(Teacher, other.Teacher) &&
                    string.Equals(Place, other.Place) && BeginTime.Equals(other.BeginTime) &&
+                   string.Equals(Notation, other.Notation) &&
                    Duration.Equals(other.Duration) && Elems.UnorderEquals(other.Elems);
         }
 
@@ -59,6 +60,7 @@ namespace ScheduleServices.Core.Models.ScheduleElems
                 hashCode = (hashCode * 397) ^ (Place != null ? Place.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ BeginTime.GetHashCode();
                 hashCode = (hashCode * 397) ^ Duration.GetHashCode();
+                hashCode = (hashCode * 397) ^ Notation.GetHashCode();
                 return hashCode;
             }
         }
