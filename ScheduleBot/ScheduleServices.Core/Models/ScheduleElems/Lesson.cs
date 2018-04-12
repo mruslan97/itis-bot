@@ -60,7 +60,7 @@ namespace ScheduleServices.Core.Models.ScheduleElems
                 hashCode = (hashCode * 397) ^ (Place != null ? Place.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ BeginTime.GetHashCode();
                 hashCode = (hashCode * 397) ^ Duration.GetHashCode();
-                hashCode = (hashCode * 397) ^ Notation.GetHashCode();
+                hashCode = (hashCode * 397) ^ (Notation != null ? Notation.GetHashCode() : 0);
                 return hashCode;
             }
         }
