@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -33,10 +34,18 @@ namespace ScheduleBot.AspHost.BotServices
                 {
                     foreach (var id in list)
                     {
-                        await Bot.Client.SendTextMessageAsync(id,
-                            $"⚠️ В твоем расписании есть обновления! <b>{message}</b>.",
-                            replyMarkup: keyboards.GetMainOptionsKeyboard(), parseMode:ParseMode.Html);
-                        await Task.Delay(1000);
+                        try
+                        {
+                            await Bot.Client.SendTextMessageAsync(id,
+                                $"⚠️ В твоем расписании есть обновления! <b>{message}</b>.",
+                                replyMarkup: keyboards.GetMainOptionsKeyboard(), parseMode: ParseMode.Html);
+                            await Task.Delay(1000);
+                        }
+                        catch (Exception e)
+                        {
+                            logger?.LogWarning(e, "Failed sent to {0}, may be we're blocked?", id);
+                        }
+                       
                     }
                 });
             }
