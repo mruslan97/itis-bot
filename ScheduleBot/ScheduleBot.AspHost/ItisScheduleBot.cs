@@ -41,7 +41,7 @@ namespace ScheduleBot.AspHost
             logger?.LogError(e, "Faulted update: {0}", JsonConvert.SerializeObject(update.Message));
             return Client.SendTextMessageAsync(
                 update.Message.Chat.Id,
-                "Все пропало, шеф, йа сломалсо");
+                "500 INTERNAL BOT ERROR (я сломался 😭)");
         }
     }
 }
