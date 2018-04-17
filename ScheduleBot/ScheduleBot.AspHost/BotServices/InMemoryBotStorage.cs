@@ -38,7 +38,7 @@ namespace ScheduleBot.AspHost.BotServices
             this.service = service;
             this.notifiactionSender = notifiactionSender;
             this.logger = logger;
-            path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\BotServices\\" + XmlFileName;
+            path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/BotServices/" + XmlFileName;
             try
             {
                 var doc = XDocument.Load(path);

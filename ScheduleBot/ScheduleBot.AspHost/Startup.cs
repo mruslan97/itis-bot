@@ -122,7 +122,7 @@ namespace ScheduleBot.AspHost
 
             logger.LogInformation("Bot up");
             // TO RUN LONGPOOLING UNCOMMENT IT AND COMMNENT `app.UseTelegramBotWebhook<ItisScheduleBot>();` BELOW
-            /*Task.Factory.StartNew(async () =>
+            Task.Factory.StartNew(async () =>
             {
                 var botManager = app.ApplicationServices.GetRequiredService<IBotManager<ItisScheduleBot>>();
                 await botManager.SetWebhookStateAsync(false);
@@ -140,9 +140,9 @@ namespace ScheduleBot.AspHost
             }).ContinueWith(t =>
             {
                 if (t.IsFaulted) throw t.Exception;
-            });*/
+            });
             // TO RUN WEBHOOK UNCOMMENT IT AND COMMNENT `Task.Factory.StartNew( ..` UPPER
-            app.UseTelegramBotWebhook<ItisScheduleBot>();
+            //app.UseTelegramBotWebhook<ItisScheduleBot>();
 
             logger.LogInformation("Set up bot to notifier");
             //set up bot for notifier to fix DI-loop
