@@ -121,29 +121,33 @@ namespace ScheduleBot.AspHost
             }
 
             logger.LogInformation("Bot up");
-            // TO RUN LONGPOOLING UNCOMMENT IT AND COMMNENT `app.UseTelegramBotWebhook<ItisScheduleBot>();` BELOW
-            Task.Factory.StartNew(async () =>
-            {
-                var botManager = app.ApplicationServices.GetRequiredService<IBotManager<ItisScheduleBot>>();
-                await botManager.SetWebhookStateAsync(false);
-                while (true)
-                {
-                    try
-                    {
-                        await botManager.GetAndHandleNewUpdatesAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        logger.LogError($"Exception: {e}");
-                    }
-                }
-            }).ContinueWith(t =>
-            {
-                if (t.IsFaulted) throw t.Exception;
-            });
-            // TO RUN WEBHOOK UNCOMMENT IT AND COMMNENT `Task.Factory.StartNew( ..` UPPER
-            //app.UseTelegramBotWebhook<ItisScheduleBot>();
 
+            if (configuration.GetSection("UseWebHook").Get<bool>())
+            {
+                app.UseTelegramBotWebhook<ItisScheduleBot>();
+            }
+            else
+            {
+                Task.Factory.StartNew(async () =>
+                {
+                    var botManager = app.ApplicationServices.GetRequiredService<IBotManager<ItisScheduleBot>>();
+                    await botManager.SetWebhookStateAsync(false);
+                    while (true)
+                    {
+                        try
+                        {
+                            await botManager.GetAndHandleNewUpdatesAsync();
+                        }
+                        catch (Exception e)
+                        {
+                            logger.LogError($"Exception: {e}");
+                        }
+                    }
+                }).ContinueWith(t =>
+                {
+                    if (t.IsFaulted) throw t.Exception;
+                });
+            }
             logger.LogInformation("Set up bot to notifier");
             //set up bot for notifier to fix DI-loop
             var notifier = (Notificator)app.ApplicationServices.GetRequiredService<INotifiactionSender>();
