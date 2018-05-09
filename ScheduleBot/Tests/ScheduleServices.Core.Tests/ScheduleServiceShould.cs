@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using AutoFixture;
 using FakeItEasy;
 using NUnit.Framework;
+using ScheduleServices.Core.Factories;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleElems;
 using ScheduleServices.Core.Modules;
+using ScheduleServices.Core.Modules.BranchMerging;
 using ScheduleServices.Core.Modules.Interfaces;
 using ScheduleServices.Core.Providers.Interfaces;
 using ScheduleServices.Core.Tests.Utils;
@@ -25,11 +27,12 @@ namespace ScheduleServices.Core.Tests
         private List<ISchedule> freshDays;
         private List<ISchedule> storedDays;
         private List<IScheduleGroup> groups;
+        private Fixture fixture;
 
         [SetUp]
         public void SetUp()
         {
-            Fixture fixture = new Fixture();
+            fixture = new Fixture();
             FixtureUtils.ConfigureFixtureForCreateSchedule(fixture);
             freshDays = new List<ISchedule>();
             for (int i = 0; i < 4; i++)
@@ -41,13 +44,15 @@ namespace ScheduleServices.Core.Tests
                 storedDays.Add(FixtureUtils.CreateFixtureDaySchedule(3, 1, fixture));
             storedDays.Select((d, i) => d.ScheduleGroups = new[] {groups[i]}).ToList();
             infoProviderFake = A.Fake<IScheduleInfoProvider>();
-            A.CallTo(() => infoProviderFake.GetSchedules(null, default(DayOfWeek))).WithAnyArguments().Returns(freshDays);
+            A.CallTo(() => infoProviderFake.GetSchedules(null, default(DayOfWeek))).WithAnyArguments()
+                .Returns(freshDays);
             storageFake = A.Fake<ISchedulesStorage>();
             A.CallTo(() => storageFake.GetSchedules(null, default(DayOfWeek))).WithAnyArguments().Returns(storedDays);
             monitorFake = A.Fake<IGroupsMonitor>();
             A.CallTo(() => monitorFake.AvailableGroups).Returns(groups);
 
-            //service = new ScheduleService(storageFake, monitorFake, infoProviderFake, new DefaultEventArgsFactory());
+            service = new ScheduleService(storageFake, monitorFake, infoProviderFake, new DefaultEventArgsFactory(),
+                new SchElemsMerger(new DefaultSchElemsFactory()));
         }
 
         [Test]
@@ -70,10 +75,19 @@ namespace ScheduleServices.Core.Tests
             freshDays.Clear();
             freshDays.Add(anyCommonDay);
 
-            await service.UpdateSchedulesAsync(groups, ((Day)anyCommonDay.ScheduleRoot).DayOfWeek);
+            await service.UpdateSchedulesAsync(groups, ((Day) anyCommonDay.ScheduleRoot).DayOfWeek);
             var group = anyCommonDay.ScheduleGroups.FirstOrDefault();
             A.CallTo(() => storageFake.RemoveScheduleAsync(null, 0)).WithAnyArguments().MustHaveHappened();
-            A.CallTo(() => storageFake.RemoveScheduleAsync(group, ((Day)anyCommonDay.ScheduleRoot).DayOfWeek)).MustNotHaveHappened();
+            A.CallTo(() => storageFake.RemoveScheduleAsync(group, ((Day) anyCommonDay.ScheduleRoot).DayOfWeek))
+                .MustNotHaveHappened();
+        }
+
+        [Test]
+        public void CallStorage_WhenVisitorRunned()
+        {
+            var visitor = A.Fake<IDynamicElemVisitor>();
+            service.RunVisitorThrougthStorage(visitor);
+            A.CallTo(() => storageFake.RunVisitor(visitor)).MustHaveHappenedOnceExactly();
         }
     }
 }
