@@ -18,7 +18,7 @@
 ### Linux part
 
 * Look at [this  article](https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-2.1&tabs=aspnetcore2x), it makes things clear
-* After adding `client_secret.json` and neccesary `appsettings.json` publish app from repo
+* After adding `client_secret.json` and required `appsettings.{environment}.json` publish app from repo
    ````
    cd /root/repos/itis-bot/ScheduleBot/ScheduleBot.AspHost/
    dotnet publish -c Release -o /srv/dotnet/bot/
@@ -62,6 +62,45 @@
    systemctl start itis-bot.service
    systemctl status itis-bot.service
    ````
+* Using webhook with [Ngrok](https://ngrok.com)
+
+   * Download and unpackage ngrok (signup required, see website)
+   ````
+   wget "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
+   unzip ./ngrok-stable-linux-amd64.zip
+   ./ngrok authtoken YOUR_NGROK_TOKEN_HERE   
+   ````
+   * Run it in background
+   ```
+   ./ngrok http 8443 -region=eu  > /dev/null &
+   ```
+   * Find up https tunnel address
+   ```
+   curl localhost:4040/api/tunnels
+   > bla-bla { "public_url":"https://XXXXXX.eu.ngrok.io","proto":"https", } bla-bla
+   ```
+   * Add address to `appsettings.{ASPNETCORE_ENVIRONMENT}.json` (`Release` here) and enable Webhook
+   ````
+   nano ~/repos/itis-bot/ScheduleBot/ScheduleBot.AspHost/appsettings.Release.json
+   ````
+   ````
+   {
+      "UseWebHook": true,
+      ....
+      "ScheduleBot": {
+         ....
+         "WebhookUrl": "https://XXXXXX.eu.ngrok.io/api/update"
+      },
+      ...
+   }
+   ````
+   * Stop service, rebuild and run again
+   ````
+   cd ~/repos/itis-bot/ScheduleBot/ScheduleBot.AspHost/
+   systemctl stop itis-bot.service
+   dotnet publish -c Release -o /srv/dotnet/bot/
+   systemctl start itis-bot.service
+   ````
 
 ### Windows part
 
@@ -85,3 +124,6 @@
    > cd .\bin\Release\netcoreapp2.0
    > dotnet ScheduleBot.AspHost.dll
    ````
+* Using webhook with [Ngrok](https://ngrok.com)
+
+   * in progress
