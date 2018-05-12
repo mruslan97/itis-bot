@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using MagicParser.Models;
+using Newtonsoft.Json;
 using ScheduleServices.Core.Models.Interfaces;
 
 namespace MagicParser.Parsers
@@ -20,20 +21,29 @@ namespace MagicParser.Parsers
             var subjects = input.Content.Split(',');
             foreach (var subject in subjects)
             {
-                var cabinet = Regex.Match(subject, @"\d+").Value;
-                var teacher = subject.Replace(cabinet, "");
-                var flow = input.Group[input.Group.Length-1] == '1' ? 1 : 2;
-                result.Add(new ParsedSubject
+                try
                 {
-                    SubjectName = "Иностранный язык",
-                    Time = input.Time,
-                    Cabinet = cabinet,
-                    Teacher = teacher,
-                    Type = ScheduleGroupType.Eng,
-                    Group = input.Group,
-                    Flow = flow,
-                    Course = input.Course
-            });
+                    var cabinet = Regex.Match(subject, @"\d+").Value;
+                    var teacher = subject.Replace(cabinet, "");
+                    var flow = input.Group[input.Group.Length - 1] == '1' ? 1 : 2;
+                    result.Add(new ParsedSubject
+                    {
+                        SubjectName = "Иностранный язык",
+                        Time = input.Time,
+                        Cabinet = cabinet,
+                        Teacher = teacher,
+                        Type = ScheduleGroupType.Eng,
+                        Group = input.Group,
+                        Flow = flow,
+                        Course = input.Course
+                    });
+                }
+                catch (Exception e)
+                {
+                    //todo: logging
+                    Console.WriteLine("Error while eng parse: {0}, exc {1}", JsonConvert.SerializeObject(subject), e);
+                }
+                
             }
             return result;
         }
