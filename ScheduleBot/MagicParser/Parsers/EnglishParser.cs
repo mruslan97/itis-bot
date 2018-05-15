@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using MagicParser.Models;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using ScheduleServices.Core.Models.Interfaces;
 
@@ -10,6 +11,12 @@ namespace MagicParser.Parsers
 {
     public class EnglishParser 
     {
+        private readonly ILogger<EnglishParser> logger;
+
+        public EnglishParser(ILogger<EnglishParser> logger)
+        {
+            this.logger = logger;
+        }
         public IEnumerable<ParsedSubject> Parse(TmpObject input)
         {
             var result = new List<ParsedSubject>();
@@ -40,8 +47,7 @@ namespace MagicParser.Parsers
                 }
                 catch (Exception e)
                 {
-                    //todo: logging
-                    Console.WriteLine("Error while eng parse: {0}, exc {1}", JsonConvert.SerializeObject(subject), e);
+                    logger?.LogError(e, "Error while eng parse: {0}", JsonConvert.SerializeObject(subject));
                 }
                 
             }

@@ -4,17 +4,28 @@ using System.Linq;
 using MagicParser.Helpers;
 using MagicParser.Models;
 using MagicParser.Parsers;
+using Microsoft.Extensions.Logging;
 using ScheduleServices.Core.Models.Interfaces;
 
 namespace MagicParser.Services
 {
     public class SmartSortService
     {
-        private readonly LectureParser _lectureParser = new LectureParser();
-        private readonly SeminarParser _seminarParser = new SeminarParser();
-        private readonly PhysCultureParser _physCultureParser = new PhysCultureParser();
-        private readonly ElectiveParser _electiveParser = new ElectiveParser();
-        private readonly EnglishParser _englishParser = new EnglishParser();
+        public SmartSortService(LectureParser lectureParser, SeminarParser seminarParser,
+            PhysCultureParser physCultureParser, ElectiveParser electiveParser, EnglishParser englishParser)
+        {
+            _lectureParser = lectureParser;
+            _seminarParser = seminarParser;
+            _physCultureParser = physCultureParser;
+            _electiveParser = electiveParser;
+            _englishParser = englishParser;
+        }
+
+        private readonly LectureParser _lectureParser; 
+        private readonly SeminarParser _seminarParser;  
+        private readonly PhysCultureParser _physCultureParser;
+        private readonly ElectiveParser _electiveParser;
+        private readonly EnglishParser _englishParser;
 
         public List<ParsedSubject> SortContent(List<TmpObject> inputSubjects)
         {
@@ -36,6 +47,7 @@ namespace MagicParser.Services
                     parsedSubjects.AddRange(parsedCourses);
                     continue;
                 }
+
                 if (Keywords.Lecture().Any(l => unparsedSubject.Content.Contains(l))
                     && !Keywords.NotLecture().Any(n => unparsedSubject.Content.Contains(n)))
                 {
@@ -110,12 +122,12 @@ namespace MagicParser.Services
             return input.Content
                 .Replace("на Кремлёвской 35", "(на Кремлёвской 35)")
                 .Replace("( Введение в исскуственный интеллект)", "Введение в исскуственный интеллект")
-                .Replace("Основы правоведения и противодействия коррупции Хасанов Р.А. ч.н.1308 для гр.11-508 ,","")
-                .Replace("д.гл.(прак.)","")
-                .Replace("гр.1","")
-                .Replace("гр.2","")
+                .Replace("Основы правоведения и противодействия коррупции Хасанов Р.А. ч.н.1308 для гр.11-508 ,", "")
+                .Replace("д.гл.(прак.)", "")
+                .Replace("гр.1", "")
+                .Replace("гр.2", "")
                 .Replace("Технологии Net- д.гл.Гумеров К.", "Технологии Net Гумеров К.А.")
-                .Replace("1310- 1311","1310")
+                .Replace("1310- 1311", "1310")
                 .Replace("Кугуракова В В.", "Кугуракова В.В.")
                 .Replace("корпоротивных", "корпоративных")
                 .Replace("М. 13", "М.Р. 13")
@@ -124,8 +136,11 @@ namespace MagicParser.Services
                 .Replace("исскуственный", "искусственный")
                 .Replace("Закиров Л.в 18.00 в 1508 ( 18 н. лекц.)", "Закиров Л.А. 1508")
                 .Replace("Закиров Л.Практика по ч.н.( 9н.) 1508", "Закиров Л.А. 1508 ( 9н. Практика по ч.н.)")
-                .Replace("Курс по выбору :   ,Введение в теорию и практику", "Курс по выбору :  Введение в теорию и практику")
-                .Replace("Проектный практикум( рас LAB),   Курс по выбору: Разработка корпоративных приложений Сидиков М.Р. в 1302", "Курс по выбору: Разработка корпоративных приложений Сидиков М.Р. в 1302");
+                .Replace("Курс по выбору :   ,Введение в теорию и практику",
+                    "Курс по выбору :  Введение в теорию и практику")
+                .Replace(
+                    "Проектный практикум( рас LAB),   Курс по выбору: Разработка корпоративных приложений Сидиков М.Р. в 1302",
+                    "Курс по выбору: Разработка корпоративных приложений Сидиков М.Р. в 1302");
         }
 
         private IEnumerable<ParsedSubject> ShareSubjects(ParsedSubject parsedSubject, Tuple<int, int> marker)
