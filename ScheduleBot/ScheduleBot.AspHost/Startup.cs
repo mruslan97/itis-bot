@@ -20,18 +20,12 @@ using ScheduleBot.AspHost.Commads.SetUpCommands.ElectivesSetUpCommands;
 using ScheduleBot.AspHost.Commads.TeacherSearchCommands;
 using ScheduleBot.AspHost.Keyboards;
 using ScheduleBot.AspHost.Updating;
-using ScheduleServices.Core;
 using ScheduleServices.Core.Config;
-using ScheduleServices.Core.Factories;
-using ScheduleServices.Core.Factories.Interafaces;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleGroups;
 using ScheduleServices.Core.Modules;
 using ScheduleServices.Core.Modules.Interfaces;
-using ScheduleServices.Core.Providers.Interfaces;
-using ScheduleServices.Core.Providers.Storage;
 using Telegram.Bot.Framework;
-using NLog.Web;
 using Telegram.Bot.Framework.Abstractions;
 
 namespace ScheduleBot.AspHost
@@ -47,7 +41,6 @@ namespace ScheduleBot.AspHost
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
-                .AddJsonFile($"appsettings.DevLocal.json", optional: true)
                 .AddEnvironmentVariables();
                 
             configuration = builder.Build();
