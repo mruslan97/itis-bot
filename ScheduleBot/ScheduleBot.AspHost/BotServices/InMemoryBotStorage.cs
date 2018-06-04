@@ -39,11 +39,12 @@ namespace ScheduleBot.AspHost.BotServices
             this.notifiactionSender = notifiactionSender;
             this.logger = logger;
             path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/BotServices/" + XmlFileName;
-            try
+
+            var doc = XDocument.Load(path);
+            var users = doc.Element("users")?.Elements("user");
+            foreach (var user in users)
             {
-                var doc = XDocument.Load(path);
-                var users = doc.Element("users")?.Elements("user");
-                foreach (var user in users)
+                try
                 {
                     var groups = user.Element("groups").Elements("group");
                     foreach (var subGroup in groups)
@@ -58,11 +59,10 @@ namespace ScheduleBot.AspHost.BotServices
                                 $"no group found of user {user.Element("chatId").Value} with name: {subGroup.Attribute("name").Value}");
                         }
                 }
-            }
-            catch (Exception e)
-            {
-                logger?.LogError(e, "Exc");
-                logger?.LogWarning("but i'm alive");
+                catch (Exception e)
+                {
+                    logger?.LogError(e, $"Failed to restore groups for user with id {user.Element("chatId")}");
+                }
             }
         }
 

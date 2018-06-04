@@ -12,6 +12,7 @@ using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleGroups;
+using Shouldly;
 using Telegram.Bot.Types;
 
 namespace ScheduleBot.AspHost.Tests.BotServices
@@ -36,7 +37,11 @@ namespace ScheduleBot.AspHost.Tests.BotServices
             A.CallTo(() => fakeService.GroupsMonitor.TryGetCorrectGroup(null, out @out)).WithAnyArguments().Returns(true)
                 .AssignsOutAndRefParametersLazily(
                     call => new List<object>() {call.Arguments[0]});
-            
+            A.CallTo(() => fakeService.GroupsMonitor.AvailableGroups).WithAnyArguments().Returns(availableGroups);
+            A.CallTo(() => fakeService.GroupsMonitor.TryFindGroupByName("", out @out)).WithAnyArguments().Returns(true)
+                .AssignsOutAndRefParametersLazily(
+                    call => new List<object>() { availableGroups.FirstOrDefault(g => g.Name.ToLowerInvariant().Contains(call.Arguments[0]?.ToString().ToLowerInvariant())) });
+
         }
 
         [Theory]
@@ -53,6 +58,45 @@ namespace ScheduleBot.AspHost.Tests.BotServices
                 var ids = args.Get<IEnumerable<long>>(0);
                 return ids.Count() == 1 && ids.Contains(chat.Id);
             }).MustHaveHappened();
+        }
+
+        [Theory]
+        public async Task ReturnsAllGroups_AssociatedWithUser()
+        {
+            var tuple = await CreateAndAddChatWithTwoGroups();
+
+            var usersGroups = await storage.GetGroupsForChatAsync(tuple.chat);
+
+            tuple.twoGroups.ForEach(originalGroup => 
+                usersGroups.ShouldContain(originalGroup)
+                );
+            Assert.IsTrue(usersGroups.Count() == tuple.twoGroups.Count);
+        }
+        
+        private async Task<(List<IScheduleGroup> twoGroups, Chat chat)> CreateAndAddChatWithTwoGroups()
+        {
+            var twoGroups = availableGroups.Take(2).ToList();
+            var chat = fixt.Create<Chat>();
+            foreach (var scheduleGroup in twoGroups)
+            {
+                await storage.TryAddGroupToChatAsync(scheduleGroup, chat);
+            }
+
+            return (twoGroups, chat);
+        }
+
+        [Theory]
+        public async Task SaveUserGroups_BetweenSeveralInstances()
+        {
+            var tuple = await CreateAndAddChatWithTwoGroups();
+
+            var userGroupsFromFirstInstance = (await storage.GetGroupsForChatAsync(tuple.chat)).ToList();
+            await Task.Delay(1000);
+            var userGroupsFromSecondInstance = (await (new InMemoryBotStorage(fakeService, fakeNotificator)).GetGroupsForChatAsync(tuple.chat)).ToList();
+            userGroupsFromFirstInstance.ForEach(originalGroup =>
+                userGroupsFromSecondInstance.ShouldContain(originalGroup)
+            );
+            Assert.IsTrue(userGroupsFromFirstInstance.Count == userGroupsFromSecondInstance.Count);
         }
     }
 }
