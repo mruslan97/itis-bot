@@ -66,10 +66,17 @@ namespace ScheduleBot.AspHost.BotServices
                 {
                     foreach (var id in list)
                     {
-                        await Bot.Client.SendTextMessageAsync(id,
-                            $"{message}",
-                            replyMarkup: keyboards.GetMainOptionsKeyboard());
-                        await Task.Delay(1000);
+                        try
+                        {
+                            await Bot.Client.SendTextMessageAsync(id,
+                                $"{message}",
+                                replyMarkup: keyboards.GetMainOptionsKeyboard());
+                            await Task.Delay(1000);
+                        }
+                        catch (Exception e)
+                        {
+                            logger?.LogWarning(e, "Failed sent to {0}, may be we're blocked?", id);
+                        }
                     }
                 });
             }
