@@ -1,5 +1,5 @@
 language: csharp
-
+mono: none
 dotnet: 2.1.4
 sudo: false
 
@@ -17,3 +17,10 @@ script:
     - dotnet build ScheduleBot.sln -c Release
     - dotnet test -c Release --no-build Tests/ScheduleServices.Core.Tests/ScheduleServices.Core.Tests.csproj
     - dotnet test -c Release --no-build Tests/ScheduleBot.AspHost.Tests/ScheduleBot.AspHost.Tests.csproj
+    
+deploy:
+    provider: script
+    script:
+        - sshpass -p $TEST_PASSWORD ssh -o StrictHostKeyChecking=no $TEST_USER@$TEST_HOST:$TEST_DIR './updateServer.sh'
+    on:
+        branch: feature/travis-ci-setup
