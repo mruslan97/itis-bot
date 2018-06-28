@@ -15,3 +15,5 @@ before_install:
 script:
     - cd ./ScheduleBot
     - dotnet build ScheduleBot.sln -c Release
+    - dotnet test -c Release --no-build Tests/ScheduleServices.Core.Tests/ScheduleServices.Core.Tests.csproj
+    - dotnet test -c Release --no-build Tests/ScheduleBot.AspHost.Tests/ScheduleBot.AspHost.Tests.csproj
