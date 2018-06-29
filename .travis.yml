@@ -1,8 +1,11 @@
 language: csharp
-
+mono: none
 dotnet: 2.1.4
 sudo: false
-
+addons:
+  apt:
+    packages:
+    - sshpass
 env:
     global:
         - DOTNET_CLI_TELEMETRY_OPTOUT: 1
@@ -15,3 +18,13 @@ before_install:
 script:
     - cd ./ScheduleBot
     - dotnet build ScheduleBot.sln -c Release
+    - dotnet test -c Release --no-build Tests/ScheduleServices.Core.Tests/ScheduleServices.Core.Tests.csproj
+    - dotnet test -c Release --no-build Tests/ScheduleBot.AspHost.Tests/ScheduleBot.AspHost.Tests.csproj
+    
+deploy:
+    provider: script
+    script:
+        - sshpass -p $TEST_PASSWORD ssh -o StrictHostKeyChecking=no $TEST_USER@$TEST_HOST './updateServer.sh'
+    on:
+        branch: dev
+        type: push
