@@ -24,6 +24,6 @@ script:
 deploy:
     provider: script
     script:
-        - sshpass -p $TEST_PASSWORD ssh -o StrictHostKeyChecking=no $TEST_USER@$TEST_HOST:$TEST_DIR './updateServer.sh'
+        - sshpass -p $TEST_PASSWORD ssh -o StrictHostKeyChecking=no $TEST_USER@$TEST_HOST './updateServer.sh'
     on:
         branch: feature/travis-ci-setup
