@@ -1,6 +1,8 @@
 # Itis Schedule Tg-bot - next gen.
 
-## [Try it](https://t-do.ru/itis_scheduleBot)
+## [Try it (unavailable till september)](https://t-do.ru/itis_scheduleBot)
+
+### [Try dev build (available for old copy of schedule)](https://t-do.ru/itis_testBot)
 
 ## How to run by yourself
 
@@ -79,7 +81,7 @@
    curl localhost:4040/api/tunnels
    > bla-bla { "public_url":"https://XXXXXX.eu.ngrok.io","proto":"https", } bla-bla
    ```
-   * Add address to `appsettings.{ASPNETCORE_ENVIRONMENT}.json` (`Release` here) and enable Webhook
+   * Add address to `appsettings.{ASPNETCORE_ENVIRONMENT}.json` (`Release` here) and enable Webhook. Don't forget add `api/update` uri part to webhook url.
    ````
    nano ~/repos/itis-bot/ScheduleBot/ScheduleBot.AspHost/appsettings.Release.json
    ````
@@ -94,11 +96,13 @@
       ...
    }
    ````
-   * Stop service, rebuild and run again
+   * Stop service, rebuild and run again. 
+
+     /property option used only for running under core 2.1 sdk: [SO answer](https://stackoverflow.com/questions/46491957/asp-net-core-2-missing-applicationinsights)
    ````
    cd ~/repos/itis-bot/ScheduleBot/ScheduleBot.AspHost/
    systemctl stop itis-bot.service
-   dotnet publish -c Release -o /srv/dotnet/bot/
+   dotnet publish -c Release -o /srv/dotnet/bot/ /property:PublishWithAspNetCoreTargetManifest=false
    systemctl start itis-bot.service
    ````
 
