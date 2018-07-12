@@ -14,8 +14,8 @@ before_install:
     - openssl aes-256-cbc -K $encrypted_3d14ebc3ec3e_key -iv $encrypted_3d14ebc3ec3e_iv -in Google.Apis.Auth.OAuth2.Responses.TokenResponse-user.enc -out ./Google.Apis.Auth.OAuth2.Responses.TokenResponse-user -d
     - mkdir -p ~/.credentials/sheets.googleapis.com-dotnet-quickstart.json/
     - cp Google.Apis.Auth.OAuth2.Responses.TokenResponse-user ~/.credentials/sheets.googleapis.com-dotnet-quickstart.json/
-    - openssl aes-256-cbc -K $encrypted_79def18d12fe_key -iv $encrypted_79def18d12fe_iv -in ./ScheduleBot/ScheduleBot.AspHost/client_secret.json.enc -out ./ScheduleBot/ScheduleBot.AspHost/client_secret.json -d
-    - openssl aes-256-cbc -K $encrypted_79def18d12fe_key -iv $encrypted_79def18d12fe_iv -in ./ScheduleBot/ScheduleBot.AspHost/appsettings.Testing.json.enc -out ./ScheduleBot/ScheduleBot.AspHost/appsettings.Testing.json -d
+    - openssl aes-256-cbc -K $encrypted_79def18d12fe_key -iv $encrypted_79def18d12fe_iv -in ./ScheduleBot/ScheduleBot.AspHost/secrets.tar.enc -out ./ScheduleBot/ScheduleBot.AspHost/secrets.tar -d
+    - tar xvf ./ScheduleBot/ScheduleBot.AspHost/secrets.tar -C ./ScheduleBot/ScheduleBot.AspHost/
 script:
     - cd ./ScheduleBot
     - dotnet build ScheduleBot.sln -c Release
