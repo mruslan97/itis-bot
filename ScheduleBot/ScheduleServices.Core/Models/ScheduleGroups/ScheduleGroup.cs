@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Xml;
+using DAL.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using PropertyChanged;
@@ -8,7 +10,7 @@ using ScheduleServices.Core.Models.Interfaces;
 namespace ScheduleServices.Core.Models.ScheduleGroups
 {
     [AddINotifyPropertyChangedInterface]
-    public class ScheduleGroup : IScheduleGroup
+    public class ScheduleGroup : Entity, IScheduleGroup
     {
         //[JsonConverter(typeof(StringEnumConverter))] 
         //[BsonRepresentation(BsonType.String)]

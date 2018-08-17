@@ -10,6 +10,7 @@ using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using ScheduleBot.AspHost.BotServices.Interfaces;
+using ScheduleBot.AspHost.DAL.Repositories.Interfaces;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleGroups;
@@ -21,6 +22,7 @@ namespace ScheduleBot.AspHost.BotServices
     {
         private readonly IScheduleService service;
         private readonly INotifiactionSender notifiactionSender;
+        private readonly IUsersGroupsRepository repository;
         private readonly ILogger<InMemoryBotStorage> logger;
 
         private readonly ConcurrentDictionary<long, ICollection<IScheduleGroup>> usersGroups =
@@ -32,11 +34,12 @@ namespace ScheduleBot.AspHost.BotServices
         private const string XmlFileName = "usersgroups.xml";
         private readonly string path;
 
-        public InMemoryBotStorage(IScheduleService service, INotifiactionSender notifiactionSender,
+        public InMemoryBotStorage(IScheduleService service, INotifiactionSender notifiactionSender, IUsersGroupsRepository repository,
             ILogger<InMemoryBotStorage> logger = null)
         {
             this.service = service;
             this.notifiactionSender = notifiactionSender;
+            this.repository = repository;
             this.logger = logger;
             path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/BotServices/" + XmlFileName;
 
@@ -46,6 +49,7 @@ namespace ScheduleBot.AspHost.BotServices
             {
                 try
                 {
+                    //todo: refactor to divide storage code and in memory.
                     var groups = user.Element("groups").Elements("group");
                     foreach (var subGroup in groups)
                         if (service.GroupsMonitor.TryFindGroupByName(subGroup.Attribute("name").Value, out var group))

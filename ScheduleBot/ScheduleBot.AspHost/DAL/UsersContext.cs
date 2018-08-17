@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Design;
 using ScheduleBot.AspHost.DAL.Entities;
 using DAL.Common;
+using ScheduleServices.Core.Models.ScheduleGroups;
 
 namespace ScheduleBot.AspHost.DAL
 {
@@ -17,9 +18,18 @@ namespace ScheduleBot.AspHost.DAL
         {
         }
         /// <summary>
-        /// Профили пользователей.
+        /// Users profiles
         /// </summary>
         public DbSet<Profile> Profiles { get; set; }
+
+        /// <summary>
+        /// Users profiles
+        /// </summary>
+        public DbSet<ProfileAndGroup> ProfileAndGroups { get; set; }
+        /// <summary>
+        /// Groups
+        /// </summary>
+        public DbSet<ScheduleGroup> Groups { get; set; }
 
         
     }
