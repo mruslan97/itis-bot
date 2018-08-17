@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScheduleBot.AspHost.Tests",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Telegram.Bot.Framework", "Telegram.Bot.Framework\Telegram.Bot.Framework.csproj", "{E59BC051-C401-46EA-82A0-86D2F3A05B91}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DAL.Common", "DAL.Common\DAL.Common.csproj", "{96DA3009-5AC0-4BEF-BB48-9E00876CAE68}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{E59BC051-C401-46EA-82A0-86D2F3A05B91}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E59BC051-C401-46EA-82A0-86D2F3A05B91}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E59BC051-C401-46EA-82A0-86D2F3A05B91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96DA3009-5AC0-4BEF-BB48-9E00876CAE68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96DA3009-5AC0-4BEF-BB48-9E00876CAE68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96DA3009-5AC0-4BEF-BB48-9E00876CAE68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96DA3009-5AC0-4BEF-BB48-9E00876CAE68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
