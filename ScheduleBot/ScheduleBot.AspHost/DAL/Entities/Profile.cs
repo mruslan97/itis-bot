@@ -14,6 +14,9 @@ namespace ScheduleBot.AspHost.DAL.Entities
     {
         public string Name { get; set; }
 
+        [Index(true)]
+        public long ChatId { get; set; }
+
         public ICollection<ProfileAndGroup> ProfileAndGroups { get; set; }
         [NotMapped]
         public IEnumerable<ScheduleGroup> ScheduleGroups

@@ -45,5 +45,9 @@ namespace ScheduleBot.AspHost.DAL
         {
             return new UsersContext(options.Options);
         }
+        public UsersContext CreateDbContext()
+        {
+            return new UsersContext(options.Options);
+        }
     }
 }

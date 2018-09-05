@@ -10,6 +10,7 @@ using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using ScheduleBot.AspHost.BotServices.Interfaces;
+using ScheduleBot.AspHost.DAL.Entities;
 using ScheduleBot.AspHost.DAL.Repositories.Interfaces;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Models.Interfaces;
@@ -22,7 +23,7 @@ namespace ScheduleBot.AspHost.BotServices
     {
         private readonly IScheduleService service;
         private readonly INotifiactionSender notifiactionSender;
-        private readonly IUsersGroupsRepository repository;
+        private readonly IUsersGroupsRepository usersGroupsRepository;
         private readonly ILogger<InMemoryBotStorage> logger;
 
         private readonly ConcurrentDictionary<long, ICollection<IScheduleGroup>> usersGroups =
@@ -34,38 +35,32 @@ namespace ScheduleBot.AspHost.BotServices
         private const string XmlFileName = "usersgroups.xml";
         private readonly string path;
 
-        public InMemoryBotStorage(IScheduleService service, INotifiactionSender notifiactionSender, IUsersGroupsRepository repository,
+        public InMemoryBotStorage(IScheduleService service, INotifiactionSender notifiactionSender, IUsersGroupsRepository usersGroupsRepository,
             ILogger<InMemoryBotStorage> logger = null)
         {
             this.service = service;
             this.notifiactionSender = notifiactionSender;
-            this.repository = repository;
+            this.usersGroupsRepository = usersGroupsRepository;
             this.logger = logger;
-            path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/BotServices/" + XmlFileName;
-
-            var doc = XDocument.Load(path);
-            var users = doc.Element("users")?.Elements("user");
-            foreach (var user in users)
+            var usersWithGroups = usersGroupsRepository.GetAllUsersWithGroups();
+            foreach (var user in usersWithGroups)
             {
                 try
                 {
-                    //todo: refactor to divide storage code and in memory.
-                    var groups = user.Element("groups").Elements("group");
-                    foreach (var subGroup in groups)
-                        if (service.GroupsMonitor.TryFindGroupByName(subGroup.Attribute("name").Value, out var group))
+                    foreach (var dbGroup in user.ScheduleGroups)
+                        if (service.GroupsMonitor.TryFindGroupByName(dbGroup.Name, out var group))
                         {
-                            if (long.TryParse(user.Element("chatId").Value, out var chatId))
-                                AddGroupToUserInMemory(chatId, group);
+                            AddGroupToUserInMemory(user.ChatId, group);
                         }
                         else
                         {
                             logger?.LogError(
-                                $"no group found of user {user.Element("chatId").Value} with name: {subGroup.Attribute("name").Value}");
+                                $"no group found of user (chatId: {user.ChatId}) with name: {dbGroup.Name}");
                         }
                 }
                 catch (Exception e)
                 {
-                    logger?.LogError(e, $"Failed to restore groups for user with id {user.Element("chatId")}");
+                    logger?.LogError(e, $"Failed to restore groups for user (chatId: {user.ChatId})");
                 }
             }
         }
@@ -121,50 +116,30 @@ namespace ScheduleBot.AspHost.BotServices
                         {
                             try
                             {
-                                lock (path)
-                                {
-                                    var xdoc = XDocument.Load(path);
-                                    var user = xdoc.Element("users")
-                                        ?.Elements("user")
-                                        .FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString());
+                                //var xdoc = XDocument.Load(path);
+                                    var user = usersGroupsRepository.FindUserByChatId(chat.Id);//xdoc.Element("users")
+                                        //?.Elements("user")
+                                        //.FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString());
                                     if (user == null)
-                                        xdoc.Element("users")?.Add(new XElement("user",
-                                            new XAttribute("name", chat.FirstName),
-                                            new XElement("chatId", chat.Id.ToString()), new XElement("groups")));
-                                    var group = user?.Element("groups")
-                                        ?.Elements("group").FirstOrDefault(g =>
-                                            g.Attribute("type")?.Value == groupFromStorage.GType.ToString());
+                                        user = new Profile() {ChatId = chat.Id, ProfileAndGroups = new List<ProfileAndGroup>()};
+                                    var group = user.ProfileAndGroups?.Select(pg => pg.Group).FirstOrDefault(g =>
+                                            g.GType == groupFromStorage.GType);
                                     if (group == null)
                                     {
-                                        xdoc.Element("users")
-                                            ?.Elements("user")
-                                            .FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString())
-                                            ?.Element("groups")
-                                            ?.Add(new XElement("group",
-                                                new XAttribute("type", groupFromStorage.GType.ToString()),
-                                                new XAttribute("name", groupFromStorage.Name)));
+                                        usersGroupsRepository.AddGroupToUser(user, groupFromStorage);
                                     }
                                     else
                                     {
+                                        //if course changed, reset all choosen courses
                                         if (groupFromStorage.GType == ScheduleGroupType.Academic &&
-                                            group.Attribute("name").Value
-                                                .Substring(0, group.Attribute("name").Value.Length - 1) !=
-                                            groupFromStorage.Name.Substring(0, groupFromStorage.Name.Length - 1))
-                                            xdoc.Element("users").Elements("user")
-                                                .FirstOrDefault(u => u.Element("chatId").Value == chat.Id.ToString())
-                                                .Element("groups").Elements("group")
-                                                .Where(g => g.Attribute("type").Value != "Academic").Remove();
-
-                                        xdoc.Element("users").Elements("user")
-                                            .FirstOrDefault(u => u.Element("chatId").Value == chat.Id.ToString())
-                                            .Element("groups").Elements("group").FirstOrDefault(g =>
-                                                g.Attribute("type").Value == groupFromStorage.GType.ToString())
-                                            .Attribute("name")
-                                            .Value = groupFromStorage.Name;
+                                            group.Name.Substring(0, group.Name.Length - 2) !=
+                                            groupFromStorage.Name.Substring(0, groupFromStorage.Name.Length - 2))
+                                            usersGroupsRepository.SetSingleGroupToUser(user, groupFromStorage);
+                                        else
+                                            usersGroupsRepository.ReplaceGroup(user, group, groupFromStorage);
                                     }
 
-                                    xdoc.Save(path);
-                                }
+                                
                             }
                             catch (Exception e)
                             {
