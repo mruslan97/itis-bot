@@ -9,6 +9,7 @@ using FakeItEasy;
 using NUnit.Framework;
 using ScheduleBot.AspHost.BotServices;
 using ScheduleBot.AspHost.BotServices.Interfaces;
+using ScheduleBot.AspHost.DAL.Repositories.Interfaces;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleGroups;
@@ -23,6 +24,7 @@ namespace ScheduleBot.AspHost.Tests.BotServices
         private InMemoryBotStorage storage;
         private IScheduleService fakeService;
         private INotifiactionSender fakeNotificator;
+        private IUsersGroupsRepository fakeRepository;
         private IEnumerable<IScheduleGroup> availableGroups;
         private Fixture fixt = new Fixture();
 
@@ -32,7 +34,8 @@ namespace ScheduleBot.AspHost.Tests.BotServices
             availableGroups = fixt.CreateMany<ScheduleGroup>(10);
             fakeService = A.Fake<IScheduleService>();
             fakeNotificator = A.Fake<INotifiactionSender>();
-            storage = new InMemoryBotStorage(fakeService, fakeNotificator);
+            fakeRepository = A.Fake<IUsersGroupsRepository>();
+            storage = new InMemoryBotStorage(fakeService, fakeNotificator, fakeRepository);
             IScheduleGroup @out;
             A.CallTo(() => fakeService.GroupsMonitor.TryGetCorrectGroup(null, out @out)).WithAnyArguments().Returns(true)
                 .AssignsOutAndRefParametersLazily(
@@ -92,7 +95,7 @@ namespace ScheduleBot.AspHost.Tests.BotServices
 
             var userGroupsFromFirstInstance = (await storage.GetGroupsForChatAsync(tuple.chat)).ToList();
             await Task.Delay(1000);
-            var userGroupsFromSecondInstance = (await (new InMemoryBotStorage(fakeService, fakeNotificator)).GetGroupsForChatAsync(tuple.chat)).ToList();
+            var userGroupsFromSecondInstance = (await (new InMemoryBotStorage(fakeService, fakeNotificator, fakeRepository)).GetGroupsForChatAsync(tuple.chat)).ToList();
             userGroupsFromFirstInstance.ForEach(originalGroup =>
                 userGroupsFromSecondInstance.ShouldContain(originalGroup)
             );

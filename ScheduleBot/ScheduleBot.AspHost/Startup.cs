@@ -8,6 +8,7 @@ using MagicParser.Impls;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,9 @@ using ScheduleBot.AspHost.Commads.GetScheduleCommands;
 using ScheduleBot.AspHost.Commads.SetUpCommands;
 using ScheduleBot.AspHost.Commads.SetUpCommands.ElectivesSetUpCommands;
 using ScheduleBot.AspHost.Commads.TeacherSearchCommands;
+using ScheduleBot.AspHost.DAL;
+using ScheduleBot.AspHost.DAL.Repositories.Impls;
+using ScheduleBot.AspHost.DAL.Repositories.Interfaces;
 using ScheduleBot.AspHost.Keyboards;
 using ScheduleBot.AspHost.Updating;
 using ScheduleServices.Core.Config;
@@ -50,6 +54,12 @@ namespace ScheduleBot.AspHost
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            //DAL
+            services.AddEntityFrameworkNpgsql().AddDbContext<UsersContext>(options =>
+                options.UseNpgsql(configuration.GetConnectionString("MainDatabase")));
+            services.AddSingleton<UsersContextFactory>();
+            services.AddTransient<IUsersGroupsRepository, UsersGroupsDbRepository>();
+            
             //configure parser
             services.AddGoogleApiParser(configuration.GetSection("GoogleApi"));
             //configure schedule service core
@@ -118,6 +128,7 @@ namespace ScheduleBot.AspHost
             if (configuration.GetSection("UseWebHook").Get<bool>())
             {
                 app.UseTelegramBotWebhook<ItisScheduleBot>();
+                
             }
             else
             {

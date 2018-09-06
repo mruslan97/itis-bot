@@ -14,7 +14,7 @@ namespace ScheduleBot.AspHost.DAL
 {
     public class UsersContext : BaseDbContext
     {
-        public UsersContext(DbContextOptions<UsersContext> options)
+        public UsersContext(DbContextOptions<UsersContext> options) : base (options)
         {
         }
         /// <summary>
@@ -33,21 +33,17 @@ namespace ScheduleBot.AspHost.DAL
 
         
     }
-    public class UsersContextFactory : IDesignTimeDbContextFactory<UsersContext>
+    public class UsersContextFactory
     {
-        private readonly DbContextOptionsBuilder<UsersContext> options;
+        private readonly DbContextOptions<UsersContext> options;
 
-        public UsersContextFactory(DbContextOptionsBuilder<UsersContext> options)
+        public UsersContextFactory(DbContextOptions<UsersContext> options)
         {
             this.options = options;
         }
-        public UsersContext CreateDbContext(string[] args)
-        {
-            return new UsersContext(options.Options);
-        }
         public UsersContext CreateDbContext()
         {
-            return new UsersContext(options.Options);
+            return new UsersContext(options);
         }
     }
 }

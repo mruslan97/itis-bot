@@ -11,6 +11,9 @@ namespace DAL.Common
 {
     public class BaseDbContext : DbContext
     {
+        protected BaseDbContext(DbContextOptions options) : base(options)
+        {
+        }
 
         protected override void OnModelCreating(ModelBuilder db)
         {
