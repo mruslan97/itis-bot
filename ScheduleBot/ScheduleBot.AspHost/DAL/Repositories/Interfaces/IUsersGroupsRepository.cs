@@ -10,10 +10,10 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Interfaces
 {
     public interface IUsersGroupsRepository
     {
-        IList<Profile> GetAllUsersWithGroups();
-        Profile FindUserByChatId(long chatId);
-        void AddGroupToUser(Profile user, IScheduleGroup group);
-        void SetSingleGroupToUser(Profile user, IScheduleGroup group);
-        void ReplaceGroup(Profile user, IScheduleGroup oldGroup, IScheduleGroup newGroup);
+        Task<IList<Profile>> GetAllUsersWithGroupsAsync();
+        Task<Profile> FindUserByChatIdAsync(long chatId);
+        Task AddGroupToUserAsync(Profile user, IScheduleGroup group);
+        Task SetSingleGroupToUserAsync(Profile user, IScheduleGroup group);
+        Task ReplaceGroupAsync(Profile user, IScheduleGroup oldGroup, IScheduleGroup newGroup);
     }
 }

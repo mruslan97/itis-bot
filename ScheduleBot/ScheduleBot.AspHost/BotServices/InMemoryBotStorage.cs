@@ -42,7 +42,7 @@ namespace ScheduleBot.AspHost.BotServices
             this.notifiactionSender = notifiactionSender;
             this.usersGroupsRepository = usersGroupsRepository;
             this.logger = logger;
-            var usersWithGroups = usersGroupsRepository.GetAllUsersWithGroups();
+            var usersWithGroups = usersGroupsRepository.GetAllUsersWithGroupsAsync().Result;
             foreach (var user in usersWithGroups)
             {
                 try
@@ -112,40 +112,39 @@ namespace ScheduleBot.AspHost.BotServices
                 {
                     AddGroupToUserInMemory(chat.Id, groupFromStorage);
 
-                    Task.Factory.StartNew(() =>
+                    Task.Factory.StartNew(async() =>
                         {
                             try
                             {
-                                //var xdoc = XDocument.Load(path);
-                                    var user = usersGroupsRepository.FindUserByChatId(chat.Id);//xdoc.Element("users")
-                                        //?.Elements("user")
-                                        //.FirstOrDefault(u => u.Element("chatId")?.Value == chat.Id.ToString());
-                                    if (user == null)
-                                        user = new Profile() {ChatId = chat.Id, ProfileAndGroups = new List<ProfileAndGroup>()};
-                                    var group = user.ProfileAndGroups?.Select(pg => pg.Group).FirstOrDefault(g =>
-                                            g.GType == groupFromStorage.GType);
-                                    if (group == null)
-                                    {
-                                        usersGroupsRepository.AddGroupToUser(user, groupFromStorage);
-                                    }
+                                var tasks = new List<Task>();
+                                var user = await usersGroupsRepository.FindUserByChatIdAsync(chat.Id);
+                                if (user == null)
+                                    user = new Profile() { ChatId = chat.Id, ProfileAndGroups = new List<ProfileAndGroup>() };
+                                var group = user.ProfileAndGroups?.Select(pg => pg.Group).FirstOrDefault(g =>
+                                        g.GType == groupFromStorage.GType);
+                                if (group == null)
+                                {
+                                    tasks.Add(usersGroupsRepository.AddGroupToUserAsync(user, groupFromStorage));
+                                }
+                                else
+                                {
+                                    //if course changed, reset all choosen courses
+                                    if (groupFromStorage.GType == ScheduleGroupType.Academic &&
+                                        group.Name.Substring(0, group.Name.Length - 2) !=
+                                        groupFromStorage.Name.Substring(0, groupFromStorage.Name.Length - 2))
+                                        tasks.Add(usersGroupsRepository.SetSingleGroupToUserAsync(user, groupFromStorage));
                                     else
-                                    {
-                                        //if course changed, reset all choosen courses
-                                        if (groupFromStorage.GType == ScheduleGroupType.Academic &&
-                                            group.Name.Substring(0, group.Name.Length - 2) !=
-                                            groupFromStorage.Name.Substring(0, groupFromStorage.Name.Length - 2))
-                                            usersGroupsRepository.SetSingleGroupToUser(user, groupFromStorage);
-                                        else
-                                            usersGroupsRepository.ReplaceGroup(user, group, groupFromStorage);
-                                    }
+                                        tasks.Add(usersGroupsRepository.ReplaceGroupAsync(user, group, groupFromStorage));
+                                }
 
-                                
+                                await Task.WhenAll(tasks);
+
                             }
                             catch (Exception e)
                             {
                                 logger?.LogError(e, "Exc");
                             }
-                        }, TaskCreationOptions.RunContinuationsAsynchronously).ContinueWith(async t => await t)
+                        }, TaskCreationOptions.RunContinuationsAsynchronously)
                         .ConfigureAwait(false);
 
                     return true;
