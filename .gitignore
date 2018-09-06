@@ -261,3 +261,4 @@ __pycache__/
 *.pyc
 appsettings.*.json
 client_secret.json
+/ScheduleBot/ScheduleBot.AspHost/secrets.tar

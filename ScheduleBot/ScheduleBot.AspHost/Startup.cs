@@ -123,7 +123,7 @@ namespace ScheduleBot.AspHost
                 app.UseDeveloperExceptionPage();
             }
 
-            logger.LogInformation("Bot up");
+            logger.LogInformation($"Bot up");
 
             if (configuration.GetSection("UseWebHook").Get<bool>())
             {
