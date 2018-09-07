@@ -20,26 +20,29 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
         {
             this.dbFactory = dbFactory;
         }
-        public Task<IList<Profile>> GetAllUsersWithGroupsAsync()
+        public async Task<IList<Profile>> GetAllUsersWithGroupsAsync()
         {
             using (var context = dbFactory.CreateDbContext())
             {
-                return context.Profiles.Include(p => p.ProfileAndGroups).ThenInclude(pg => pg.Group)
-                    .ToListAsync().ContinueWith(t => (IList<Profile>) t.Result);
+                return await context.Profiles.Include(p => p.ProfileAndGroups).ThenInclude(pg => pg.Group).AsNoTracking()
+                    .ToListAsync();
             }
         }
 
-        public Task<Profile> FindUserByChatIdAsync(long chatId)
+        public async Task<Profile> FindUserByChatIdAsync(long chatId)
         {
             using (var context = dbFactory.CreateDbContext())
             {
-                return context.Profiles.Include(p => p.ProfileAndGroups).ThenInclude(pg => pg.Group).FirstOrDefaultAsync(p => p.ChatId == chatId);
+                return await context.Profiles.Include(p => p.ProfileAndGroups).ThenInclude(pg => pg.Group).AsNoTracking().FirstOrDefaultAsync(p => p.ChatId == chatId);
             }
         }
 
         public async Task AddGroupToUserAsync(Profile user, IScheduleGroup group)
         {
             if (group is ScheduleGroup schGroup)
+            {
+                if (user.ProfileAndGroups == null)
+                    user.ProfileAndGroups = new List<ProfileAndGroup>();
                 using (var context = dbFactory.CreateDbContext())
                 {
                     user.ProfileAndGroups.Add(
@@ -47,6 +50,7 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
                     context.Profiles.Update(user);
                     await context.SaveChangesAsync();
                 }
+            }
             else
             {
                 //todo: make informative
@@ -59,8 +63,10 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
             if (group is ScheduleGroup schGroup)
                 using (var context = dbFactory.CreateDbContext())
                 {
+                    if (user.ProfileAndGroups != null && user.ProfileAndGroups.Count > 0)
+                        context.ProfileAndGroups.RemoveRange(user.ProfileAndGroups);
                     user.ProfileAndGroups = new List<ProfileAndGroup>()
-                        { new ProfileAndGroup() { Profile = user, ProfileId = user.Id, Group = schGroup, GroupId = schGroup.Id } };
+                        { new ProfileAndGroup() { ProfileId = user.Id, GroupId = schGroup.Id } };
                     context.Profiles.Update(user);
                     await context.SaveChangesAsync();
                 }
@@ -75,7 +81,9 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
             if (newGroup is ScheduleGroup schGroup && oldGroup is ScheduleGroup oldSchGroup)
                 using (var context = dbFactory.CreateDbContext())
                 {
-                    user.ProfileAndGroups.Remove(user.ProfileAndGroups.First(pg => pg.GroupId == oldSchGroup.Id));
+                    user.ProfileAndGroups?.Remove(user.ProfileAndGroups?.First(pg => pg.GroupId == oldSchGroup.Id));
+                    context.ProfileAndGroups.Remove(context.ProfileAndGroups.First(pg =>
+                        pg.ProfileId == user.Id && pg.GroupId == oldSchGroup.Id));
                     user.ProfileAndGroups.Add(
                         new ProfileAndGroup() { Profile = user, ProfileId = user.Id, Group = schGroup, GroupId = schGroup.Id });
                     context.Profiles.Update(user);

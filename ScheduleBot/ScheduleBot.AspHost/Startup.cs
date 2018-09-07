@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -56,7 +57,10 @@ namespace ScheduleBot.AspHost
         {
             //DAL
             services.AddEntityFrameworkNpgsql().AddDbContext<UsersContext>(options =>
-                options.UseNpgsql(configuration.GetConnectionString("MainDatabase")));
+                options
+                    .UseNpgsql(configuration.GetConnectionString("MainDatabase"))
+                    .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning))
+                );
             services.AddSingleton<UsersContextFactory>();
             services.AddTransient<IUsersGroupsRepository, UsersGroupsDbRepository>();
             
