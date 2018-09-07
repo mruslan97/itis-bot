@@ -6,9 +6,14 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoFixture;
 using FakeItEasy;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using ScheduleBot.AspHost.BotServices;
 using ScheduleBot.AspHost.BotServices.Interfaces;
+using ScheduleBot.AspHost.DAL;
+using ScheduleBot.AspHost.DAL.Repositories.Impls;
 using ScheduleBot.AspHost.DAL.Repositories.Interfaces;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Models.Interfaces;
@@ -78,10 +83,11 @@ namespace ScheduleBot.AspHost.Tests.BotServices
         
         private async Task<(List<IScheduleGroup> twoGroups, Chat chat)> CreateAndAddChatWithTwoGroups()
         {
-            var twoGroups = availableGroups.Take(2).ToList();
+            var twoGroups = availableGroups.Take(1).ToList();
             var chat = fixt.Create<Chat>();
             foreach (var scheduleGroup in twoGroups)
             {
+                (scheduleGroup as ScheduleGroup).Id = 0;
                 await storage.TryAddGroupToChatAsync(scheduleGroup, chat);
             }
 
@@ -89,13 +95,27 @@ namespace ScheduleBot.AspHost.Tests.BotServices
         }
 
         [Theory]
+        //todo: move to integration?
         public async Task SaveUserGroups_BetweenSeveralInstances()
         {
+            //preparing 'real' repo
+            var serviceProvider = new ServiceCollection().AddEntityFrameworkNpgsql()
+                .BuildServiceProvider();
+            var builder = new DbContextOptionsBuilder<UsersContext>();
+            builder.UseNpgsql($"Server=localhost;Database=Test_ItisScheduleBot_InMemory_{DateTime.UtcNow};Username=postgres;Password=postgres")
+                .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning))
+                .UseInternalServiceProvider(serviceProvider);
+            var context = new UsersContext(builder.Options);
+            context.Database.Migrate();
+            var repository = new UsersGroupsDbRepository(new UsersContextFactory(builder.Options));
+
+
+            storage = new InMemoryBotStorage(fakeService, fakeNotificator, repository);
             var tuple = await CreateAndAddChatWithTwoGroups();
 
             var userGroupsFromFirstInstance = (await storage.GetGroupsForChatAsync(tuple.chat)).ToList();
             await Task.Delay(1000);
-            var userGroupsFromSecondInstance = (await (new InMemoryBotStorage(fakeService, fakeNotificator, fakeRepository)).GetGroupsForChatAsync(tuple.chat)).ToList();
+            var userGroupsFromSecondInstance = (await (new InMemoryBotStorage(fakeService, fakeNotificator, repository)).GetGroupsForChatAsync(tuple.chat)).ToList();
             userGroupsFromFirstInstance.ForEach(originalGroup =>
                 userGroupsFromSecondInstance.ShouldContain(originalGroup)
             );

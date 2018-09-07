@@ -116,7 +116,6 @@ namespace ScheduleBot.AspHost.BotServices
                         {
                             try
                             {
-                                var tasks = new List<Task>();
                                 var user = await usersGroupsRepository.FindUserByChatIdAsync(chat.Id);
                                 if (user == null)
                                     user = new Profile() { ChatId = chat.Id, ProfileAndGroups = new List<ProfileAndGroup>() };
@@ -124,7 +123,7 @@ namespace ScheduleBot.AspHost.BotServices
                                         g.GType == groupFromStorage.GType);
                                 if (group == null)
                                 {
-                                    tasks.Add(usersGroupsRepository.AddGroupToUserAsync(user, groupFromStorage));
+                                    await usersGroupsRepository.AddGroupToUserAsync(user, groupFromStorage);
                                 }
                                 else
                                 {
@@ -132,12 +131,10 @@ namespace ScheduleBot.AspHost.BotServices
                                     if (groupFromStorage.GType == ScheduleGroupType.Academic &&
                                         group.Name.Substring(0, group.Name.Length - 2) !=
                                         groupFromStorage.Name.Substring(0, groupFromStorage.Name.Length - 2))
-                                        tasks.Add(usersGroupsRepository.SetSingleGroupToUserAsync(user, groupFromStorage));
+                                        await usersGroupsRepository.SetSingleGroupToUserAsync(user, groupFromStorage);
                                     else
-                                        tasks.Add(usersGroupsRepository.ReplaceGroupAsync(user, group, groupFromStorage));
+                                        await usersGroupsRepository.ReplaceGroupAsync(user, group, groupFromStorage);
                                 }
-
-                                await Task.WhenAll(tasks);
 
                             }
                             catch (Exception e)
