@@ -129,6 +129,9 @@ namespace ScheduleBot.AspHost
 
             logger.LogInformation($"Bot up");
 
+            var dbcontext = app.ApplicationServices.GetRequiredService<UsersContext>();
+            dbcontext.Database.Migrate();
+
             if (configuration.GetSection("UseWebHook").Get<bool>())
             {
                 app.UseTelegramBotWebhook<ItisScheduleBot>();
