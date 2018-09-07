@@ -22,6 +22,7 @@ before_script:
     - psql -c "ALTER USER postgres PASSWORD 'postgres';" -U postgres
 script:
     - cd ./ScheduleBot
+    - dotnet restore
     - dotnet build ScheduleBot.sln -c Release
     - dotnet test -c Release --no-build Tests/ScheduleServices.Core.Tests/ScheduleServices.Core.Tests.csproj
     - dotnet test -c Release --no-build Tests/ScheduleBot.AspHost.Tests/ScheduleBot.AspHost.Tests.csproj
