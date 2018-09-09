@@ -15,10 +15,12 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
     public class UsersGroupsDbRepository : IUsersGroupsRepository
     {
         private readonly UsersContextFactory dbFactory;
+        private readonly ILogger<UsersGroupsDbRepository> logger;
 
         public UsersGroupsDbRepository(UsersContextFactory dbFactory, ILogger<UsersGroupsDbRepository> logger = null)
         {
             this.dbFactory = dbFactory;
+            this.logger = logger;
         }
         public async Task<IList<Profile>> GetAllUsersWithGroupsAsync()
         {
@@ -53,8 +55,9 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
             }
             else
             {
-                //todo: make informative
-                throw new ArgumentException("group");
+                logger?.LogError($"Unable to handle group of type {group.GetType()}");
+                //todo: make cast to ScheduleGroup instead
+                throw new ArgumentException("this type of IScheduleGroup is not supported", nameof(group));
             }
         }
 
@@ -72,7 +75,8 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
                 }
             else
             {
-                throw new ArgumentException("group");
+                logger?.LogError($"Unable to handle group of type {group.GetType()}");
+                throw new ArgumentException("this type of IScheduleGroup is not supported", nameof(group));
             }
         }
 
@@ -91,7 +95,8 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
                 }
             else
             {
-                throw new ArgumentException("group");
+                logger?.LogError($"Unable to handle group of type {oldGroup.GetType()} or {newGroup.GetType()}");
+                throw new ArgumentException("this type of IScheduleGroup is not supported");
             }
         }
     }

@@ -29,18 +29,31 @@ namespace ScheduleBot.AspHost.Tests.BotServices
         private InMemoryBotStorage storage;
         private IScheduleService fakeService;
         private INotifiactionSender fakeNotificator;
-        private IUsersGroupsRepository fakeRepository;
         private IEnumerable<IScheduleGroup> availableGroups;
         private Fixture fixt = new Fixture();
+        private UsersGroupsDbRepository repository;
 
         [SetUp]
         public void SetUp()
         {
-            availableGroups = fixt.CreateMany<ScheduleGroup>(10);
+            availableGroups = fixt.CreateMany<ScheduleGroup>(10).Select(g => { g.Id = 0;
+                return g;
+            }).ToList();
             fakeService = A.Fake<IScheduleService>();
             fakeNotificator = A.Fake<INotifiactionSender>();
-            fakeRepository = A.Fake<IUsersGroupsRepository>();
-            storage = new InMemoryBotStorage(fakeService, fakeNotificator, fakeRepository);
+
+            //preparing 'real' repo
+            var serviceProvider = new ServiceCollection().AddEntityFrameworkNpgsql()
+                .BuildServiceProvider();
+            var builder = new DbContextOptionsBuilder<UsersContext>();
+            builder.UseNpgsql($"Server=localhost;Database=Test_ItisScheduleBot_InMemory_{DateTime.UtcNow};Username=postgres;Password=postgres")
+                .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning))
+                .UseInternalServiceProvider(serviceProvider);
+            var context = new UsersContext(builder.Options);
+            context.Database.Migrate();
+            repository = new UsersGroupsDbRepository(new UsersContextFactory(builder.Options));
+
+            storage = new InMemoryBotStorage(fakeService, fakeNotificator, repository);
             IScheduleGroup @out;
             A.CallTo(() => fakeService.GroupsMonitor.TryGetCorrectGroup(null, out @out)).WithAnyArguments().Returns(true)
                 .AssignsOutAndRefParametersLazily(
@@ -50,6 +63,21 @@ namespace ScheduleBot.AspHost.Tests.BotServices
                 .AssignsOutAndRefParametersLazily(
                     call => new List<object>() { availableGroups.FirstOrDefault(g => g.Name.ToLowerInvariant().Contains(call.Arguments[0]?.ToString().ToLowerInvariant())) });
 
+
+        }
+
+        [Test]
+        public async Task SaveUserFromChat()
+        {
+            var group = availableGroups.First();
+            var chat = fixt.Create<Chat>();
+
+            await storage.TryAddGroupToChatAsync(group, chat);
+            await Task.Delay(1000);
+            var user = await repository.FindUserByChatIdAsync(chat.Id);
+
+            user.Name.ShouldBe(chat.Username);
+            user.ScheduleGroups.ShouldHaveSingleItem().ShouldBe(group);
         }
 
         [Theory]
@@ -83,12 +111,13 @@ namespace ScheduleBot.AspHost.Tests.BotServices
         
         private async Task<(List<IScheduleGroup> twoGroups, Chat chat)> CreateAndAddChatWithTwoGroups()
         {
-            var twoGroups = availableGroups.Take(1).ToList();
+            var twoGroups = availableGroups.Take(2).ToList();
             var chat = fixt.Create<Chat>();
             foreach (var scheduleGroup in twoGroups)
             {
                 (scheduleGroup as ScheduleGroup).Id = 0;
                 await storage.TryAddGroupToChatAsync(scheduleGroup, chat);
+                await Task.Delay(1000);
             }
 
             return (twoGroups, chat);
@@ -98,19 +127,6 @@ namespace ScheduleBot.AspHost.Tests.BotServices
         //todo: move to integration?
         public async Task SaveUserGroups_BetweenSeveralInstances()
         {
-            //preparing 'real' repo
-            var serviceProvider = new ServiceCollection().AddEntityFrameworkNpgsql()
-                .BuildServiceProvider();
-            var builder = new DbContextOptionsBuilder<UsersContext>();
-            builder.UseNpgsql($"Server=localhost;Database=Test_ItisScheduleBot_InMemory_{DateTime.UtcNow};Username=postgres;Password=postgres")
-                .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning))
-                .UseInternalServiceProvider(serviceProvider);
-            var context = new UsersContext(builder.Options);
-            context.Database.Migrate();
-            var repository = new UsersGroupsDbRepository(new UsersContextFactory(builder.Options));
-
-
-            storage = new InMemoryBotStorage(fakeService, fakeNotificator, repository);
             var tuple = await CreateAndAddChatWithTwoGroups();
 
             var userGroupsFromFirstInstance = (await storage.GetGroupsForChatAsync(tuple.chat)).ToList();

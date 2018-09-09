@@ -118,7 +118,7 @@ namespace ScheduleBot.AspHost.BotServices
                             {
                                 var user = await usersGroupsRepository.FindUserByChatIdAsync(chat.Id);
                                 if (user == null)
-                                    user = new Profile() { ChatId = chat.Id, ProfileAndGroups = new List<ProfileAndGroup>() };
+                                    user = new Profile() { Name = chat.Username, ChatId = chat.Id, ProfileAndGroups = new List<ProfileAndGroup>() };
                                 var group = user.ProfileAndGroups?.Select(pg => pg.Group).FirstOrDefault(g =>
                                         g.GType == groupFromStorage.GType);
                                 if (group == null)

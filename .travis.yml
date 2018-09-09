@@ -31,7 +31,7 @@ script:
 deploy:
     provider: script
     script:
-        - sshpass -p $TEST_PASSWORD ssh -o StrictHostKeyChecking=no $TEST_USER@$TEST_HOST './updateServer.sh'
+        - sshpass -p $TEST_PASSWORD ssh -p $TEST_PORT -o StrictHostKeyChecking=no $TEST_USER@$TEST_HOST './updateServer.sh'
     on:
         branch: dev
         type: push
