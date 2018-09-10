@@ -39,10 +39,12 @@ namespace ScheduleBot.AspHost
     {
         private IConfigurationRoot configuration;
         private UpdatesScheduler updates;
+        //link to store groups - see usages
+        private readonly List<IScheduleGroup> presettedGroups = new List<IScheduleGroup>();
 
         public Startup(IHostingEnvironment env)
         {
-            var builder = new ConfigurationBuilder()
+           var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
@@ -63,11 +65,10 @@ namespace ScheduleBot.AspHost
                 );
             services.AddSingleton<UsersContextFactory>();
             services.AddTransient<IUsersGroupsRepository, UsersGroupsDbRepository>();
-            
             //configure parser
             services.AddGoogleApiParser(configuration.GetSection("GoogleApi"));
             //configure schedule service core
-            services.AddDefaultScheduleServiceCore(GetGroupsList(), GetRules());
+            services.AddDefaultScheduleServiceCore(presettedGroups, GetRules());
             //update jobs
             services.AddTransient<UpdateJob>();
             services.AddSingleton<UpdateTeachersListJob>();
@@ -77,7 +78,7 @@ namespace ScheduleBot.AspHost
             services.AddTransient<IScheduleEventArgsFactory, DefaultEventArgsFactory>();
             services.AddSingleton<IBotDataStorage, InMemoryBotStorage>();
             services.AddSingleton<INotifiactionSender, Notificator>();
-            services.AddSingleton<IKeyboardsFactory>(provider => new KeyboardsFactory(GetGroupsList()));
+            services.AddSingleton<IKeyboardsFactory>(provider => new KeyboardsFactory(presettedGroups));
             services.AddTransient(prov =>
                 configuration.GetSection("NotificationsSecret").Get<DistributionCommand.SecretKey>());
             services.AddTelegramBot<ItisScheduleBot>(configuration.GetSection("ScheduleBot"))
@@ -129,8 +130,15 @@ namespace ScheduleBot.AspHost
 
             logger.LogInformation($"Bot up");
 
+            //DAL preparations
             var dbcontext = app.ApplicationServices.GetRequiredService<UsersContext>();
             dbcontext.Database.Migrate();
+
+            //update presettedGroups before any ctors have been called
+            presettedGroups.AddRange(GetGroupsList());
+            var repo = app.ApplicationServices.GetRequiredService<IUsersGroupsRepository>();
+            repo.SyncGroupsFromSource(presettedGroups).Wait();
+
 
             if (configuration.GetSection("UseWebHook").Get<bool>())
             {

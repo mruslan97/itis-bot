@@ -15,5 +15,7 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Interfaces
         Task AddGroupToUserAsync(Profile user, IScheduleGroup group);
         Task SetSingleGroupToUserAsync(Profile user, IScheduleGroup group);
         Task ReplaceGroupAsync(Profile user, IScheduleGroup oldGroup, IScheduleGroup newGroup);
+
+        Task SyncGroupsFromSource(IEnumerable<IScheduleGroup> groups, bool throwExceptionOnFall = true);
     }
 }
