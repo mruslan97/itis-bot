@@ -16,7 +16,7 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
     {
         private readonly UsersContextFactory dbFactory;
         private readonly ILogger<UsersGroupsDbRepository> logger;
-
+        
         public UsersGroupsDbRepository(UsersContextFactory dbFactory, ILogger<UsersGroupsDbRepository> logger = null)
         {
             this.dbFactory = dbFactory;
@@ -30,7 +30,8 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
                     .ToListAsync();
             }
         }
-
+        
+        /// <inheritdoc cref="IUsersGroupsRepository.FindUserByChatIdAsync"/>
         public async Task<Profile> FindUserByChatIdAsync(long chatId)
         {
             using (var context = dbFactory.CreateDbContext())
@@ -39,6 +40,7 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
             }
         }
 
+        /// <inheritdoc cref="IUsersGroupsRepository.AddGroupToUserAsync"/>
         public async Task AddGroupToUserAsync(Profile user, IScheduleGroup group)
         {
             if (group is ScheduleGroup schGroup)
@@ -61,6 +63,7 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
             }
         }
 
+        /// <inheritdoc cref="IUsersGroupsRepository.SetSingleGroupToUserAsync"/>
         public async Task SetSingleGroupToUserAsync(Profile user, IScheduleGroup group)
         {
             if (group is ScheduleGroup schGroup)
@@ -80,6 +83,7 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
             }
         }
 
+        /// <inheritdoc cref="IUsersGroupsRepository.ReplaceGroupAsync"/>
         public async Task ReplaceGroupAsync(Profile user, IScheduleGroup oldGroup, IScheduleGroup newGroup)
         {
             if (newGroup is ScheduleGroup schGroup && oldGroup is ScheduleGroup oldSchGroup)
@@ -100,6 +104,7 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
             }
         }
 
+        /// <inheritdoc cref="IUsersGroupsRepository.SyncGroupsFromSource"/>
         public async Task SyncGroupsFromSource(IEnumerable<IScheduleGroup> groups, bool throwExceptionOnFall = true)
         {
             try
