@@ -22,7 +22,7 @@ namespace ScheduleBot.AspHost.BotServices
     public class InMemoryBotStorage : IBotDataStorage
     {
         private readonly IScheduleService service;
-        private readonly INotifiactionSender notifiactionSender;
+        private readonly INotifiactionSender notificationSender;
         private readonly IUsersGroupsRepository usersGroupsRepository;
         private readonly ILogger<InMemoryBotStorage> logger;
 
@@ -35,11 +35,11 @@ namespace ScheduleBot.AspHost.BotServices
         private const string XmlFileName = "usersgroups.xml";
         private readonly string path;
 
-        public InMemoryBotStorage(IScheduleService service, INotifiactionSender notifiactionSender, IUsersGroupsRepository usersGroupsRepository,
+        public InMemoryBotStorage(IScheduleService service, INotifiactionSender notificationSender, IUsersGroupsRepository usersGroupsRepository,
             ILogger<InMemoryBotStorage> logger = null)
         {
             this.service = service;
-            this.notifiactionSender = notifiactionSender;
+            this.notificationSender = notificationSender;
             this.usersGroupsRepository = usersGroupsRepository;
             this.logger = logger;
             var usersWithGroups = usersGroupsRepository.GetAllUsersWithGroupsAsync().Result;
@@ -80,7 +80,7 @@ namespace ScheduleBot.AspHost.BotServices
                             JsonConvert.SerializeObject(group), JsonConvert.SerializeObject(list));
                         var dayName = new CultureInfo("ru-Ru").DateTimeFormat.GetDayName(paramEventArgs.Param);
                         var verbEnd = dayName.EndsWith('а') ? "ась" : "ся";
-                        await notifiactionSender.SendNotificationsForIdsAsync(list,
+                        await notificationSender.SendNotificationsForIdsAsync(list,
                             $"Изменил{verbEnd} {dayName}");
                     }
                 }

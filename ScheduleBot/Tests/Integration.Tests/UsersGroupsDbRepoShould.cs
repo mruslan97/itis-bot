@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AutoFixture;
+using FakeItEasy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,7 @@ using NUnit.Framework;
 using ScheduleBot.AspHost.DAL;
 using ScheduleBot.AspHost.DAL.Entities;
 using ScheduleBot.AspHost.DAL.Repositories.Impls;
+using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleGroups;
 using Shouldly;
 
@@ -124,6 +126,146 @@ namespace Integration.Tests
             res.ScheduleGroups.ShouldNotContain(group1);
             res.ScheduleGroups.ShouldContain(group2);
             res.ScheduleGroups.Count().ShouldBe(1);
+        }
+
+        [Test]
+        public async Task NotFall_WhenAnyCollectionIsEmpty_OnFiltering()
+        {
+            //take fakes and erase table
+            var usedGroups = Enumerable.Range(0, 3).Select(i => AddGroupToDb()).ToList();
+            var usedGroupsSourceFakes = usedGroups.Select(g => (ScheduleGroup)g.Clone()).ToList();
+            using (var newContext = factory.CreateDbContext())
+            {
+                newContext.Groups.RemoveRange(newContext.Groups.ToList());
+                newContext.SaveChanges();
+            }
+            //act 1 - empty db - all to add
+            await repository.SyncGroupsFromSource(usedGroupsSourceFakes);
+            //act 2 - empty source
+            await repository.SyncGroupsFromSource(new List<IScheduleGroup>());
+
+            //empty unused
+            using (var newContext = factory.CreateDbContext())
+            {
+                newContext.Groups.AddRange(usedGroups);
+                newContext.SaveChanges();
+            }
+            //act 3 - empty unused (dbGroups == sourceGroups)
+            await repository.SyncGroupsFromSource(usedGroupsSourceFakes);
+
+            //act 4 - empty source when db has values
+            var unusedGroups = Enumerable.Range(0, 2).Select(i => AddGroupToDb()).ToList();
+            await repository.SyncGroupsFromSource(new List<IScheduleGroup>());
+
+            //erase
+            using (var newContext = factory.CreateDbContext())
+            {
+                newContext.Groups.RemoveRange(newContext.Groups.ToList());
+                newContext.SaveChanges();
+            }
+
+            //all to update
+            usedGroups = Enumerable.Range(0, 3).Select(i => AddGroupToDb()).ToList();
+            usedGroupsSourceFakes = usedGroups.Select(g =>
+            {
+                var group =  (ScheduleGroup) g.Clone();
+                if (group.GType == ScheduleGroupType.PickedTech)
+                    group.GType = 0;
+                else
+                    group.GType++;
+                return group;
+            }).ToList();
+            //act 5 - all exists, no add, no remove, update required.
+            await repository.SyncGroupsFromSource(usedGroupsSourceFakes);
+        }
+
+        [Test]
+        public async Task RemoveUnusedGroups_AfterFiltering()
+        {
+            var unusedGroups = Enumerable.Range(0, 2).Select(i => AddGroupToDb()).ToList();
+            var usedGroups = Enumerable.Range(0, 3).Select(i => AddGroupToDb()).ToList();
+            var usedGroupsSourceFakes = usedGroups.Select(g => (ScheduleGroup) g.Clone()).ToList();
+
+            await repository.SyncGroupsFromSource(usedGroupsSourceFakes);
+
+            using (var newContext = factory.CreateDbContext())
+            {
+                var stored = newContext.Groups.ToList();
+                stored.ShouldNotContain(unusedGroups[0]);
+                stored.ShouldNotContain(unusedGroups[1]);
+            }
+        }
+
+        [Test]
+        public async Task AddNewGroups_AfterFiltering()
+        {
+            //add some groups to db
+            var oldGroups = Enumerable.Range(0, 3).Select(i => AddGroupToDb()).ToList();
+            //prepare some new
+            var newGroups = Enumerable.Range(0, 2).Select(i =>
+            {
+                var group = fixture.Create<ScheduleGroup>();
+                group.Id = 0;
+                return group;
+            }).ToList();
+            
+
+            await repository.SyncGroupsFromSource(newGroups.Concat(oldGroups));
+
+            using (var newContext = factory.CreateDbContext())
+            {
+                var storedGroups = newContext.Groups.ToList();
+                storedGroups.ShouldContain(newGroups[0]);
+                storedGroups.ShouldContain(newGroups[1]);
+            }
+        }
+
+        [Test]
+        public async Task UpdateGroupsInDb_AfterFiltering()
+        {
+            //add some groups to db
+            var oldGroups = Enumerable.Range(0, 2).Select(i => AddGroupToDb()).ToList();
+            //update them
+            var newGroups = oldGroups.Select(g =>
+            {
+                var group = (ScheduleGroup)g.Clone();
+                if (group.GType == ScheduleGroupType.PickedTech)
+                    group.GType = 0;
+                else
+                    group.GType++;
+                return group;
+            }).ToList();
+
+
+            await repository.SyncGroupsFromSource(newGroups);
+
+            using (var newContext = factory.CreateDbContext())
+            {
+                var storedGroups = newContext.Groups.ToList();
+                storedGroups.ShouldNotContain(oldGroups[0]);
+                storedGroups.ShouldNotContain(oldGroups[1]);
+                storedGroups.ShouldContain(newGroups[0]);
+                storedGroups.ShouldContain(newGroups[1]);
+            }
+        }
+
+        [Test]
+        public async Task UpdateIdsInSource_AfterFiltering()
+        {
+            //add some groups to db
+            var oldGroups = Enumerable.Range(0, 2).Select(i => AddGroupToDb()).ToList();
+            //update them
+            var groupPairs = oldGroups.Select(g =>
+            {
+                var group = (ScheduleGroup)g.Clone();
+                group.Id = -1;
+                return new {DbGroup = g, SourceGroup = group};
+            }).ToList();
+
+
+            await repository.SyncGroupsFromSource(groupPairs.Select(gp => gp.SourceGroup));
+
+            groupPairs.ShouldAllBe(gp => gp.SourceGroup.Id != -1 && gp.SourceGroup.Id == gp.DbGroup.Id);
         }
 
         #region Helper methods

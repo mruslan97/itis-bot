@@ -16,7 +16,7 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
     {
         private readonly UsersContextFactory dbFactory;
         private readonly ILogger<UsersGroupsDbRepository> logger;
-
+        
         public UsersGroupsDbRepository(UsersContextFactory dbFactory, ILogger<UsersGroupsDbRepository> logger = null)
         {
             this.dbFactory = dbFactory;
@@ -30,7 +30,8 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
                     .ToListAsync();
             }
         }
-
+        
+        /// <inheritdoc cref="IUsersGroupsRepository.FindUserByChatIdAsync"/>
         public async Task<Profile> FindUserByChatIdAsync(long chatId)
         {
             using (var context = dbFactory.CreateDbContext())
@@ -39,6 +40,7 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
             }
         }
 
+        /// <inheritdoc cref="IUsersGroupsRepository.AddGroupToUserAsync"/>
         public async Task AddGroupToUserAsync(Profile user, IScheduleGroup group)
         {
             if (group is ScheduleGroup schGroup)
@@ -61,6 +63,7 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
             }
         }
 
+        /// <inheritdoc cref="IUsersGroupsRepository.SetSingleGroupToUserAsync"/>
         public async Task SetSingleGroupToUserAsync(Profile user, IScheduleGroup group)
         {
             if (group is ScheduleGroup schGroup)
@@ -80,6 +83,7 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
             }
         }
 
+        /// <inheritdoc cref="IUsersGroupsRepository.ReplaceGroupAsync"/>
         public async Task ReplaceGroupAsync(Profile user, IScheduleGroup oldGroup, IScheduleGroup newGroup)
         {
             if (newGroup is ScheduleGroup schGroup && oldGroup is ScheduleGroup oldSchGroup)
@@ -97,6 +101,75 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
             {
                 logger?.LogError($"Unable to handle group of type {oldGroup.GetType()} or {newGroup.GetType()}");
                 throw new ArgumentException("this type of IScheduleGroup is not supported");
+            }
+        }
+
+        /// <inheritdoc cref="IUsersGroupsRepository.SyncGroupsFromSource"/>
+        public async Task SyncGroupsFromSource(IEnumerable<IScheduleGroup> groups, bool throwExceptionOnFall = true)
+        {
+            try
+            {
+                var tasks = new List<Task>();
+                List<ScheduleGroup> dbGroups;
+                using (var mainContext = dbFactory.CreateDbContext())
+                {
+                    dbGroups = mainContext.Groups.AsNoTracking().ToList();
+                }
+                var matched = dbGroups.Join(groups, dbg => dbg.Name, group => group.Name,
+                    (dbGroup, sourceGroup) => (DbGroup: dbGroup, SourceGroup: sourceGroup)).ToList();
+                var toRemove = dbGroups.Except(matched.Select(m => m.DbGroup));
+                var toAdd = groups.Except(matched.Select(m => m.SourceGroup));
+                tasks.Add(UpdateExistingGroups(matched));
+                tasks.Add(RemoveNotUsed(toRemove));
+                tasks.Add(AddNewGroups(toAdd));
+                await Task.WhenAll(tasks);
+            }
+            catch (Exception e)
+            {
+                logger?.LogError(e, "Exception during groups sync with db");
+                if (throwExceptionOnFall)
+                    throw;
+            }
+            
+        }
+
+        private async Task AddNewGroups(IEnumerable<IScheduleGroup> toAdd)
+        {
+            using (var context = dbFactory.CreateDbContext())
+            {
+                context.Groups.AddRange(toAdd.Cast<ScheduleGroup>());
+                await context.SaveChangesAsync();
+            }
+        }
+
+        private async Task RemoveNotUsed(IEnumerable<ScheduleGroup> toRemove)
+        {
+            using (var context = dbFactory.CreateDbContext())
+            {
+                context.Groups.RemoveRange(toRemove);
+                await context.SaveChangesAsync();
+            }
+        }
+
+        private async Task UpdateExistingGroups(List<(ScheduleGroup DbGroup, IScheduleGroup SourceGroup)> matched)
+        {
+            using (var context = dbFactory.CreateDbContext())
+            {
+                context.Groups.UpdateRange(matched
+                    .Select(elem =>
+                    {
+                        //assign id's from db to source's groups
+                        if (elem.SourceGroup is ScheduleGroup castedSourceGroup)
+                            castedSourceGroup.Id = elem.DbGroup.Id;
+                        return elem;
+                    })
+                    .Where(elem => elem.DbGroup.GType != elem.SourceGroup.GType)
+                    .Select(elem =>
+                    {
+                        elem.DbGroup.GType = elem.SourceGroup.GType;
+                        return elem.DbGroup;
+                    }));
+                await context.SaveChangesAsync();
             }
         }
     }
