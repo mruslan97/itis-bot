@@ -126,7 +126,7 @@ namespace ScheduleBot.AspHost.DAL.Repositories.Impls
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Exception during groups sync with db");
+                logger?.LogError(e, "Exception during groups sync with db");
                 if (throwExceptionOnFall)
                     throw;
             }
