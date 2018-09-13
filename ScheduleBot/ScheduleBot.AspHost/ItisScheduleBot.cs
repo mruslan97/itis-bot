@@ -7,8 +7,6 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.InlineKeyboardButtons;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace ScheduleBot.AspHost
 {

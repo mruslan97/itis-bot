@@ -50,7 +50,8 @@ namespace ScheduleBot.AspHost.Keyboards
         {
             bool lastLineThreeButtons = itemsCount % 2 != 0 && itemsCount > 2;
             int buttonLinesCount = itemsCount > 2 ? (itemsCount / 2)  : 1;
-            var markup = new ReplyKeyboardMarkup(new KeyboardButton[buttonLinesCount][]);
+            var markupKeyboard = new KeyboardButton[buttonLinesCount][];
+            var markup = new ReplyKeyboardMarkup(markupKeyboard);
             if (itemsCount == 0)
                 return new ReplyKeyboardMarkup(new[] {
                 new []{new KeyboardButton("ничего нет")}
@@ -61,14 +62,14 @@ namespace ScheduleBot.AspHost.Keyboards
                 if (!lastLineThreeButtons || i < itemsCount - 3)
                 {
                     if (i % 2 == 0)
-                        markup.Keyboard[i / 2] = new KeyboardButton[2];
-                    markup.Keyboard[i / 2][i % 2] = new KeyboardButton(buttonTextSelector(item));
+                        markupKeyboard[i / 2] = new KeyboardButton[2];
+                    markupKeyboard[i / 2][i % 2] = new KeyboardButton(buttonTextSelector(item));
                 }
                 else
                 {
                     if (i == itemsCount - 3)
-                        markup.Keyboard[buttonLinesCount - 1] = new KeyboardButton[3];
-                    markup.Keyboard[buttonLinesCount - 1][i + 3 - itemsCount] = new KeyboardButton(buttonTextSelector(item));
+                        markupKeyboard[buttonLinesCount - 1] = new KeyboardButton[3];
+                    markupKeyboard[buttonLinesCount - 1][i + 3 - itemsCount] = new KeyboardButton(buttonTextSelector(item));
                 }
 
                 i++;

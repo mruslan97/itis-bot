@@ -79,6 +79,8 @@ namespace Integration.Tests
             resUser.ScheduleGroups.ShouldContain(group);
         }
 
+        
+
         [Test]
         public async Task AddNewGroup_WhenSetSingleGroupCalled()
         {
@@ -126,6 +128,47 @@ namespace Integration.Tests
             res.ScheduleGroups.ShouldNotContain(group1);
             res.ScheduleGroups.ShouldContain(group2);
             res.ScheduleGroups.Count().ShouldBe(1);
+            using (var dbcontext = factory.CreateDbContext())
+            {
+                var groups = dbcontext.Groups.ToList();
+                groups.ShouldContain(group1);
+                groups.ShouldContain(group2);
+                groups.Where(g => g.Name == group2.Name).ShouldHaveSingleItem();
+            }
+
+            
+        }
+
+        [Test]
+        public async Task ReplaceSameGroup_ShouldNotAddNewGroup()
+        {
+            var profile = AddProfileToDb();
+            var group1 = AddGroupToDb();
+            BindGroupToUserInDb(profile, group1);
+            var group2 = new ScheduleGroup()
+            {
+                Id = group1.Id,
+                GType = group1.GType,
+                Name = group1.Name
+            };
+
+            profile = await repository.FindUserByChatIdAsync(profile.ChatId);
+
+            await repository.ReplaceGroupAsync(profile, group1, group2);
+
+            var res = await repository.FindUserByChatIdAsync(profile.ChatId);
+
+            res.ScheduleGroups.ShouldContain(group2);
+            res.ScheduleGroups.Count().ShouldBe(1);
+            using (var dbcontext = factory.CreateDbContext())
+            {
+                var groups = dbcontext.Groups.ToList();
+                groups.ShouldContain(group1);
+                groups.ShouldContain(group2);
+                groups.Where(g => g.Name == group2.Name).ShouldHaveSingleItem();
+            }
+
+
         }
 
         [Test]
@@ -217,6 +260,8 @@ namespace Integration.Tests
                 var storedGroups = newContext.Groups.ToList();
                 storedGroups.ShouldContain(newGroups[0]);
                 storedGroups.ShouldContain(newGroups[1]);
+                storedGroups.Where(sg => sg.Name == newGroups[0].Name).ShouldHaveSingleItem();
+                storedGroups.Where(sg => sg.Name == newGroups[1].Name).ShouldHaveSingleItem();
             }
         }
 
@@ -244,8 +289,8 @@ namespace Integration.Tests
                 var storedGroups = newContext.Groups.ToList();
                 storedGroups.ShouldNotContain(oldGroups[0]);
                 storedGroups.ShouldNotContain(oldGroups[1]);
-                storedGroups.ShouldContain(newGroups[0]);
-                storedGroups.ShouldContain(newGroups[1]);
+                storedGroups.Where(sg => sg.Name == newGroups[0].Name).ShouldHaveSingleItem();
+                storedGroups.Where(sg => sg.Name == newGroups[1].Name).ShouldHaveSingleItem();
             }
         }
 

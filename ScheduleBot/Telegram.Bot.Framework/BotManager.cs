@@ -156,13 +156,13 @@ namespace Telegram.Bot.Framework
         {
             if (enabled)
             {
-                FileToSend? fileToSend = null;
+                /*FileToSend? fileToSend = null;
                 if (!string.IsNullOrWhiteSpace(_botOptions.PathToCertificate))
                 {
                     var file = new FileStream(_botOptions.PathToCertificate, FileMode.Open);
                     fileToSend = new FileToSend("certificate.pem", file);
-                }
-                return _bot.Client.SetWebhookAsync(WebhookUrl, fileToSend);
+                }*/
+                return _bot.Client.SetWebhookAsync(WebhookUrl); //fileToSend);
             }
             else
             {
