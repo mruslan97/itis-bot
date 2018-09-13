@@ -15,6 +15,7 @@ using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleBot.AspHost.DAL;
 using ScheduleBot.AspHost.DAL.Repositories.Impls;
 using ScheduleBot.AspHost.DAL.Repositories.Interfaces;
+using ScheduleBot.AspHost.Tests.Utils;
 using ScheduleServices.Core;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleGroups;
@@ -33,9 +34,10 @@ namespace ScheduleBot.AspHost.Tests.BotServices
         private Fixture fixt = new Fixture();
         private UsersGroupsDbRepository repository;
 
-        [SetUp]
+        [OneTimeSetUp]
         public void SetUp()
         {
+            TgBotFixtureUtils.ConfigureFixtureForCreateChat(fixt);
             availableGroups = fixt.CreateMany<ScheduleGroup>(10).Select(g => { g.Id = 0;
                 return g;
             }).ToList();
