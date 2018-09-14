@@ -73,6 +73,7 @@ namespace ScheduleServices.Core.Models.ScheduleGroups
         {
             return new ScheduleGroup()
             {
+                Id = this.Id,
                 GType = this.GType,
                 Name = (string)this.Name.Clone()
             };

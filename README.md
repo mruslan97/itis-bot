@@ -108,6 +108,8 @@
 
 ### Windows part
 
+>Important for developers in Russian Federation: please ensure You have access to telegram.org directly or througth system VPN. If you'r using system proxy, it's not guaranteed that bot will serve requests. If you have Fiddler, it could help to bypass blocks, when running (with system proxy). If you have a suggestion, how to reach tg.org on your local while development, welcome to #9
+
 * Set up environment
    * Power-Shell
    ````

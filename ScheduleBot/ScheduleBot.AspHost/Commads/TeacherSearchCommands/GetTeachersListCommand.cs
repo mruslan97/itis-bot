@@ -3,15 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using ScheduleBot.AspHost.BotServices.Interfaces;
 using ScheduleBot.AspHost.Commads.CommandArgs;
-using ScheduleBot.AspHost.Helpers;
 using ScheduleBot.AspHost.Keyboards;
-using ScheduleServices.Core;
-using ScheduleServices.Core.Models.ScheduleElems;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace ScheduleBot.AspHost.Commads.TeacherSearchCommands
