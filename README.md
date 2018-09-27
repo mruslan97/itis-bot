@@ -1,6 +1,6 @@
 # Itis Schedule Tg-bot - next gen.
 
-## [Try it (unavailable till september)](https://t-do.ru/itis_scheduleBot)
+## [Try it (unavailable till october)](https://t-do.ru/itis_scheduleBot)
 
 ### [Try dev build (available for old copy of schedule)](https://t-do.ru/itis_testBot)
 
