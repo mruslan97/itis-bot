@@ -47,6 +47,7 @@
     <ProjectReference Include="..\DAL.Common\DAL.Common.csproj" />
     <ProjectReference Include="..\MagicParser\MagicParser.csproj" />
     <ProjectReference Include="..\ScheduleServices.Core\ScheduleServices.Core.csproj" />
+    <ProjectReference Include="..\TablesRulesCore\TablesRulesCore.csproj" />
     <ProjectReference Include="..\Telegram.Bot.Framework\Telegram.Bot.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
