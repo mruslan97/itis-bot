@@ -15,26 +15,63 @@ namespace ScheduleBot.AspHost
 {
     public class SchedulesSetup
     {
+        private static readonly Regex TeacherNameRegex = new Regex("[А-Я][а-я]+ *[А-Я][\\.,][А-Я]");
+        private static readonly Regex FourDigitsRoomNumRegex = new Regex("[1-9][0-9]{3}");
+
         static string ExtractTeacherName(string token)
         {
-            return Regex.Match(token, "[А-Я][а-я]+ *[А-Я][\\.,][А-Я]").Value + ".";
+            return TeacherNameRegex.Match(token).Value + ".";
         }
+
         static string ExtractRoom(string token)
         {
             //todo: add rooms kind of '108 к.2'
-            return Regex.Match(token, "[1-9][0-9]{3}").Value;
+            return FourDigitsRoomNumRegex.Match(token).Value;
         }
+
         static string ExtractNotation(string token)
         {
             throw new NotImplementedException();
         }
+
         public IList<ICellRule> GetCellHandlers()
         {
             return new List<ICellRule>()
             {
+                //simple cell parser
                 new DelegateCellRule()
                 {
-                    ApplicabilityEstimator = (cellText) => cellText.ToLower().Contains("англ") ? 100 : 0,
+                    ApplicabilityEstimator = (cellText) => TeacherNameRegex.Matches(cellText).Count == 1 ? 50 : int.MinValue,
+                    Serializer = (cellText, context, availableGroups) =>
+                    {
+                        var lesson = new Lesson()
+                        {
+                            BeginTime = TimeSpan.ParseExact(context.CurrentTimeLabel.Substring(0, 5),
+                                "hh.mm",
+                                CultureInfo.InvariantCulture),
+                            Duration = TimeSpan.FromHours(1.5),
+                            Level = ScheduleElemLevel.Lesson,
+                            IsOnEvenWeek = cellText.Contains("ч.н") ? true :
+                                cellText.Contains("н.н") ? false : (bool?) null,
+                            Place = ExtractRoom(cellText),
+                            Teacher = ExtractTeacherName(cellText)
+                        };
+                        lesson.Notation = ExtractNotation(cellText.Replace(lesson.Teacher, null)
+                            .Replace(lesson.Place, ""));
+                        lesson.Discipline = cellText.Replace(lesson.Teacher, null).Replace(lesson.Place, null)
+                            .Replace(string.IsNullOrEmpty(lesson.Notation) ? "~~" : lesson.Notation, null).Replace("ч.н", null).Replace("н.н", null).Trim();
+                        return Enumerable.Repeat(new ValueTuple<IScheduleElem, IScheduleGroup>
+                            (lesson,
+                            availableGroups.FirstOrDefault(group =>
+                                group.Name.Contains(context.CurrentGroupLabel,
+                                    StringComparison.InvariantCultureIgnoreCase)))
+                            , 1);
+                    }
+                },
+                //eng parser
+                new DelegateCellRule()
+                {
+                    ApplicabilityEstimator = (cellText) => cellText.ToLower().Contains("англ") ? 100 : int.MinValue,
                     Serializer = (cellText, context, availableGroups) =>
                     {
                         return cellText.Substring(cellText.IndexOf("язык)") + 5)
@@ -50,7 +87,8 @@ namespace ScheduleBot.AspHost
                                         Discipline = "Английский язык",
                                         Duration = TimeSpan.FromHours(1.5),
                                         Level = ScheduleElemLevel.Lesson,
-                                        IsOnEvenWeek = teacherSet.Contains("ч.н") ? true : teacherSet.Contains("н.н") ? false : (bool?)null,
+                                        IsOnEvenWeek = teacherSet.Contains("ч.н") ? true :
+                                            teacherSet.Contains("н.н") ? false : (bool?) null,
                                         Place = ExtractRoom(teacherSet),
                                         Teacher = ExtractTeacherName(teacherSet)
                                     };
@@ -61,7 +99,6 @@ namespace ScheduleBot.AspHost
                                             group.Name.Contains(lesson.Teacher,
                                                 StringComparison.InvariantCultureIgnoreCase)));
                                 });
-                       
                     }
                 }
             };
