@@ -21,7 +21,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.Tests", "Tests\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DAL.Common", "DAL.Common\DAL.Common.csproj", "{96DA3009-5AC0-4BEF-BB48-9E00876CAE68}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TablesRulesCore", "TablesRulesCore\TablesRulesCore.csproj", "{06F56D7B-AE4D-4033-AB71-D36ADDEA5D03}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TablesRulesCore", "TablesRulesCore\TablesRulesCore.csproj", "{06F56D7B-AE4D-4033-AB71-D36ADDEA5D03}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleSheetsSchedulesProvider", "GoogleSheetsSchedulesProvider\GoogleSheetsSchedulesProvider.csproj", "{70FB6A6D-E2BC-4A4C-819D-C28CC7178EEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,6 +67,10 @@ Global
 		{06F56D7B-AE4D-4033-AB71-D36ADDEA5D03}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06F56D7B-AE4D-4033-AB71-D36ADDEA5D03}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{06F56D7B-AE4D-4033-AB71-D36ADDEA5D03}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70FB6A6D-E2BC-4A4C-819D-C28CC7178EEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70FB6A6D-E2BC-4A4C-819D-C28CC7178EEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70FB6A6D-E2BC-4A4C-819D-C28CC7178EEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70FB6A6D-E2BC-4A4C-819D-C28CC7178EEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

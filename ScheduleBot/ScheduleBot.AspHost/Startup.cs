@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using MagicParser.Configuration;
-using MagicParser.Impls;
+using GoogleSheetsSchedulesProvider.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -30,6 +30,7 @@ using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleGroups;
 using ScheduleServices.Core.Modules;
 using ScheduleServices.Core.Modules.Interfaces;
+using TablesRulesCore;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 
@@ -57,6 +58,8 @@ namespace ScheduleBot.AspHost
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            var currentSetup = new SchedulesSetup();
+            services.AddSingleton<SchedulesSetup>(currentSetup);
             //DAL
             services.AddEntityFrameworkNpgsql().AddDbContext<UsersContext>(options =>
                 options
@@ -66,9 +69,11 @@ namespace ScheduleBot.AspHost
             services.AddSingleton<UsersContextFactory>();
             services.AddTransient<IUsersGroupsRepository, UsersGroupsDbRepository>();
             //configure parser
+            //todo: move to extension? ugly config flow
+            services.AddSingleton<IEnumerable<ICellRule>>(currentSetup.GetCellHandlers());
             services.AddGoogleApiParser(configuration.GetSection("GoogleApi"));
             //configure schedule service core
-            services.AddDefaultScheduleServiceCore(presettedGroups, GetRules());
+            services.AddDefaultScheduleServiceCore(presettedGroups, currentSetup.GetGroupsRules());
             //update jobs
             services.AddTransient<UpdateJob>();
             services.AddSingleton<UpdateTeachersListJob>();
@@ -135,7 +140,7 @@ namespace ScheduleBot.AspHost
             dbcontext.Database.Migrate();
 
             //update presettedGroups before any ctors have been called
-            presettedGroups.AddRange(GetGroupsList());
+            presettedGroups.AddRange(app.ApplicationServices.GetRequiredService<SchedulesSetup>().GetGroups());
             var repo = app.ApplicationServices.GetRequiredService<IUsersGroupsRepository>();
             repo.SyncGroupsFromSource(presettedGroups).Wait();
 

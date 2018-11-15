@@ -13,7 +13,7 @@ using TablesRulesCore;
 
 namespace ScheduleBot.AspHost
 {
-    public class DefaultSetup
+    public class SchedulesSetup
     {
         static string ExtractTeacherName(string token)
         {
@@ -35,7 +35,7 @@ namespace ScheduleBot.AspHost
                 new DelegateCellRule()
                 {
                     ApplicabilityEstimator = (cellText) => cellText.ToLower().Contains("англ") ? 100 : 0,
-                    Serializer = (cellText, context) =>
+                    Serializer = (cellText, context, availableGroups) =>
                     {
                         return cellText.Substring(cellText.IndexOf("язык)") + 5)
                             .Split(",", StringSplitOptions.RemoveEmptyEntries).Select(elem => elem.Trim('.', ' '))
@@ -56,7 +56,10 @@ namespace ScheduleBot.AspHost
                                     };
                                     lesson.Notation = ExtractNotation(teacherSet.Replace(lesson.Teacher, "")
                                         .Replace(lesson.Place, ""));
-                                    return lesson;
+                                    return new ValueTuple<IScheduleElem, IScheduleGroup>(lesson,
+                                        availableGroups.FirstOrDefault(group =>
+                                            group.Name.Contains(lesson.Teacher,
+                                                StringComparison.InvariantCultureIgnoreCase)));
                                 });
                        
                     }

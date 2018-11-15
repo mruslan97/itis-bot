@@ -6,6 +6,8 @@ namespace TablesRulesCore
     public interface ICellRule
     {
         int EstimateApplicability(string cellText);
-        IEnumerable<IScheduleElem> SerializeElems(string cellText, TableContext context);
+
+        IEnumerable<(IScheduleElem ScheduleElem, IScheduleGroup Group)> 
+            SerializeElems(string cellText, TableContext context, IEnumerable<IScheduleGroup> availableGroups);
     }
 }
