@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ScheduleServices.Core\ScheduleServices.Core.csproj" />
-    <ProjectReference Include="..\TablesRulesCore\TablesRulesCore.csproj" />
+    <ProjectReference Include="..\TableRules.Core\TableRules.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

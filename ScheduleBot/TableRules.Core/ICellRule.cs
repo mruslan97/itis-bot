@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ScheduleServices.Core.Models.Interfaces;
 
-namespace TablesRulesCore
+namespace TableRules.Core
 {
     public interface ICellRule
     {

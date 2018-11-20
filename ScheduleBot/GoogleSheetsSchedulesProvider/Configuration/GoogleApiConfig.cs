@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ScheduleServices.Core.Providers.Interfaces;
-using TablesRulesCore;
+using TableRules.Core;
 
 namespace GoogleSheetsSchedulesProvider.Configuration
 {

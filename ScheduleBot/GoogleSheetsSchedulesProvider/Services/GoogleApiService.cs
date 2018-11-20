@@ -9,7 +9,7 @@ using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using Google.Apis.Util;
 using Google.Apis.Util.Store;
-using TablesRulesCore;
+using TableRules.Core;
 
 namespace GoogleSheetsSchedulesProvider.Services
 {

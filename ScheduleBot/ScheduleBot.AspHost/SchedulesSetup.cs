@@ -9,7 +9,7 @@ using ScheduleServices.Core.Models.ScheduleElems;
 using ScheduleServices.Core.Models.ScheduleGroups;
 using ScheduleServices.Core.Modules;
 using ScheduleServices.Core.Modules.Interfaces;
-using TablesRulesCore;
+using TableRules.Core;
 
 namespace ScheduleBot.AspHost
 {

@@ -7,7 +7,7 @@ using ScheduleServices.Core.Models;
 using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleElems;
 using ScheduleServices.Core.Providers.Interfaces;
-using TablesRulesCore;
+using TableRules.Core;
 
 namespace GoogleSheetsSchedulesProvider
 {

@@ -47,7 +47,7 @@
     <ProjectReference Include="..\DAL.Common\DAL.Common.csproj" />
     <ProjectReference Include="..\GoogleSheetsSchedulesProvider\GoogleSheetsSchedulesProvider.csproj" />
     <ProjectReference Include="..\ScheduleServices.Core\ScheduleServices.Core.csproj" />
-    <ProjectReference Include="..\TablesRulesCore\TablesRulesCore.csproj" />
+    <ProjectReference Include="..\TableRules.Core\TableRules.Core.csproj" />
     <ProjectReference Include="..\Telegram.Bot.Framework\Telegram.Bot.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>

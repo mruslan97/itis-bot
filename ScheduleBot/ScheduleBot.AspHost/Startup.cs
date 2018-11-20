@@ -30,7 +30,7 @@ using ScheduleServices.Core.Models.Interfaces;
 using ScheduleServices.Core.Models.ScheduleGroups;
 using ScheduleServices.Core.Modules;
 using ScheduleServices.Core.Modules.Interfaces;
-using TablesRulesCore;
+using TableRules.Core;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 

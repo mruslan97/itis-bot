@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ScheduleServices.Core.Models.Interfaces;
 
-namespace TablesRulesCore
+namespace TableRules.Core
 {
     public class DelegateCellRule : ICellRule
 
