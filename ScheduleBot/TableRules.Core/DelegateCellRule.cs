@@ -7,14 +7,14 @@ namespace TableRules.Core
     public class DelegateCellRule : ICellRule
 
     {
-        public Func<string, int> ApplicabilityEstimator { private get; set; }
+        public Func<string, IEnumerable<IScheduleGroup>, int> ApplicabilityEstimator { private get; set; }
 
         public Func<string, TableContext, IEnumerable<IScheduleGroup>, IEnumerable<(IScheduleElem ScheduleElem, IScheduleGroup Group)>> 
             Serializer { private get; set; }
 
-        public int EstimateApplicability(string cellText)
+        public int EstimateApplicability(string cellText, IEnumerable<IScheduleGroup> availableGroups)
         {
-            return ApplicabilityEstimator.Invoke(cellText);
+            return ApplicabilityEstimator.Invoke(cellText, availableGroups);
         }
 
         public IEnumerable<(IScheduleElem ScheduleElem, IScheduleGroup Group)> SerializeElems(string cellText, TableContext context, IEnumerable<IScheduleGroup> availableGroups)

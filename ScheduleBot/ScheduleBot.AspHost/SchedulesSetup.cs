@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ScheduleServices.Core.Models.Interfaces;
@@ -15,8 +16,24 @@ namespace ScheduleBot.AspHost
 {
     public class SchedulesSetup
     {
+        [Flags]
+        private enum LessonParts
+        {
+            None = 0,
+            TeacherName = 0x01,
+            Room = 0x02,
+            Notation = 0x04,
+            Name = 0x08,
+            Evenness = 0x10,
+            HelpSymbols = 0x20
+        }
         private static readonly Regex TeacherNameRegex = new Regex("[А-Я][а-я]+ *[А-Я][\\.,][А-Я]");
         private static readonly Regex FourDigitsRoomNumRegex = new Regex("[1-9][0-9]{3}");
+        private static readonly Regex LectureRoomNumRegex = new Regex("(10[8,9]|1310|1311|лекц)( к\\.? ?2( на Кремлевской 35).).", RegexOptions.IgnoreCase);
+        private static readonly Regex NotationRegex = new Regex("\\(.{3,50}\\)");
+        private static readonly Regex EvenOrOddWeekRegex = new Regex("[н, ч]\\.н\\.?", RegexOptions.IgnoreCase);
+        private static readonly Regex OddWeekRegex = new Regex("н\\.н\\.?", RegexOptions.IgnoreCase);
+        private static readonly Regex EvenWeekRegex = new Regex("ч\\.н\\.?", RegexOptions.IgnoreCase);
 
         static string ExtractTeacherName(string token)
         {
@@ -25,13 +42,135 @@ namespace ScheduleBot.AspHost
 
         static string ExtractRoom(string token)
         {
-            //todo: add rooms kind of '108 к.2'
-            return FourDigitsRoomNumRegex.Match(token).Value;
+            Match match = LectureRoomNumRegex.Match(token);
+            if (match.Success)
+                return match.Value;
+            match = FourDigitsRoomNumRegex.Match(token);
+            return match.Value;
         }
 
         static string ExtractNotation(string token)
         {
-            throw new NotImplementedException();
+            return NotationRegex.Matches(token).Aggregate("",
+                (result, match) => result + match.Value.Substring(1, match.Value.Length - 2) + ". ");
+        }
+
+        static bool? ExtractEvenness(string token)
+        {
+            return OddWeekRegex.IsMatch(token) ? false : EvenWeekRegex.IsMatch(token) ? true : (bool?) null;
+        }
+
+        static string ClearToken(string token, LessonParts partsToClear, string nameToRemove = null)
+        {
+            var sb = new StringBuilder(token);
+            if (partsToClear.HasFlag(LessonParts.TeacherName))
+                sb.Replace(ExtractTeacherName(token), null);
+            if (partsToClear.HasFlag(LessonParts.Room))
+                sb.Replace(ExtractRoom(token), null);
+            if (partsToClear.HasFlag(LessonParts.Name) && !string.IsNullOrEmpty(nameToRemove))
+                sb.Replace(nameToRemove, null);
+            if (partsToClear.HasFlag(LessonParts.Notation))
+                NotationRegex.Matches(sb.ToString()).Select(match => sb.Replace(match.Value, null)).ToList();
+            if (partsToClear.HasFlag(LessonParts.Evenness))
+                EvenOrOddWeekRegex.Matches(sb.ToString()).Select(match => sb.Replace(match.Value, null)).ToList();
+            if (partsToClear.HasFlag(LessonParts.HelpSymbols))
+                sb.Replace("_", null)
+                    .Replace(" .", null)
+                    .Replace(" ,", null)
+                    .Replace(". ", null)
+                    .Replace(", ", null)
+                    .Replace(";", null);
+            return sb.ToString().Trim();
+        }
+        
+        static IEnumerable<(IScheduleElem, IScheduleGroup)> PrepareLectureOrSeminar(Lesson lesson, TableContext context,
+            IEnumerable<IScheduleGroup> groupsForLecture)
+        {
+            if (lesson.Place.StartsWith("108") || lesson.Place.StartsWith("109"))
+                return groupsForLecture.Select(g => new ValueTuple<IScheduleElem, IScheduleGroup>(lesson, g));
+            else
+                return Enumerable.Repeat(new ValueTuple<IScheduleElem, IScheduleGroup>
+                    (lesson,
+                        groupsForLecture.FirstOrDefault(group =>
+                            group.Name.Contains(context.CurrentGroupLabel,
+                                StringComparison.InvariantCultureIgnoreCase)))
+                    , 1);
+        }
+
+        public class LevenshteinBasedRule : ICellRule
+        {
+            private readonly int limitFailLengthPercentage;
+            private readonly int maxScore;
+            private readonly Dictionary<IScheduleGroup, (int Distance, string Token)> Result = new Dictionary<IScheduleGroup, (int Distance, string Token)>();
+            private double distanceNormalizer;
+
+            public LevenshteinBasedRule(int limitFailLengthPercentage, int maxScore, double distanceNormalizer)
+            {
+                this.limitFailLengthPercentage = limitFailLengthPercentage;
+                this.maxScore = maxScore;
+                this.distanceNormalizer = distanceNormalizer;
+            }
+            public int EstimateApplicability(string cellText, IEnumerable<IScheduleGroup> availableGroups)
+            {
+                Result.Clear();
+                var tokens = cellText.Split(':', ',', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var availableGroup in availableGroups)
+                {
+                    var clearGroupName =
+                        ClearToken(availableGroup.Name, LessonParts.Notation | LessonParts.HelpSymbols | LessonParts.TeacherName);
+                    var bestDistAndToken = tokens.Aggregate((Distance: int.MaxValue, BestToken: (string) null),
+                        (bestEntry, current) =>
+                        {
+                            var curDistance = LevenshteinDistance.Compute(ClearToken(current,
+                                LessonParts.Notation | LessonParts.TeacherName | LessonParts.Evenness | LessonParts.Room), clearGroupName);
+                            if (curDistance < bestEntry.Distance)
+                            {
+                                bestEntry.Distance = curDistance;
+                                bestEntry.BestToken = current;
+                            }
+
+                            return bestEntry;
+                        });
+                    if (bestDistAndToken.BestToken != null && (bestDistAndToken.Distance / bestDistAndToken.BestToken.Length * 100) < limitFailLengthPercentage)
+                    {
+                        if (Result.TryGetValue(availableGroup,out var existingEntry))
+                        {
+                            if (existingEntry.Distance > bestDistAndToken.Distance)
+                                Result[availableGroup] = bestDistAndToken;
+                        }
+                        else
+                        {
+                            Result[availableGroup] = bestDistAndToken;
+                        }
+                    }
+                }
+                if (Result.Any())
+                    return (int)Result.Values.Min(value => maxScore - value.Distance * distanceNormalizer);
+                return int.MinValue;
+            }
+
+            public IEnumerable<(IScheduleElem ScheduleElem, IScheduleGroup Group)> SerializeElems(string cellText, TableContext context, IEnumerable<IScheduleGroup> availableGroups)
+            {
+                return Result.Select(pair =>
+                {
+                    var lesson = new Lesson()
+                    {
+                        BeginTime = TimeSpan.ParseExact(context.CurrentTimeLabel.Substring(0, 5),
+                            "hh.mm",
+                            CultureInfo.InvariantCulture),
+                        Duration = TimeSpan.FromHours(1.5),
+                        Level = ScheduleElemLevel.Lesson,
+                        IsOnEvenWeek = ExtractEvenness(pair.Value.Token),
+                        Place = ExtractRoom(pair.Value.Token),
+                        Teacher = ExtractTeacherName(pair.Key.Name)
+                    };
+                    lesson.Notation = ExtractNotation(pair.Value.Token);
+                    lesson.Discipline = ClearToken(pair.Key.Name,
+                        LessonParts.TeacherName | LessonParts.HelpSymbols);
+                    return new ValueTuple<IScheduleElem, IScheduleGroup>(lesson, pair.Key);
+                }).ToList();
+
+            }
         }
 
         public IList<ICellRule> GetCellHandlers()
@@ -41,7 +180,7 @@ namespace ScheduleBot.AspHost
                 //simple cell parser
                 new DelegateCellRule()
                 {
-                    ApplicabilityEstimator = (cellText) => TeacherNameRegex.Matches(cellText).Count == 1 ? 50 : int.MinValue,
+                    ApplicabilityEstimator = (cellText, group) => TeacherNameRegex.Matches(cellText).Count == 1 ? 50 : int.MinValue,
                     Serializer = (cellText, context, availableGroups) =>
                     {
                         var lesson = new Lesson()
@@ -51,27 +190,20 @@ namespace ScheduleBot.AspHost
                                 CultureInfo.InvariantCulture),
                             Duration = TimeSpan.FromHours(1.5),
                             Level = ScheduleElemLevel.Lesson,
-                            IsOnEvenWeek = cellText.Contains("ч.н") ? true :
-                                cellText.Contains("н.н") ? false : (bool?) null,
+                            IsOnEvenWeek = ExtractEvenness(cellText),
                             Place = ExtractRoom(cellText),
                             Teacher = ExtractTeacherName(cellText)
                         };
-                        lesson.Notation = ExtractNotation(cellText.Replace(lesson.Teacher, null)
-                            .Replace(lesson.Place, ""));
-                        lesson.Discipline = cellText.Replace(lesson.Teacher, null).Replace(lesson.Place, null)
-                            .Replace(string.IsNullOrEmpty(lesson.Notation) ? "~~" : lesson.Notation, null).Replace("ч.н", null).Replace("н.н", null).Trim();
-                        return Enumerable.Repeat(new ValueTuple<IScheduleElem, IScheduleGroup>
-                            (lesson,
-                            availableGroups.FirstOrDefault(group =>
-                                group.Name.Contains(context.CurrentGroupLabel,
-                                    StringComparison.InvariantCultureIgnoreCase)))
-                            , 1);
+                        lesson.Notation = ExtractNotation(cellText);
+                        lesson.Discipline = ClearToken(cellText,
+                            LessonParts.TeacherName | LessonParts.Evenness | LessonParts.Notation | LessonParts.Room);
+                        return PrepareLectureOrSeminar(lesson, context, availableGroups);
                     }
                 },
                 //eng parser
                 new DelegateCellRule()
                 {
-                    ApplicabilityEstimator = (cellText) => cellText.ToLower().Contains("англ") ? 100 : int.MinValue,
+                    ApplicabilityEstimator = (cellText, groups) => cellText.ToLower().Contains("англ") ? 100 : int.MinValue,
                     Serializer = (cellText, context, availableGroups) =>
                     {
                         return cellText.Substring(cellText.IndexOf("язык)") + 5)
@@ -100,7 +232,8 @@ namespace ScheduleBot.AspHost
                                                 StringComparison.InvariantCultureIgnoreCase)));
                                 });
                     }
-                }
+                },
+                new LevenshteinBasedRule(50, 100, 3d)
             };
         }
         public IList<IScheduleGroup> GetGroups()
@@ -348,6 +481,56 @@ namespace ScheduleBot.AspHost
                 };
             }
 
+        }
+    }
+    static class LevenshteinDistance
+    {
+        /// <summary>
+        /// Compute the distance between two strings.
+        /// </summary>
+        public static int Compute(string s, string t)
+        {
+            int n = s.Length;
+            int m = t.Length;
+            int[,] d = new int[n + 1, m + 1];
+
+            // Step 1
+            if (n == 0)
+            {
+                return m;
+            }
+
+            if (m == 0)
+            {
+                return n;
+            }
+
+            // Step 2
+            for (int i = 0; i <= n; d[i, 0] = i++)
+            {
+            }
+
+            for (int j = 0; j <= m; d[0, j] = j++)
+            {
+            }
+
+            // Step 3
+            for (int i = 1; i <= n; i++)
+            {
+                //Step 4
+                for (int j = 1; j <= m; j++)
+                {
+                    // Step 5
+                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+
+                    // Step 6
+                    d[i, j] = Math.Min(
+                        Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
+                        d[i - 1, j - 1] + cost);
+                }
+            }
+            // Step 7
+            return d[n, m];
         }
     }
 }

@@ -39,7 +39,7 @@ namespace GoogleSheetsSchedulesProvider
                 var bestRule = cellRules.Aggregate((BestRule: (ICellRule) null, BestRuleApplicability: int.MinValue),
                     (acc, currentRule) =>
                     {
-                        var currentRuleApplicability = currentRule.EstimateApplicability(cell.CellValue);
+                        var currentRuleApplicability = currentRule.EstimateApplicability(cell.CellValue, availableGroupsList);
                         if (currentRuleApplicability > acc.BestRuleApplicability)
                         {
                             acc.BestRuleApplicability = currentRuleApplicability;
