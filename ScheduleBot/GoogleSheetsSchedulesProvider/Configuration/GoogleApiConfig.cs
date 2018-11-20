@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using ScheduleServices.Core.Providers.Interfaces;
 using TableRules.Core;
 
@@ -20,7 +21,7 @@ namespace GoogleSheetsSchedulesProvider.Configuration
             services.AddSingleton<IScheduleInfoProvider, ScheduleInfoProvider>(s =>
                 new ScheduleInfoProvider(
                     config,
-                    s.GetRequiredService<IEnumerable<ICellRule>>()
+                    s.GetRequiredService<IEnumerable<ICellRule>>(), s.GetRequiredService<ILogger<ScheduleInfoProvider>>()
                     )
             );
         }

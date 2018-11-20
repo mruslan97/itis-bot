@@ -12,7 +12,8 @@ namespace TableRules.Core
         public Func<string, TableContext, IEnumerable<IScheduleGroup>, IEnumerable<(IScheduleElem ScheduleElem, IScheduleGroup Group)>> 
             Serializer { private get; set; }
 
-        public int EstimateApplicability(string cellText, IEnumerable<IScheduleGroup> availableGroups)
+        public int EstimateApplicability(string cellText, TableContext context,
+            IEnumerable<IScheduleGroup> availableGroups)
         {
             return ApplicabilityEstimator.Invoke(cellText, availableGroups);
         }

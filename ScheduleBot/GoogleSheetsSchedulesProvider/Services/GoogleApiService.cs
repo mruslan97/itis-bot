@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
@@ -57,7 +58,8 @@ namespace GoogleSheetsSchedulesProvider.Services
             request.Ranges = GetDailyCoordinates(course, day);
             return Sort(request.Execute(), course);
         }
-        
+
+        private static readonly Regex SpacesRemover = new Regex("[ ]{2,}");
 
         private List<(string CellValue, TableContext Context)> Sort(BatchGetValuesResponse googleResponse, int course)
         {
@@ -73,7 +75,7 @@ namespace GoogleSheetsSchedulesProvider.Services
                 for (var j = 0; j < unsortedObjects[i].Subjects.Count; j++)
                     if (unsortedObjects[i].Subjects[j].ToString().Length > 1)
                         sortedSubjects.Add(
-                            (unsortedObjects[i].Subjects[j].ToString(),
+                            (SpacesRemover.Replace(unsortedObjects[i].Subjects[j].ToString(), " "),
                                 new TableContext()
                                 {
                                     CurrentTimeLabel = unsortedObjects[i].Time.FirstOrDefault().ToString().Trim(),

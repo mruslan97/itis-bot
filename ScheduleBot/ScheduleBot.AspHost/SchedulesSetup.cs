@@ -16,6 +16,8 @@ namespace ScheduleBot.AspHost
 {
     public class SchedulesSetup
     {
+        private const string LessonHoursLabelFormat = "hh\\.mm";
+
         [Flags]
         private enum LessonParts
         {
@@ -46,13 +48,14 @@ namespace ScheduleBot.AspHost
             if (match.Success)
                 return match.Value;
             match = FourDigitsRoomNumRegex.Match(token);
-            return match.Value;
+            return match.Success ? match.Value : "~~";
         }
 
         static string ExtractNotation(string token)
         {
-            return NotationRegex.Matches(token).Aggregate("",
+            var res = NotationRegex.Matches(token).Aggregate("",
                 (result, match) => result + match.Value.Substring(1, match.Value.Length - 2) + ". ");
+            return !String.IsNullOrWhiteSpace(res) ? res : null;
         }
 
         static bool? ExtractEvenness(string token)
@@ -67,7 +70,7 @@ namespace ScheduleBot.AspHost
                 sb.Replace(ExtractTeacherName(token), null);
             if (partsToClear.HasFlag(LessonParts.Room))
                 sb.Replace(ExtractRoom(token), null);
-            if (partsToClear.HasFlag(LessonParts.Name) && !string.IsNullOrEmpty(nameToRemove))
+            if (partsToClear.HasFlag(LessonParts.Name) && !String.IsNullOrEmpty(nameToRemove))
                 sb.Replace(nameToRemove, null);
             if (partsToClear.HasFlag(LessonParts.Notation))
                 NotationRegex.Matches(sb.ToString()).Select(match => sb.Replace(match.Value, null)).ToList();
@@ -89,10 +92,9 @@ namespace ScheduleBot.AspHost
             if (lesson.Place.StartsWith("108") || lesson.Place.StartsWith("109"))
                 return groupsForLecture.Select(g => new ValueTuple<IScheduleElem, IScheduleGroup>(lesson, g));
             else
-                return Enumerable.Repeat(new ValueTuple<IScheduleElem, IScheduleGroup>
-                    (lesson,
+                return Enumerable.Repeat(new ValueTuple<IScheduleElem, IScheduleGroup>(lesson,
                         groupsForLecture.FirstOrDefault(group =>
-                            group.Name.Contains(context.CurrentGroupLabel,
+                            @group.Name.Contains(context.CurrentGroupLabel,
                                 StringComparison.InvariantCultureIgnoreCase)))
                     , 1);
         }
@@ -110,15 +112,19 @@ namespace ScheduleBot.AspHost
                 this.maxScore = maxScore;
                 this.distanceNormalizer = distanceNormalizer;
             }
-            public int EstimateApplicability(string cellText, IEnumerable<IScheduleGroup> availableGroups)
+            public int EstimateApplicability(string cellText, TableContext context,
+                IEnumerable<IScheduleGroup> availableGroups)
             {
                 Result.Clear();
                 var tokens = cellText.Split(':', ',', StringSplitOptions.RemoveEmptyEntries);
-                foreach (var availableGroup in availableGroups)
+                foreach (var availableGroup 
+                    in availableGroups.Where(g => g.GType != ScheduleGroupType.Academic && g.GType != ScheduleGroupType.Eng &&
+                                g.Name.EndsWith(ExtractStreamNumber(context)) &&
+                                g.Name.Contains(ExtractCourseLabel(context))))
                 {
                     var clearGroupName =
                         ClearToken(availableGroup.Name, LessonParts.Notation | LessonParts.HelpSymbols | LessonParts.TeacherName);
-                    var bestDistAndToken = tokens.Aggregate((Distance: int.MaxValue, BestToken: (string) null),
+                    var bestDistAndToken = tokens.Aggregate((Distance: Int32.MaxValue, BestToken: (string) null),
                         (bestEntry, current) =>
                         {
                             var curDistance = LevenshteinDistance.Compute(ClearToken(current,
@@ -146,7 +152,7 @@ namespace ScheduleBot.AspHost
                 }
                 if (Result.Any())
                     return (int)Result.Values.Min(value => maxScore - value.Distance * distanceNormalizer);
-                return int.MinValue;
+                return Int32.MinValue;
             }
 
             public IEnumerable<(IScheduleElem ScheduleElem, IScheduleGroup Group)> SerializeElems(string cellText, TableContext context, IEnumerable<IScheduleGroup> availableGroups)
@@ -155,8 +161,7 @@ namespace ScheduleBot.AspHost
                 {
                     var lesson = new Lesson()
                     {
-                        BeginTime = TimeSpan.ParseExact(context.CurrentTimeLabel.Substring(0, 5),
-                            "hh.mm",
+                        BeginTime = TimeSpan.ParseExact(context.CurrentTimeLabel.Substring(0, 5), LessonHoursLabelFormat,
                             CultureInfo.InvariantCulture),
                         Duration = TimeSpan.FromHours(1.5),
                         Level = ScheduleElemLevel.Lesson,
@@ -180,13 +185,13 @@ namespace ScheduleBot.AspHost
                 //simple cell parser
                 new DelegateCellRule()
                 {
-                    ApplicabilityEstimator = (cellText, group) => TeacherNameRegex.Matches(cellText).Count == 1 ? 50 : int.MinValue,
+                    ApplicabilityEstimator = (cellText, group) => TeacherNameRegex.Matches(cellText).Count == 1 ? 50 : Int32.MinValue,
                     Serializer = (cellText, context, availableGroups) =>
                     {
                         var lesson = new Lesson()
                         {
                             BeginTime = TimeSpan.ParseExact(context.CurrentTimeLabel.Substring(0, 5),
-                                "hh.mm",
+                                LessonHoursLabelFormat,
                                 CultureInfo.InvariantCulture),
                             Duration = TimeSpan.FromHours(1.5),
                             Level = ScheduleElemLevel.Lesson,
@@ -203,9 +208,12 @@ namespace ScheduleBot.AspHost
                 //eng parser
                 new DelegateCellRule()
                 {
-                    ApplicabilityEstimator = (cellText, groups) => cellText.ToLower().Contains("англ") ? 100 : int.MinValue,
+                    ApplicabilityEstimator = (cellText, groups) => cellText.ToLower().Contains("англ") ? 100 : Int32.MinValue,
                     Serializer = (cellText, context, availableGroups) =>
                     {
+                        var streamNumber = ExtractStreamNumber(context);
+                        var course = ExtractCourseLabel(context);
+                        var engGroups = availableGroups.Where(g => g.GType == ScheduleGroupType.Eng && g.Name.EndsWith(streamNumber) && g.Name.Contains(course)).ToList();
                         return cellText.Substring(cellText.IndexOf("язык)") + 5)
                             .Split(",", StringSplitOptions.RemoveEmptyEntries).Select(elem => elem.Trim('.', ' '))
                             .Select(
@@ -214,7 +222,7 @@ namespace ScheduleBot.AspHost
                                     var lesson = new Lesson()
                                     {
                                         BeginTime = TimeSpan.ParseExact(context.CurrentTimeLabel.Substring(0, 5),
-                                            "hh.mm",
+                                            LessonHoursLabelFormat,
                                             CultureInfo.InvariantCulture),
                                         Discipline = "Английский язык",
                                         Duration = TimeSpan.FromHours(1.5),
@@ -227,7 +235,7 @@ namespace ScheduleBot.AspHost
                                     lesson.Notation = ExtractNotation(teacherSet.Replace(lesson.Teacher, "")
                                         .Replace(lesson.Place, ""));
                                     return new ValueTuple<IScheduleElem, IScheduleGroup>(lesson,
-                                        availableGroups.FirstOrDefault(group =>
+                                        engGroups.FirstOrDefault(group =>
                                             group.Name.Contains(lesson.Teacher,
                                                 StringComparison.InvariantCultureIgnoreCase)));
                                 });
@@ -236,6 +244,30 @@ namespace ScheduleBot.AspHost
                 new LevenshteinBasedRule(50, 100, 3d)
             };
         }
+
+        private static string ExtractCourseLabel(TableContext context)
+        {
+            var groupDigit = (int) char.GetNumericValue(context.CurrentGroupLabel[3]);
+            switch (groupDigit)
+            {
+                case 7:
+                    return "1курс";
+                case 6:
+                    return "2курс";
+                case 5:
+                    return "3курс";
+                case 4:
+                    return "4курс";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private static string ExtractStreamNumber(TableContext context)
+        {
+            return context.CurrentGroupLabel.EndsWith('1') ? "1" : "2";
+        }
+
         public IList<IScheduleGroup> GetGroups()
         {
             return new List<IScheduleGroup>()
@@ -289,8 +321,8 @@ namespace ScheduleBot.AspHost
                 //ENG GROUPS
                 new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Мартынова Е.В._1курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Мартынова Е.В._1курс_2"},
-                new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Сигачева Е.В._1курс_1"},
-                new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Сигачева Е.В._1курс_2"},
+                new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Сигачева Н.А._1курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Сигачева Н.А._1курс_2"},
                 new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Макаев Х.Ф._1курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Баранова А.Р._1курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Мельникова О.К._1курс_1"},
@@ -302,7 +334,7 @@ namespace ScheduleBot.AspHost
                 new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Саляхова Г.И._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Исмагилова Г.К._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Мартынова Е.В._2курс_1"},
-                new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Сигачева Е.В._2курс_1"},
+                new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Сигачева Н.А._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Махмутова А.Н._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Маршева Т.В._2курс_1"},
                 new ScheduleGroup() { GType = ScheduleGroupType.Eng, Name = "Сакаева Л.Р._2курс_1"},

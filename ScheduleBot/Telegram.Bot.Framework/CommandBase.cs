@@ -97,22 +97,8 @@ namespace Telegram.Bot.Framework
             bool canHandle = false;
             try
             {
-                var zippedMessageEntity = update.Message.Entities
-                    .Zip(update.Message.EntityValues, (entity, val) => new
-                    {
-                        MessageEntity = entity,
-                        Value = val
-                    })
-                    .SingleOrDefault(zipped =>
-                        zipped.MessageEntity.Type == MessageEntityType.BotCommand &&
-                        zipped.MessageEntity.Offset == 0
-                    );
-
-                if (zippedMessageEntity != null)
-                {
-                    canHandle = Regex.IsMatch(zippedMessageEntity.Value,
-                        $@"^/{Name}(?:@{Bot.UserName})?$", RegexOptions.IgnoreCase);
-                }
+                canHandle = Regex.IsMatch(update.Message.Text,
+                    $@"^/{Name}(?:@{Bot.UserName})?$", RegexOptions.IgnoreCase);
             }
             catch (Exception e)
             {
