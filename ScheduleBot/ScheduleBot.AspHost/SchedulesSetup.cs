@@ -29,7 +29,7 @@ namespace ScheduleBot.AspHost
             Evenness = 0x10,
             HelpSymbols = 0x20
         }
-        private static readonly Regex TeacherNameRegex = new Regex("[А-Я][а-я]+ *[А-Я][\\.,][А-Я]");
+        private static readonly Regex TeacherNameRegex = new Regex("[А-Я][а-я]+ *([А-Я][\\.,] ?[А-Я][\\.,]?|[А-Я][а-я]{2,} +[А-Я][а-я]+(чна|вна|вич))");
         private static readonly Regex FourDigitsRoomNumRegex = new Regex("[1-9][0-9]{3}");
         private static readonly Regex LectureRoomNumRegex = new Regex("(10[8,9]|1310|1311|лекц)( к\\.? ?2( на Кремлевской 35).).", RegexOptions.IgnoreCase);
         private static readonly Regex NotationRegex = new Regex("\\(.{3,50}\\)");
@@ -39,7 +39,12 @@ namespace ScheduleBot.AspHost
 
         static string ExtractTeacherName(string token)
         {
-            return TeacherNameRegex.Match(token).Value + ".";
+            var res = TeacherNameRegex.Match(token).Value;
+            if (res.Length > 3 && !res[res.Length - 1].Equals('.') && (res[res.Length - 2].Equals('.') || res[res.Length - 3].Equals('.')))
+                res += ".";
+            if (res.Any() && res.Last().Equals(','))
+                res = res.Substring(0, res.Length - 1) + ".";
+            return res;
         }
 
         static string ExtractRoom(string token)
@@ -67,7 +72,7 @@ namespace ScheduleBot.AspHost
         {
             var sb = new StringBuilder(token);
             if (partsToClear.HasFlag(LessonParts.TeacherName))
-                sb.Replace(ExtractTeacherName(token), null);
+                TeacherNameRegex.Matches(sb.ToString()).Select(match => sb.Replace(match.Value, null)).ToList();
             if (partsToClear.HasFlag(LessonParts.Room))
                 sb.Replace(ExtractRoom(token), null);
             if (partsToClear.HasFlag(LessonParts.Name) && !String.IsNullOrEmpty(nameToRemove))
@@ -116,7 +121,7 @@ namespace ScheduleBot.AspHost
                 IEnumerable<IScheduleGroup> availableGroups)
             {
                 Result.Clear();
-                var tokens = cellText.Split(':', ',', StringSplitOptions.RemoveEmptyEntries);
+                var tokens = cellText.Split(new []{ ':', ','}, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var availableGroup 
                     in availableGroups.Where(g => g.GType != ScheduleGroupType.Academic && g.GType != ScheduleGroupType.Eng &&
                                 g.Name.EndsWith(ExtractStreamNumber(context)) &&
@@ -137,7 +142,7 @@ namespace ScheduleBot.AspHost
 
                             return bestEntry;
                         });
-                    if (bestDistAndToken.BestToken != null && (bestDistAndToken.Distance / bestDistAndToken.BestToken.Length * 100) < limitFailLengthPercentage)
+                    if (bestDistAndToken.BestToken != null && (bestDistAndToken.Distance / (double) bestDistAndToken.BestToken.Length * 100) < limitFailLengthPercentage)
                     {
                         if (Result.TryGetValue(availableGroup,out var existingEntry))
                         {
@@ -213,12 +218,24 @@ namespace ScheduleBot.AspHost
                     {
                         var streamNumber = ExtractStreamNumber(context);
                         var course = ExtractCourseLabel(context);
-                        var engGroups = availableGroups.Where(g => g.GType == ScheduleGroupType.Eng && g.Name.EndsWith(streamNumber) && g.Name.Contains(course)).ToList();
+                        var engGroups = availableGroups
+                            .Where(g => g.GType == ScheduleGroupType.Eng && g.Name.EndsWith(streamNumber) &&
+                                        g.Name.Contains(course))
+                            .Select(g => (Group: g, Teacher: ExtractTeacherName(g.Name))).ToList();
                         return cellText.Substring(cellText.IndexOf("язык)") + 5)
                             .Split(",", StringSplitOptions.RemoveEmptyEntries).Select(elem => elem.Trim('.', ' '))
                             .Select(
                                 teacherSet =>
                                 {
+                                    var teacherFromSet = ExtractTeacherName(teacherSet);
+                                    if (string.IsNullOrWhiteSpace(teacherFromSet))
+                                        teacherFromSet = ClearToken(teacherSet, LessonParts.Evenness | LessonParts.Room | LessonParts.Notation);
+                                    var bestGroupEntry = engGroups.FirstOrDefault(groupEntry =>
+                                    {
+                                        return groupEntry.Teacher.Contains(teacherFromSet) ||
+                                               teacherFromSet.Contains(groupEntry.Teacher) ||
+                                               LevenshteinDistance.Compute(groupEntry.Teacher, teacherFromSet) < 3;
+                                    });
                                     var lesson = new Lesson()
                                     {
                                         BeginTime = TimeSpan.ParseExact(context.CurrentTimeLabel.Substring(0, 5),
@@ -230,14 +247,11 @@ namespace ScheduleBot.AspHost
                                         IsOnEvenWeek = teacherSet.Contains("ч.н") ? true :
                                             teacherSet.Contains("н.н") ? false : (bool?) null,
                                         Place = ExtractRoom(teacherSet),
-                                        Teacher = ExtractTeacherName(teacherSet)
+                                        Teacher = bestGroupEntry.Teacher
                                     };
                                     lesson.Notation = ExtractNotation(teacherSet.Replace(lesson.Teacher, "")
                                         .Replace(lesson.Place, ""));
-                                    return new ValueTuple<IScheduleElem, IScheduleGroup>(lesson,
-                                        engGroups.FirstOrDefault(group =>
-                                            group.Name.Contains(lesson.Teacher,
-                                                StringComparison.InvariantCultureIgnoreCase)));
+                                    return new ValueTuple<IScheduleElem, IScheduleGroup>(lesson, bestGroupEntry.Group);
                                 });
                     }
                 },
