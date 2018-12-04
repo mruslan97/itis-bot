@@ -19,15 +19,17 @@ namespace ScheduleBot.AspHost
         private const string LessonHoursLabelFormat = "hh\\.mm";
 
         [Flags]
-        private enum LessonParts
+        private enum LessonParts : long
         {
-            None = 0,
-            TeacherName = 0x01,
-            Room = 0x02,
-            Notation = 0x04,
-            Name = 0x08,
-            Evenness = 0x10,
-            HelpSymbols = 0x20
+            None = 0L,
+            TeacherName = 1L << 0,
+            Room = 1L << 1,
+            Notation = 1L << 2,
+            Name = 1L << 3,
+            Evenness = 1L << 4,
+            HelpSymbols = 1L << 5,
+            Stream = 1L << 6,
+            Course = 1L << 7,
         }
         private static readonly Regex TeacherNameRegex = new Regex("[А-Я][а-я]+ *([А-Я][\\.,] ?[А-Я][\\.,]?|[А-Я][а-я]{2,} +[А-Я][а-я]+(чна|вна|вич))");
         private static readonly Regex FourDigitsRoomNumRegex = new Regex("[1-9][0-9]{3}");
@@ -81,6 +83,10 @@ namespace ScheduleBot.AspHost
                 NotationRegex.Matches(sb.ToString()).Select(match => sb.Replace(match.Value, null)).ToList();
             if (partsToClear.HasFlag(LessonParts.Evenness))
                 EvenOrOddWeekRegex.Matches(sb.ToString()).Select(match => sb.Replace(match.Value, null)).ToList();
+            if (partsToClear.HasFlag(LessonParts.Stream) && token.EndsWith("_1"))
+                sb.Replace("_1", null, startIndex: sb.Length - 3, count: 1);
+            if (partsToClear.HasFlag(LessonParts.Stream) && token.EndsWith("_2"))
+                sb.Replace("_2", null, startIndex: sb.Length - 3, count: 1);
             if (partsToClear.HasFlag(LessonParts.HelpSymbols))
                 sb.Replace("_", null)
                     .Replace(" .", null)
@@ -88,6 +94,8 @@ namespace ScheduleBot.AspHost
                     .Replace(". ", null)
                     .Replace(", ", null)
                     .Replace(";", null);
+            if (partsToClear.HasFlag(LessonParts.Course))
+                sb.Replace(ExtractCourseLabel(token), null);
             return sb.ToString().Trim();
         }
         
@@ -104,6 +112,85 @@ namespace ScheduleBot.AspHost
                     , 1);
         }
 
+        public class SimpleLessonRule : ICellRule
+        {
+            public int EstimateApplicability(string cellText, TableContext context, IEnumerable<IScheduleGroup> availableGroups)
+            {
+                return TeacherNameRegex.Matches(cellText).Count == 1 ? 50 : Int32.MinValue;
+            }
+
+            public IEnumerable<(IScheduleElem ScheduleElem, IScheduleGroup Group)> SerializeElems(string cellText,
+                TableContext context, IEnumerable<IScheduleGroup> availableGroups)
+            {
+                var lesson = new Lesson()
+                {
+                    BeginTime = TimeSpan.ParseExact(context.CurrentTimeLabel.Substring(0, 5),
+                        LessonHoursLabelFormat,
+                        CultureInfo.InvariantCulture),
+                    Duration = TimeSpan.FromHours(1.5),
+                    Level = ScheduleElemLevel.Lesson,
+                    IsOnEvenWeek = ExtractEvenness(cellText),
+                    Place = ExtractRoom(cellText),
+                    Teacher = ExtractTeacherName(cellText)
+                };
+                lesson.Notation = ExtractNotation(cellText);
+                lesson.Discipline = ClearToken(cellText,
+                    LessonParts.TeacherName | LessonParts.Evenness | LessonParts.Notation | LessonParts.Room);
+                return PrepareLectureOrSeminar(lesson, context,
+                    availableGroups.Where(g =>
+                        g.GType == ScheduleGroupType.Academic &&
+                        g.Name.StartsWith(context.CurrentGroupLabel.Substring(0, 4))));
+            }
+        }
+
+        public class EngLessonRule : ICellRule
+        {
+            public int EstimateApplicability(string cellText, TableContext context,
+                IEnumerable<IScheduleGroup> availableGroups) =>
+                cellText.ToLower().Contains("англ") ? 100 : Int32.MinValue;
+
+            public IEnumerable<(IScheduleElem ScheduleElem, IScheduleGroup Group)> SerializeElems(string cellText,
+                TableContext context, IEnumerable<IScheduleGroup> availableGroups)
+            {
+                var streamNumber = ExtractStreamNumber(context);
+                var course = ExtractCourseLabel(context);
+                var engGroups = availableGroups
+                    .Where(g => g.GType == ScheduleGroupType.Eng && g.Name.EndsWith(streamNumber) &&
+                                g.Name.Contains(course))
+                    .Select(g => (Group: g, Teacher: ExtractTeacherName(g.Name))).ToList();
+                return cellText.Substring(cellText.IndexOf("язык)") + 5)
+                    .Split(",", StringSplitOptions.RemoveEmptyEntries).Select(elem => elem.Trim('.', ' '))
+                    .Select(
+                        teacherSet =>
+                        {
+                            var teacherFromSet = ExtractTeacherName(teacherSet);
+                            if (string.IsNullOrWhiteSpace(teacherFromSet))
+                                teacherFromSet = ClearToken(teacherSet, LessonParts.Evenness | LessonParts.Room | LessonParts.Notation);
+                            var bestGroupEntry = engGroups.FirstOrDefault(groupEntry =>
+                            {
+                                return groupEntry.Teacher.Contains(teacherFromSet) ||
+                                       teacherFromSet.Contains(groupEntry.Teacher) ||
+                                       LevenshteinDistance.Compute(groupEntry.Teacher, teacherFromSet) < 3;
+                            });
+                            var lesson = new Lesson()
+                            {
+                                BeginTime = TimeSpan.ParseExact(context.CurrentTimeLabel.Substring(0, 5),
+                                    LessonHoursLabelFormat,
+                                    CultureInfo.InvariantCulture),
+                                Discipline = "Английский язык",
+                                Duration = TimeSpan.FromHours(1.5),
+                                Level = ScheduleElemLevel.Lesson,
+                                IsOnEvenWeek = teacherSet.Contains("ч.н") ? true :
+                                    teacherSet.Contains("н.н") ? false : (bool?)null,
+                                Place = ExtractRoom(teacherSet),
+                                Teacher = bestGroupEntry.Teacher
+                            };
+                            lesson.Notation = ExtractNotation(teacherSet.Replace(lesson.Teacher, "")
+                                .Replace(lesson.Place, ""));
+                            return new ValueTuple<IScheduleElem, IScheduleGroup>(lesson, bestGroupEntry.Group);
+                        });
+            }
+        }
         public class LevenshteinBasedRule : ICellRule
         {
             private readonly int limitFailLengthPercentage;
@@ -176,7 +263,7 @@ namespace ScheduleBot.AspHost
                     };
                     lesson.Notation = ExtractNotation(pair.Value.Token);
                     lesson.Discipline = ClearToken(pair.Key.Name,
-                        LessonParts.TeacherName | LessonParts.HelpSymbols);
+                        LessonParts.TeacherName | LessonParts.HelpSymbols | LessonParts.Stream | LessonParts.Course);
                     return new ValueTuple<IScheduleElem, IScheduleGroup>(lesson, pair.Key);
                 }).ToList();
 
@@ -188,9 +275,15 @@ namespace ScheduleBot.AspHost
             return new List<ICellRule>()
             {
                 //simple cell parser
+                new SimpleLessonRule(),
+                //eng parser
+                new EngLessonRule(),
+                //common leveinshtein distance rule
+                new LevenshteinBasedRule(50, 100, 3d),
+                //physic culture
                 new DelegateCellRule()
                 {
-                    ApplicabilityEstimator = (cellText, group) => TeacherNameRegex.Matches(cellText).Count == 1 ? 50 : Int32.MinValue,
+                    ApplicabilityEstimator = (cellText, groups) => cellText.Contains("УНИКС", StringComparison.InvariantCultureIgnoreCase) ? 80 : Int32.MinValue,
                     Serializer = (cellText, context, availableGroups) =>
                     {
                         var lesson = new Lesson()
@@ -201,61 +294,101 @@ namespace ScheduleBot.AspHost
                             Duration = TimeSpan.FromHours(1.5),
                             Level = ScheduleElemLevel.Lesson,
                             IsOnEvenWeek = ExtractEvenness(cellText),
-                            Place = ExtractRoom(cellText),
-                            Teacher = ExtractTeacherName(cellText)
+                            Place = "УНИКС",
+                            Teacher = string.Empty
                         };
                         lesson.Notation = ExtractNotation(cellText);
-                        lesson.Discipline = ClearToken(cellText,
-                            LessonParts.TeacherName | LessonParts.Evenness | LessonParts.Notation | LessonParts.Room);
-                        return PrepareLectureOrSeminar(lesson, context, availableGroups);
+                        lesson.Discipline = "Физкультура";
+                        //evaluate only academic groups of the same course
+                        return availableGroups
+                            .Where(g => g.GType == ScheduleGroupType.Academic &&
+                                        g.Name.StartsWith(context.CurrentGroupLabel.Substring(0, 4))).Select(g =>
+                                new ValueTuple<IScheduleElem, IScheduleGroup>(lesson, g));
                     }
                 },
-                //eng parser
                 new DelegateCellRule()
                 {
-                    ApplicabilityEstimator = (cellText, groups) => cellText.ToLower().Contains("англ") ? 100 : Int32.MinValue,
+                    ApplicabilityEstimator = (cellText, groups) => cellText.Contains("проектный практикум", StringComparison.InvariantCultureIgnoreCase) ? Int32.MaxValue : Int32.MinValue,
+                    Serializer = (cellText, context, availableGroups) => Enumerable.Empty<(IScheduleElem, IScheduleGroup)>()
+                },
+                new DelegateCellRule()
+                {
+                    ApplicabilityEstimator = (cellText, groups) => cellText.Contains("Кириллович А.") ? Int32.MaxValue : Int32.MinValue,
+                    Serializer = (cellText, context, availableGroups) => new SimpleLessonRule().SerializeElems(cellText, context, availableGroups).Select(entry =>
+                    {
+                        var lesson = entry.ScheduleElem as Lesson;
+                        if (lesson != null && lesson.Discipline.Contains("Кириллович А."))
+                        {
+                            lesson.Discipline = lesson.Discipline.Replace("Кириллович А.", null);
+                            lesson.Teacher = "Кириллович А.";
+                        }
+                        return entry;
+                    })
+                },
+                new DelegateCellRule()
+                {
+                    ApplicabilityEstimator = (cellText, groups) => cellText.Contains("Основы правоведения и противодействия коррупции Хасанов Р.А",
+                                                                       StringComparison.InvariantCultureIgnoreCase)
+                                                                   && cellText.Contains("Курс по выбору:",
+                                                                       StringComparison.InvariantCultureIgnoreCase)  ? Int32.MaxValue : Int32.MinValue,
                     Serializer = (cellText, context, availableGroups) =>
                     {
-                        var streamNumber = ExtractStreamNumber(context);
-                        var course = ExtractCourseLabel(context);
-                        var engGroups = availableGroups
-                            .Where(g => g.GType == ScheduleGroupType.Eng && g.Name.EndsWith(streamNumber) &&
-                                        g.Name.Contains(course))
-                            .Select(g => (Group: g, Teacher: ExtractTeacherName(g.Name))).ToList();
-                        return cellText.Substring(cellText.IndexOf("язык)") + 5)
-                            .Split(",", StringSplitOptions.RemoveEmptyEntries).Select(elem => elem.Trim('.', ' '))
-                            .Select(
-                                teacherSet =>
-                                {
-                                    var teacherFromSet = ExtractTeacherName(teacherSet);
-                                    if (string.IsNullOrWhiteSpace(teacherFromSet))
-                                        teacherFromSet = ClearToken(teacherSet, LessonParts.Evenness | LessonParts.Room | LessonParts.Notation);
-                                    var bestGroupEntry = engGroups.FirstOrDefault(groupEntry =>
-                                    {
-                                        return groupEntry.Teacher.Contains(teacherFromSet) ||
-                                               teacherFromSet.Contains(groupEntry.Teacher) ||
-                                               LevenshteinDistance.Compute(groupEntry.Teacher, teacherFromSet) < 3;
-                                    });
-                                    var lesson = new Lesson()
-                                    {
-                                        BeginTime = TimeSpan.ParseExact(context.CurrentTimeLabel.Substring(0, 5),
-                                            LessonHoursLabelFormat,
-                                            CultureInfo.InvariantCulture),
-                                        Discipline = "Английский язык",
-                                        Duration = TimeSpan.FromHours(1.5),
-                                        Level = ScheduleElemLevel.Lesson,
-                                        IsOnEvenWeek = teacherSet.Contains("ч.н") ? true :
-                                            teacherSet.Contains("н.н") ? false : (bool?) null,
-                                        Place = ExtractRoom(teacherSet),
-                                        Teacher = bestGroupEntry.Teacher
-                                    };
-                                    lesson.Notation = ExtractNotation(teacherSet.Replace(lesson.Teacher, "")
-                                        .Replace(lesson.Place, ""));
-                                    return new ValueTuple<IScheduleElem, IScheduleGroup>(lesson, bestGroupEntry.Group);
-                                });
+                        var parts = cellText.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                        var res = new SimpleLessonRule().SerializeElems(parts[0], context, availableGroups).Select(entry =>
+                        {
+                            var lesson = entry.ScheduleElem as Lesson;
+                            if (lesson != null && lesson.Discipline.Contains("для гр.11-508"))
+                            {
+                                lesson.Discipline = lesson.Discipline.Replace("для гр.11-508", null);
+                                entry.Group = availableGroups.FirstOrDefault(g => g.Name.Contains("11-508"));
+                            }
+                            return entry;
+                        });
+                        res = res.Concat(
+                            new LevenshteinBasedRule(50, 100, 3d).SerializeElems(parts[1], context, availableGroups));
+                        return res;
                     }
                 },
-                new LevenshteinBasedRule(50, 100, 3d)
+                new DelegateCellRule()
+                {
+                    ApplicabilityEstimator = (cellText, groups) => cellText.Contains("Основы правоведения и проти",
+                                                                       StringComparison.InvariantCultureIgnoreCase)
+                                                                   && cellText.Contains("Управление проектами",
+                                                                       StringComparison.InvariantCultureIgnoreCase)  ? Int32.MaxValue : Int32.MinValue,
+                    Serializer = (cellText, context, availableGroups) =>
+                    {
+                        var parts = cellText.Split(" , ", StringSplitOptions.RemoveEmptyEntries);
+                        var res = new SimpleLessonRule().SerializeElems(parts[0], context, availableGroups);
+                        res = res.Concat(
+                            new SimpleLessonRule().SerializeElems(parts[1], context, availableGroups));
+                        return res;
+                    }
+                },
+                new DelegateCellRule()
+                {
+                    ApplicabilityEstimator = (cellText, groups) => cellText.Contains("Методология научных исследований : ",
+                                                                       StringComparison.InvariantCultureIgnoreCase)  ? Int32.MaxValue : Int32.MinValue,
+                    Serializer = (cellText, context, availableGroups) =>
+                    {
+
+                        var lesson = new Lesson()
+                        {
+                            Discipline = "Методология научных исследований",
+                            Teacher = string.Empty,
+                            Place = string.Empty,
+                            BeginTime = TimeSpan.ParseExact(context.CurrentTimeLabel.Substring(0, 5),
+                                LessonHoursLabelFormat,
+                                CultureInfo.InvariantCulture),
+                            Duration = TimeSpan.FromHours(1.5),
+                            Level = ScheduleElemLevel.Lesson,
+                            Notation = cellText.Split(" : ")[1]
+                        };
+                        return PrepareLectureOrSeminar(lesson, context,
+                            availableGroups.Where(g =>
+                                g.GType == ScheduleGroupType.Academic &&
+                                g.Name.StartsWith(context.CurrentGroupLabel.Substring(0, 4))));
+                    }
+                },
             };
         }
 
@@ -275,6 +408,13 @@ namespace ScheduleBot.AspHost
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+        private static string ExtractCourseLabel(string token)
+        {
+            var courseIdx = token.IndexOf("курс");
+            if (courseIdx > 0)
+                return token.Substring(courseIdx - 1, 5);
+            return string.Empty;
         }
 
         private static string ExtractStreamNumber(TableContext context)
