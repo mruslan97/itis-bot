@@ -24,6 +24,7 @@ using ScheduleBot.AspHost.DAL;
 using ScheduleBot.AspHost.DAL.Repositories.Impls;
 using ScheduleBot.AspHost.DAL.Repositories.Interfaces;
 using ScheduleBot.AspHost.Keyboards;
+using ScheduleBot.AspHost.Setup;
 using ScheduleBot.AspHost.Updating;
 using ScheduleServices.Core.Config;
 using ScheduleServices.Core.Models.Interfaces;

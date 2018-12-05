@@ -49,7 +49,7 @@ namespace ScheduleServices.Core
                     Console.WriteLine("UPDATE INTERRUPTED");
                 }
                 else
-                    logger.LogError("First time schedules update interrupted", e);
+                    logger.LogError(e, "First time schedules update interrupted");
             }
 
             if (logger == null)
